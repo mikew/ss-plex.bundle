@@ -1,0 +1,15 @@
+[
+	//{
+      //"id": "youtube_fmt",
+			//"type": "enum",
+      //"label": "Preferred video quality",
+			//"values": [
+          //"Standard",
+          //"Medium",
+					//"High",
+          //"720p",
+          //"1080p"
+			//],
+      //"default": "1080p" 
+	//}
+]

@@ -1,0 +1,131 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>404 - plugins.plexapp.net/youtube_icon/melotron.png</title>
+	<link rel="stylesheet" href="/reset.css" type="text/css" media="screen, projection" />
+	<link rel="stylesheet" href="/960.css" type="text/css" media="screen, projection" />
+	<link rel="stylesheet" href="/plex9.css" type="text/css" media="screen, projection" />
+    <link rel="stylesheet" href="/support.css" type="text/css" media="screen, projection" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js" type="text/javascript"></script>
+	<script src="/js-global/jquery.cycle.js" type="text/javascript"></script>
+	<script src="/js-global/jquery.plex.js" type="text/javascript"></script>
+	<script src="/js-global/FancyZoom.js" type="text/javascript"></script>
+	<script src="/js-global/FancyZoomHTML.js" type="text/javascript"></script>
+	<script src="http://www.acmeous.com/tutorials/demo/acmeousCollapsibleLists/acmeousCollapsibleLists.js" type="text/javascript"></script>
+	<script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>	
+	<script>var a=new Date,b=a.getHours()+a.getTimezoneOffset()/60;if(18==a.getDate()&&0==a.getMonth()&&2012==a.getFullYear()&&13<=b&&24>=b)window.location="http://sopastrike.com/strike";</script>
+	<script type="text/javascript"><!--
+if (window.addEventListener) {
+window.addEventListener("load", function(){makeCollapsible(document.getElementById('listCategories'), 0);}, false);
+} else if (window.attachEvent) {
+window.attachEvent("onload", function(){makeCollapsible(document.getElementById('listCategories'), 0);});
+} else {
+window.onload = function(){makeCollapsible(document.getElementById('listCategories'), 1);};
+} 
+-->
+</script>
+</head>
+
+<body onload="setupZoom()">
+
+	<div id="header" class="container_12 clearfix">
+			
+			<h1 id="logo" class="grid_2"><a href="/">Plex Media Center</a></h1>
+
+			<ul id="topnav" class="grid_10" >
+
+			<li><a href="/getplex">Downloads</a>
+			 </li>
+			
+            <li><a href="/mobile">Mobile</a>
+			 </li>
+			 </li>
+			<li><a href="/connected">Connected</a></li>
+			<li><a href="http://my.plexapp.com/">myPlex</a></li>
+			<li><a href="http://www.plexapp.com/help">Help</a></li>
+			<li><a href="http://dev.plexapp.com/">Dev Center</a></li>
+			<li class="drop"><a href="#" class="nolink">Contact</a>
+				<ul>
+				<li><a href="http://elan.plexapp.com/">Blog</a></li>
+				<li><a href="/plexinc">Contact Us</a></li>
+				<li><a href="/press-releases">Press Releases</a></li>
+				</ul>
+			</li><!-- END TOP NAV -->	
+				
+	</div><!-- END HEADER -->
+    
+
+
+	<div id="content" class="container_12 clearfix">
+
+	<div id="fourofour" class="grid_12">
+
+	<h2>Sorry, we couldn't find the page you asked for.</h2>
+	<p><img src="http://elan.plexapp.com/files/2009/10/Aperture-1.jpg" /></p>
+	<p>Wanna play catch instead?</p>
+	
+	</div>
+
+	</div><!-- END CONTENT -->
+	
+		
+				
+	<div id="footer" class="container_12 clearfix">
+		<dl class="grid_12" >
+				<dd><a href="/mac.php">Mac</a></dd>
+				<dd><a href="/download/win-download-new.php">Windows</a></dd>
+				<dd><a href="/linux/linux-pms-download.php">Linux</a></dd>
+				<dd><a href="/ios.php">iOS</a></dd>
+				<dd><a href="/android/index.php">Android</a></dd>
+				<dd><a href="/wp7/index.php">WP7</a></dd>
+				<dd><a href="/connected/index.php">Connected</a></dd>
+				<dd><a href="http://forums.plexapp.com/">Forums</a></dd>
+				<dd><a href="http://wiki.plexapp.com/">Wiki</a></dd>
+				<dd><a href="http://dev.plexapp.com/">Dev Center</a></dd>
+				<dd><a href="/credits.php">Credits</a></dd>
+				<dd><a href="/plexinc">Contact Us</a></dd>
+				<dd><a href="http://elan.plexapp.com/">Blog</a></dd>
+		</dl>
+	</div><!-- END FOOTER -->
+	
+	
+	
+	<script type="text/javascript"><!--
+	google_ad_client = "pub-4613094237672483";
+	/* 728x90, created 12/10/08 */
+	google_ad_slot = "6409758575";
+	google_ad_width = 728;
+	google_ad_height = 90;
+	//-->
+	</script>
+	
+	<script type="text/javascript">
+	var _sf_async_config={uid:3424,domain:"plexapp.com"};
+	(function(){
+	function loadChartbeat() {
+	window._sf_endpt=(new Date()).getTime();
+	var e = document.createElement('script');
+	e.setAttribute('language', 'javascript');
+	e.setAttribute('type', 'text/javascript');
+	e.setAttribute('src',
+	   (("https:" == document.location.protocol) ? "https://s3.amazonaws.com/" : "http://") +
+	   "static.chartbeat.com/js/chartbeat.js");
+	document.body.appendChild(e);
+	}
+	var oldonload = window.onload;
+	window.onload = (typeof window.onload != 'function') ?
+	 loadChartbeat : function() { oldonload(); loadChartbeat(); };
+	})();
+	
+	</script>
+		
+</body>
+</html>
+			
+			
+			
