@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+  <key>URL</key>
+  <dict>
+    <key>Icefilms</key>
+    <dict>
+      <key>URLPatterns</key>
+      <array>
+        <string>http://www\.icefilms\.info/ip\.php\?v=\d+</string>
+      </array>
+      <key>TestURLs</key>
+      <array>
+          <string>http://www.icefilms.info/ip.php?v=155301</string>
+      </array>
+    </dict>
+  </dict>
+</dict>
+</plist>

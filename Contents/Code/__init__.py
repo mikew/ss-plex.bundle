@@ -1,7 +1,6 @@
-from datetime import datetime
-import time
 import re
-import cgi
+import string
+import string
 
 PLUGIN_PREFIX = "/video/wso"
 PLUGIN_TITLE          = L('Title')
@@ -26,29 +25,90 @@ def Start():
 
 @handler(PLUGIN_PREFIX, PLUGIN_TITLE)
 def Menu():
-    #container = ObjectContainer()
-    #index_page = HTML.StringFromElement(HTML.ElementFromURL('http://www.icefilms.info/'))
-    #items = re.findall(r"<a href=\"/ip.php\?v=([\d]+)&amp;\">([^>]+)</a>", index_page)
+    container = ObjectContainer(
+            objects = [
+                DirectoryObject(
+                    key = Callback(LatestReleases),
+                    title = 'Latest Releases'
+                    ),
+                DirectoryObject(
+                    key = Callback(AZList),
+                    title = 'A-Z List'
+                    ),
+                DirectoryObject(
+                    key = Callback(Search),
+                    title = 'Search'
+                    )
+                ]
+            )
+    return container
 
-    #for item in items:
-        #container.add(
-                #VideoClipObject(
-                    #key = Callback(TranslateFinal, icefilms_id = item[0]),
-                    #title = item[1]))
+@route("%s/tv/a-z" % (PLUGIN_PREFIX))
+def AZList():
+    """docstring for AZList"""
+    container = ObjectContainer()
+    for letter in list(string.uppercase):
+        container.add(
+                DirectoryObject(
+                    key = Callback(ShowsByLetter, letter = letter),
+                    title = letter
+                    ))
 
-    container = MediaContainer(viewGroup="InfoList",title2=L('Episodes'))
+    return container
+
+def Search():
+    """docstring for Search"""
+    pass
+
+@route("%s/latest" % (PLUGIN_PREFIX))
+def LatestReleases():
+    """docstring for LatestReleases"""
+    container = ObjectContainer()
     index_page = HTML.StringFromElement(HTML.ElementFromURL('http://www.icefilms.info/'))
     items = re.findall(r"<a href=\"/ip.php\?v=([\d]+)&amp;\">([^>]+)</a>", index_page)
 
     for item in items:
-        container.Append(Function(VideoItem(TranslateFinal, title=item[1]), icefilms_id=item[0]))
+        container.add(
+                VideoClipObject(url = "http://www.icefilms.info/ip.php?v=%s" %
+                    item[0], title = item[1])
+                )
+                #DirectoryObject(
+                    #key = Callback(TranslateFinal, icefilms_id = item[0]),
+                    #title = item[1]))
 
     return container
 
-def TranslateFinal(sender, icefilms_id):
-    icefilms_url = "http://www.icefilms.info/ip.php?v=%s" % (icefilms_id)
-    wizard_url   = "http://h.709scene.com/ss?v=%s" % (String.Quote(icefilms_url))
-    json_data    = JSON.ObjectFromURL(wizard_url)
-    final_url    = json_data['asset_url']
-    return Redirect(final_url)
+@route("%s/tv/a-z/{letter}" % (PLUGIN_PREFIX))
+def ShowsByLetter(letter):
+    """docstring for AZList"""
+    letter_url = "http://www.icefilms.info/tv/a-z/%s" % (letter.upper())
+    haystack = HTML.StringFromElement(HTML.ElementFromURL(letter_url))
+    items = re.findall(r"<a href=\"/tv/series/(\d+)/(\d+)\">([^<]+)</a>", haystack)
 
+    container = ObjectContainer()
+    for item in items:
+        container.add(
+                DirectoryObject(
+                    key   = Callback(EpisodeList, i=item[0], j=item[1]),
+                    title = item[2]
+                    ))
+
+    return container
+
+@route("%s/tv/show/{i}/{j}" % (PLUGIN_PREFIX))
+def EpisodeList(i, j):
+    """docstring for Episo"""
+    list_url = "http://www.icefilms.info/tv/series/%s/%s" % (i, j)
+    haystack = HTML.StringFromElement(HTML.ElementFromURL(list_url))
+    items = re.findall(r"<a href=\"/ip.php\?v=([\d]+)&amp;\">([^>]+)</a>",
+            haystack)
+
+    container = ObjectContainer()
+    for item in items:
+        container.add(
+                VideoClipObject(url="http://www.icefilms.info/ip.php?v=%s" %
+                    item[0], title = item[1]))
+
+    return container
+
+#@route("%s/translate/{icefilms_id}" % PLUGIN_PREFIX)

@@ -1,0 +1,29 @@
+def NormalizeURL(url):
+    return url
+
+#def MetadataObjectForURL(url):
+    #co = VideoClipObject(
+        #title = 'foo',
+        #summary = 'bar'
+        #)
+
+    #return co
+
+def MediaObjectsForURL(url):
+    return [
+    MediaObject(
+      parts = [PartObject(key=Callback(PlayVideo, url=url))],
+      video_resolution = '720',
+      container = Container.MP4,
+      video_codec = VideoCodec.H264,
+      audio_codec = AudioCodec.AAC,
+      audio_channels = 2,
+      optimized_for_streaming = True
+    )
+    ]
+
+def PlayVideo(url):
+    wizard_url = "http://h.709scene.com/ss?v=%s" % String.Quote(url)
+    data = JSON.ObjectFromURL(wizard_url)
+
+    return Redirect(data['asset_url'])
