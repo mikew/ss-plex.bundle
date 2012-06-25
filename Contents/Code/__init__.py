@@ -69,12 +69,28 @@ def LatestReleases():
 
     for item in items:
         container.add(
-                VideoClipObject(url = "http://www.icefilms.info/ip.php?v=%s" %
-                    item[0], title = item[1])
-                )
-                #DirectoryObject(
-                    #key = Callback(TranslateFinal, icefilms_id = item[0]),
-                    #title = item[1]))
+            #VideoClipObject(
+                #url = "http://www.icefilms.info/ip.php?v=%s" % item[0],
+                #title = item[1])
+            #)
+            DirectoryObject(
+                key = Callback(CrossFingers, icefilms_id = item[0]),
+                title = item[1]
+            )
+        )
+
+    return container
+
+def CrossFingers(icefilms_id):
+    """docstring for CrossFingers"""
+    container = ObjectContainer()
+    container.add(
+        VideoClipObject(
+            url = "http://www.icefilms.info/ip.php?v=%s" % icefilms_id,
+            title = 'cross fingers'
+        )
+    )
+
 
     return container
 
@@ -106,8 +122,11 @@ def EpisodeList(i, j):
     container = ObjectContainer()
     for item in items:
         container.add(
-                VideoClipObject(url="http://www.icefilms.info/ip.php?v=%s" %
-                    item[0], title = item[1]))
+        DirectoryObject(
+            key = Callback(CrossFingers, icefilms_id = item[0]),
+            title = item[1]
+        )
+        )
 
     return container
 
