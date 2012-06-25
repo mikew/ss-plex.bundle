@@ -1,3 +1,5 @@
+from urllib2 import Request, urlopen, URLError, HTTPError
+
 def NormalizeURL(url):
     return url
 
@@ -10,9 +12,8 @@ def NormalizeURL(url):
     #return co
 
 def MediaObjectsForURL(url):
-    return [
-    MediaObject(
-      parts = [PartObject(key=Callback(PlayVideo, url=url))],
+    mp4 = MediaObject(
+      parts = [PartObject(key=Callback(PlayVideo, url = url))],
       video_resolution = '720',
       container = Container.MP4,
       video_codec = VideoCodec.H264,
@@ -20,7 +21,23 @@ def MediaObjectsForURL(url):
       audio_channels = 2,
       optimized_for_streaming = True
     )
-    ]
+    divx = MediaObject(
+      parts = [PartObject(key=Callback(PlayVideo, url = url))],
+      container = Container.AVI,
+      video_codec = VideoCodec.DIVX,
+      audio_codec = AudioCodec.MP3,
+      audio_channels = 2,
+      optimized_for_streaming = True
+    )
+    mkv = MediaObject(
+      parts = [PartObject(key=Callback(PlayVideo, url = url))],
+      container = Container.MKV,
+      video_codec = VideoCodec.H264,
+      audio_codec = AudioCodec.AAC,
+      audio_channels = 2,
+      optimized_for_streaming = True
+    )
+    return [ mp4, divx, mkv ]
 
 def PlayVideo(url):
     wizard_url = "http://h.709scene.com/ss?v=%s" % String.Quote(url)
