@@ -1,6 +1,17 @@
 {
-    "Title": "IceFilms"
-    //"Next Page": "Next Page...",
-    //"Previous Page": "Previous Page...",
-    //"Episodes": "Episodes"
+  'title'    : 'SS-Plex',
+  'icefilms' : 'IceFilms',
+  'wso'      : 'Watch Series',
+
+  // Possible Main Sections
+  'tv'              : 'TV Shows',
+  'movies'          : 'Movies',
+  'latest_releases' : 'Latest Releases',
+
+  // Filters
+  'by_letter'     : 'A-Z List',
+  'by_popularity' : 'Sorted by Popularity',
+  'by_rating'     : 'Sorted by Rating',
+  'by_release'    : 'Sorted by Release',
+  'search'        : 'Search'
 }

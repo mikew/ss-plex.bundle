@@ -12,14 +12,11 @@ def NormalizeURL(url):
 def MediaObjectsForURL(url):
     wizard_url = "http://h.709scene.com/ss?v=%s" % String.Quote(url)
     data = JSON.ObjectFromURL(wizard_url)
+    Log(data)
 
     obj = MediaObject(
       parts = [ PartObject(key = data['asset_url']) ],
     )
-
-    #obj = MediaObject(
-      #parts = [ PartObject(key = Callback(PlayVideo, url = url)) ],
-    #)
 
     return [ obj ]
 
