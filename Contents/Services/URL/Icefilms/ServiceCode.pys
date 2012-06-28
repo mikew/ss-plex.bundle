@@ -1,26 +1,20 @@
 def NormalizeURL(url):
     return url
 
-#def MetadataObjectForURL(url):
-    #co = VideoClipObject(
-        #title = 'foo',
-        #summary = 'bar'
-        #)
+def MetadataObjectForURL(url):
+    co = VideoClipObject(
+        title = 'foo',
+        summary = 'bar'
+        )
 
-    #return co
+    return co
 
 def MediaObjectsForURL(url):
     wizard_url = "http://h.709scene.com/ss?v=%s" % String.Quote(url)
-    data = JSON.ObjectFromURL(wizard_url)
-    Log(data)
+    data       = JSON.ObjectFromURL(wizard_url)
 
     obj = MediaObject(
       parts = [ PartObject(key = data['asset_url']) ],
     )
 
     return [ obj ]
-
-def PlayVideo(url):
-    wizard_url = "http://h.709scene.com/ss?v=%s" % String.Quote(url)
-    data = JSON.ObjectFromURL(wizard_url)
-    return Redirect(data['asset_url'])

@@ -16,6 +16,10 @@ ICEFILMS_URL_TVEPISODES   = 'http://www.icefilms.info/tv/series/%s/%s'
 ICEFILMS_FINDER_PERMALINK = r"<a href=\"?/ip.php\?v=([\d]+)(?:&|&amp;)?\"?>([^>]+)</a>"
 ICEFILMS_FINDER_TVSERIES  = r"<a href=\"?/tv/series/(\d+)/(\d+)\"?>([^<]+)</a>"
 
+SS_URL_SOURCES   = 'http://localhost:4567/sources?url=%s'
+SS_URL_TRANSLATE = 'http://localhost:4567/translate?original=%s&foreign=%s'
+SS_URL_WIZARD    = 'http://localhost:4567/wizard?url=%s'
+
 def Start():
     # Initialize the plug-in
     Plugin.AddViewGroup("Details",  viewMode = "InfoList",  mediaType = "items")
@@ -53,8 +57,7 @@ def IcefilmsLatest():
     """docstring for IcefilmsLatest"""
     container = ObjectContainer()
 
-    for item in icefilms_find_permalinks(ICEFILMS_URL_LATEST):
-        container.add(DirectoryObject(key = Callback(IcefilmsCrossFingers, icefilms_id = item[0]), title = item[1]))
+    icefilms_populate_with_permalinks(container, ICEFILMS_URL_LATEST)
 
     return container
 
@@ -109,8 +112,7 @@ def IcefilmsEpisodeList(i, j):
     list_url  = ICEFILMS_URL_TVEPISODES % (i, j)
     container = ObjectContainer()
 
-    for item in icefilms_find_permalinks(list_url):
-        container.add(DirectoryObject(key = Callback(IcefilmsCrossFingers, icefilms_id = item[0]), title = item[1]))
+    icefilms_populate_with_permalinks(container, list_url)
 
     return container
 
@@ -142,9 +144,7 @@ def IcefilmsMoviesByLetter(letter):
 
     letter_url = ICEFILMS_URL_MOVIESAZ % letter.upper()
     container  = ObjectContainer()
-
-    for item in icefilms_find_permalinks(letter_url):
-        container.add(DirectoryObject(key = Callback(IcefilmsCrossFingers, icefilms_id = item[0]), title = item[1]))
+    icefilms_populate_with_permalinks(container, letter_url)
 
     return container
 
@@ -154,8 +154,7 @@ def IcefilmsMoviesByFilter(scope):
     filter_page = ICEFILMS_URL_MOVIESFILTER % scope
     container   = ObjectContainer()
 
-    for item in icefilms_find_permalinks(filter_page):
-        container.add(DirectoryObject(key = Callback(IcefilmsCrossFingers, icefilms_id = item[0]), title = item[1]))
+    icefilms_populate_with_permalinks(container, filter_page)
 
     return container
 
@@ -163,9 +162,35 @@ def IcefilmsMoviesByFilter(scope):
 def IcefilmsCrossFingers(icefilms_id):
     """docstring for IcefilmsCrossFingers"""
     container = ObjectContainer()
-    container.add(VideoClipObject(url = ICEFILMS_URL_PERMALINK % icefilms_id, title = 'cross fingers'))
+    ss_populate_sources(container, ICEFILMS_URL_PERMALINK % icefilms_id)
 
     return container
+
+def ss_populate_sources(container, url):
+    sourcesurl = SS_URL_SOURCES % String.Quote(url)
+    sources = JSON.ObjectFromURL(sourcesurl)
+
+    for pair in sources:
+        source       = pair[0]
+        source_title = 'Watch on %s' % pair[1]
+        part_object  = PartObject(key    = Callback(TranslateFinal, original = url, foreign = source))
+        media_object = MediaObject(parts = [ part_object ])
+        video_object = VideoClipObject(
+                items      = [ media_object ],
+                key        = url,
+                title      = source_title,
+                rating_key = url
+                )
+
+        container.add(video_object)
+
+def TranslateFinal(original, foreign):
+    """docstring for TranslateFinal"""
+    url  = SS_URL_TRANSLATE % (String.Quote(original), String.Quote(foreign))
+    data = JSON.ObjectFromURL(url)
+    Log('yayo')
+
+    return Redirect(data['asset_url'])
 
 def az_list():
     """docstring for az_list"""
@@ -182,3 +207,6 @@ def icefilms_find_permalinks(haystack_url):
     """docstring for icefilms_find_permalinks"""
     return re.findall(ICEFILMS_FINDER_PERMALINK, HTTP.Request(haystack_url).content)
 
+def icefilms_populate_with_permalinks(container, haystack_url):
+    for item in icefilms_find_permalinks(haystack_url):
+        container.add(DirectoryObject(key = Callback(IcefilmsCrossFingers, icefilms_id = item[0]), title = item[1]))
