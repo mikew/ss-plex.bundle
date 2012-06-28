@@ -16,9 +16,9 @@ ICEFILMS_URL_TVEPISODES   = 'http://www.icefilms.info/tv/series/%s/%s'
 ICEFILMS_FINDER_PERMALINK = r"<a href=\"?/ip.php\?v=([\d]+)(?:&|&amp;)?\"?>([^>]+)</a>"
 ICEFILMS_FINDER_TVSERIES  = r"<a href=\"?/tv/series/(\d+)/(\d+)\"?>([^<]+)</a>"
 
-SS_URL_SOURCES   = 'http://localhost:4567/sources?url=%s'
-SS_URL_TRANSLATE = 'http://localhost:4567/translate?original=%s&foreign=%s'
-SS_URL_WIZARD    = 'http://localhost:4567/wizard?url=%s'
+SS_URL_SOURCES   = 'http://h.709scene.com/ss/sources?url=%s'
+SS_URL_TRANSLATE = 'http://h.709scene.com/ss/translate?original=%s&foreign=%s'
+SS_URL_WIZARD    = 'http://h.709scene.com/ss/wizard?url=%s'
 
 def Start():
     # Initialize the plug-in
@@ -171,26 +171,24 @@ def ss_populate_sources(container, url):
     sources = JSON.ObjectFromURL(sourcesurl)
 
     for pair in sources:
-        source       = pair[0]
-        source_title = 'Watch on %s' % pair[1]
-        part_object  = PartObject(key    = Callback(TranslateFinal, original = url, foreign = source))
-        media_object = MediaObject(parts = [ part_object ])
-        video_object = VideoClipObject(
-                items      = [ media_object ],
-                key        = url,
-                title      = source_title,
-                rating_key = url
-                )
+        foreign = pair[0]
+        source_hint = pair[1]
+        source_title = 'Watch on %s' % source_hint
 
-        container.add(video_object)
+        container.add(DirectoryObject(title = source_title, key =
+            Callback(TranslateFinal, original = url, foreign = foreign)))
 
 def TranslateFinal(original, foreign):
     """docstring for TranslateFinal"""
-    url  = SS_URL_TRANSLATE % (String.Quote(original), String.Quote(foreign))
-    data = JSON.ObjectFromURL(url)
-    Log('yayo')
+    container     = ObjectContainer()
+    translate_url = SS_URL_TRANSLATE % (String.Quote(original), String.Quote(foreign))
+    actor_url     = JSON.ObjectFromURL(translate_url)
 
-    return Redirect(data['asset_url'])
+    video_object = VideoClipObject(url = actor_url, title = 'asdf')
+    container.add(video_object)
+    return container
+
+    #return Redirect(data['asset_url'])
 
 def az_list():
     """docstring for az_list"""

@@ -10,7 +10,8 @@ def MetadataObjectForURL(url):
     return co
 
 def MediaObjectsForURL(url):
-    wizard_url = "http://h.709scene.com/ss?v=%s" % String.Quote(url)
+    Log(url)
+    wizard_url = "http://h.709scene.com/ss/wizard?url=%s" % String.Quote(url)
     data       = JSON.ObjectFromURL(wizard_url)
 
     obj = MediaObject(

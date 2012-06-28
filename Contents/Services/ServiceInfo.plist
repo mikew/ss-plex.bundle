@@ -7,11 +7,12 @@
     <dict>
       <key>URLPatterns</key>
       <array>
-        <string>http://www\.icefilms\.info/ip\.php\?v=\d+</string>
+        <!--<string>http://www\.icefilms\.info/ip\.php\?v=\d+</string>-->
+        <string>http://(180upload\.com|billionuploads\.com|sharebees\.com|jumbofiles\.com|filebox\.com)</string>
       </array>
       <key>TestURLs</key>
       <array>
-          <string>http://www.icefilms.info/ip.php?v=155301</string>
+          <string>http://180upload.com/twbdsfu4ddux</string>
       </array>
     </dict>
   </dict>
