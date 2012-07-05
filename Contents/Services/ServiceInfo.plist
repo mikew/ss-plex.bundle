@@ -8,7 +8,7 @@
       <key>URLPatterns</key>
       <array>
         <!--<string>http://www\.icefilms\.info/ip\.php\?v=\d+</string>-->
-        <string>http://(180upload\.com|billionuploads\.com|sharebees\.com|jumbofiles\.com|filebox\.com)</string>
+        <string>http://(www\.)?(180upload\.com|billionuploads\.com|sharebees\.com|jumbofiles\.com|filebox\.com)</string>
       </array>
       <key>TestURLs</key>
       <array>

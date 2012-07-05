@@ -1,7 +1,10 @@
 import re
 import string
 
-PLUGIN_PREFIX = '/video/ssp'
+PLUGIN_PREFIX          = '/video/ssp'
+PLUGIN_PREFIX_WSO      = '%s/wso'      % PLUGIN_PREFIX
+PLUGIN_PREFIX_ICEFILMS = '%s/icefilms' % PLUGIN_PREFIX
+
 PLUGIN_TITLE  = L('title')
 PLUGIN_ART    = 'art-default.jpg'
 PLUGIN_ICON   = 'icon-default.png'
@@ -20,6 +23,10 @@ SS_URL_SOURCES   = 'http://h.709scene.com/ss/sources?url=%s'
 SS_URL_TRANSLATE = 'http://h.709scene.com/ss/translate?original=%s&foreign=%s'
 SS_URL_WIZARD    = 'http://h.709scene.com/ss/wizard?url=%s'
 
+WSO_URL_LATEST     = 'http://www.watchseries-online.eu/page/%s'
+WSO_URL_TVAZ       = 'http://www.watchseries-online.eu/2005/07/index.html'
+WSO_URL_TVEPISODES = 'http://www.watchseries-online.eu/category/%s/page/%s'
+
 def Start():
     # Initialize the plug-in
     Plugin.AddViewGroup("Details",  viewMode = "InfoList",  mediaType = "items")
@@ -37,6 +44,16 @@ def Start():
     VideoClipObject.art   = R(PLUGIN_ART)
 
 @handler(PLUGIN_PREFIX, PLUGIN_TITLE)
+def MainMenu():
+    """docstring for MainMenu"""
+    container = ObjectContainer(objects = [
+        DirectoryObject(key = Callback(IcefilmsMenu), title = L('Icefilms')),
+        DirectoryObject(key = Callback(WSOMenu),      title = L('Watchseries'))
+    ])
+
+    return container
+
+@route(PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMenu():
     container = ObjectContainer(objects = [
         DirectoryObject(key = Callback(IcefilmsLatest),  title = L('latest_releases')),
@@ -47,21 +64,17 @@ def IcefilmsMenu():
 
     return container
 
-@route('%s/icefilms/search' % PLUGIN_PREFIX)
+@route('%s/search' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsSearch():
     """docstring for IcefilmsSearch"""
     pass
 
-@route('%s/icefilms/latest' % PLUGIN_PREFIX)
+@route('%s/latest' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsLatest():
     """docstring for IcefilmsLatest"""
-    container = ObjectContainer()
+    return icefilms_container_permalinks(ICEFILMS_URL_LATEST)
 
-    icefilms_populate_with_permalinks(container, ICEFILMS_URL_LATEST)
-
-    return container
-
-@route('%s/icefilms/tv' % PLUGIN_PREFIX)
+@route('%s/tv' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsTV():
     """docstring for IcefilmsTV"""
     return ObjectContainer(objects = [
@@ -71,52 +84,31 @@ def IcefilmsTV():
         DirectoryObject(key = Callback(IcefilmsTVByFilter, scope = 'release'), title = L('by_release'))
     ])
 
-@route("%s/icefilms/tv/a-z" % (PLUGIN_PREFIX))
+@route("%s/tv/a-z" % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsTVAZ():
     """docstring for IcefilmsTVAZ"""
-    container  = ObjectContainer()
 
-    for letter in az_list():
-        container.add(DirectoryObject(key = Callback(IcefilmsTVByLetter, letter = letter), title = letter))
+    return az_container(IcefilmsTVByLetter)
 
-    return container
-
-@route("%s/icefilms/tv/a-z/{letter}" % (PLUGIN_PREFIX))
+@route("%s/tv/a-z/{letter}" % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsTVByLetter(letter):
     """docstring for AZList"""
-    if letter == '#':
-        letter = '1'
 
-    letter_url = ICEFILMS_URL_TVAZ % letter.upper()
-    container  = ObjectContainer()
+    return icefilms_container_episode_list(ICEFILMS_URL_TVAZ % letter.upper())
 
-    for item in icefilmes_find_tvseries(letter_url):
-        container.add(DirectoryObject(key = Callback(IcefilmsEpisodeList, i = item[0], j = item[1]), title = item[2]))
-
-    return container
-
-@route('%s/icefilms/tv/{scope}' % PLUGIN_PREFIX)
+@route('%s/tv/{scope}' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsTVByFilter(scope):
     """docstring for IcefilmsTVByFilter"""
-    filter_page = ICEFILMS_URL_TVFILTER % scope
-    container   = ObjectContainer()
 
-    for item in icefilmes_find_tvseries(filter_page):
-        container.add(DirectoryObject(key = Callback(IcefilmsEpisodeList, i = item[0], j = item[1]), title = item[2]))
+    return icefilms_container_episode_list(ICEFILMS_URL_TVFILTER % scope)
 
-    return container
-
-@route("%s/icefilms/tv/show/{i}/{j}" % (PLUGIN_PREFIX))
+@route("%s/tv/show/{i}/{j}" % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsEpisodeList(i, j):
     """docstring for IcefilmsEpisodeList"""
-    list_url  = ICEFILMS_URL_TVEPISODES % (i, j)
-    container = ObjectContainer()
 
-    icefilms_populate_with_permalinks(container, list_url)
+    return icefilms_container_permalinks(ICEFILMS_URL_TVEPISODES % (i, j))
 
-    return container
-
-@route('%s/icefilms/movies' % PLUGIN_PREFIX)
+@route('%s/movies' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMovies():
     """docstring for IcefilmsMovies"""
     return ObjectContainer(objects = [
@@ -126,59 +118,109 @@ def IcefilmsMovies():
         DirectoryObject(key = Callback(IcefilmsMoviesByFilter, scope = 'release'), title = L('by_release'))
     ])
 
-@route('%s/icefilms/movies/a-z' % PLUGIN_PREFIX)
+@route('%s/movies/a-z' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMoviesAZ():
     """docstring for IcefilmsMoviesAZ"""
-    container = ObjectContainer()
 
-    for letter in az_list():
-        container.add(DirectoryObject(key = Callback(IcefilmsMoviesByLetter, letter = letter), title = letter))
+    return az_container(IcefilmsMoviesByLetter)
 
-    return container
-
-@route('%s/icefilms/movies/a-z/{letter}' % (PLUGIN_PREFIX))
+@route('%s/movies/a-z/{letter}' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMoviesByLetter(letter):
     """docstring for IcefilmsMoviesByLetter"""
-    if letter == '#':
-        letter = '1'
 
-    letter_url = ICEFILMS_URL_MOVIESAZ % letter.upper()
-    container  = ObjectContainer()
-    icefilms_populate_with_permalinks(container, letter_url)
+    return icefilms_container_permalinks(ICEFILMS_URL_MOVIESAZ % letter.upper())
 
-    return container
-
-@route('%s/icefilms/movies/{scope}' % PLUGIN_PREFIX)
+@route('%s/movies/{scope}' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMoviesByFilter(scope):
     """docstring for IcefilmsMoviesByFilter"""
-    filter_page = ICEFILMS_URL_MOVIESFILTER % scope
+
+    return icefilms_container_permalinks(ICEFILMS_URL_MOVIESFILTER % letter.upper())
+
+@route(PLUGIN_PREFIX_WSO)
+def WSOMenu():
+    """docstring for WSOMenu"""
+    container = ObjectContainer(objects = [
+        DirectoryObject(key = Callback(WSOLatest, page = 1), title = L('latest_releases')),
+        DirectoryObject(key = Callback(WSOTV),               title = L('tv')),
+        DirectoryObject(key = Callback(WSOSearch),           title = L('search'))
+    ])
+
+    return container
+
+@route('%s/latest/{page}' % PLUGIN_PREFIX_WSO)
+def WSOLatest(page = 1):
+    """docstring for WSOLatest"""
+
+    return wso_container_permalinks(WSO_URL_LATEST % page, page)
+
+@route('%s/tv' % PLUGIN_PREFIX_WSO)
+def WSOTV():
+    """docstring for WSOTV"""
+
+    return ObjectContainer(objects = [
+        DirectoryObject(key = Callback(WSOTVAZ), title = L('by_letter')),
+    ])
+
+@route('%s/tv/a-z' % PLUGIN_PREFIX_WSO)
+def WSOTVAZ():
+    """docstring for WSOTVAZ"""
+
+    return az_container(WSOTVByLetter)
+
+@route('%s/tv/a-z/{letter}' % PLUGIN_PREFIX_WSO)
+def WSOTVByLetter(letter):
+    """docstring for WSOTVByLetter"""
+    if letter == '1':
+        letter = "'"
+
     container   = ObjectContainer()
+    az_page     = HTML.ElementFromURL(WSO_URL_TVAZ)
+    letter_list = az_page.get_element_by_id('goto_%s' % letter.upper()).getnext()
 
-    icefilms_populate_with_permalinks(container, filter_page)
+    for tup in letter_list.iterlinks():
+        show_title = tup[0].text
+        slug       = tup[2].split('/')[-1]
+
+        container.add(
+            DirectoryObject(
+                key   = Callback(WSOEpisodeList, slug = slug, page = 1),
+                title = show_title
+            )
+        )
 
     return container
 
-@route('%s/icefilms/cross_fingers/{icefilms_id}' % PLUGIN_PREFIX)
-def IcefilmsCrossFingers(icefilms_id):
-    """docstring for IcefilmsCrossFingers"""
-    container = ObjectContainer()
-    ss_populate_sources(container, ICEFILMS_URL_PERMALINK % icefilms_id)
+@route('%s/tv/show/{slug}/{page}' % PLUGIN_PREFIX_WSO)
+def WSOEpisodeList(slug, page):
+    """docstring for WSOEpisodeList"""
+    return wso_container_permalinks(WSO_URL_TVEPISODES % (slug, page), page)
 
-    return container
+@route('%s/search' % PLUGIN_PREFIX_WSO)
+def WSOSearch():
+    """docstring for WSOSearch"""
+    pass
 
-def ss_populate_sources(container, url):
-    sourcesurl = SS_URL_SOURCES % String.Quote(url)
-    sources = JSON.ObjectFromURL(sourcesurl)
+def SSListSources(url):
+    """docstring for SSListSources"""
+    container   = ObjectContainer()
+    sources_url = SS_URL_SOURCES % String.Quote(url)
+    sources     = JSON.ObjectFromURL(sources_url)
 
     for pair in sources:
-        foreign = pair[0]
-        source_hint = pair[1]
+        foreign      = pair[0]
+        source_hint  = pair[1]
         source_title = 'Watch on %s' % source_hint
 
-        container.add(DirectoryObject(title = source_title, key =
-            Callback(TranslateFinal, original = url, foreign = foreign)))
+        container.add(
+            DirectoryObject(
+                key   = Callback(SSTranslateFinal, original = url, foreign = foreign),
+                title = source_title
+            )
+        )
 
-def TranslateFinal(original, foreign):
+    return container
+
+def SSTranslateFinal(original, foreign):
     """docstring for TranslateFinal"""
     container     = ObjectContainer()
     translate_url = SS_URL_TRANSLATE % (String.Quote(original), String.Quote(foreign))
@@ -186,16 +228,19 @@ def TranslateFinal(original, foreign):
 
     video_object = VideoClipObject(url = actor_url, title = 'asdf')
     container.add(video_object)
+
     return container
 
-    #return Redirect(data['asset_url'])
-
-def az_list():
-    """docstring for az_list"""
+def az_container(fn):
+    """docstring for az_container"""
+    container  = ObjectContainer()
     selections = list(string.uppercase)
-    selections.append('#')
+    selections.append('1')
 
-    return selections
+    for letter in selections:
+        container.add(DirectoryObject(key = Callback(fn, letter = letter), title = letter))
+
+    return container
 
 def icefilmes_find_tvseries(haystack_url):
     """docstring for icefilmes_find_tvseries"""
@@ -205,6 +250,47 @@ def icefilms_find_permalinks(haystack_url):
     """docstring for icefilms_find_permalinks"""
     return re.findall(ICEFILMS_FINDER_PERMALINK, HTTP.Request(haystack_url).content)
 
-def icefilms_populate_with_permalinks(container, haystack_url):
-    for item in icefilms_find_permalinks(haystack_url):
-        container.add(DirectoryObject(key = Callback(IcefilmsCrossFingers, icefilms_id = item[0]), title = item[1]))
+def icefilms_container_permalinks(url):
+    """docstring for icefilms_container_permalinks"""
+    container = ObjectContainer()
+
+    for item in icefilms_find_permalinks(url):
+        container.add(DirectoryObject(
+            key   = Callback(SSListSources, url = ICEFILMS_URL_PERMALINK % item[0]),
+            title = item[1]
+        )
+    )
+
+    return container
+
+def icefilms_container_episode_list(url):
+    """docstring for icefilms_container_episode_list"""
+    container  = ObjectContainer()
+
+    for item in icefilmes_find_tvseries(url):
+        container.add(DirectoryObject(key = Callback(IcefilmsEpisodeList, i = item[0], j = item[1]), title = item[2]))
+
+    return container
+
+def wso_container_permalinks(url, page):
+    """docstring for wso_container_permalinks"""
+    container     = ObjectContainer()
+    next_page     = int(page) + 1
+    list_page     = HTML.ElementFromURL(url)
+    episode_links = list_page.cssselect('.content .Post a[rel="bookmark"]')
+
+    for link in episode_links:
+        container.add(DirectoryObject(
+            key   = Callback(SSListSources, url = link.get('href')),
+            title = link.text.strip()
+        )
+    )
+
+    container.add(
+        DirectoryObject(
+            key   = Callback(WSOLatest, page = next_page),
+            title = 'Page %s' % next_page
+        )
+    )
+
+    return container
