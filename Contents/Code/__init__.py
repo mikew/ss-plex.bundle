@@ -226,7 +226,7 @@ def SSTranslateFinal(original, foreign):
     translate_url = SS_URL_TRANSLATE % (String.Quote(original), String.Quote(foreign))
     actor_url     = JSON.ObjectFromURL(translate_url)
 
-    video_object = VideoClipObject(url = actor_url, title = 'asdf')
+    video_object = VideoClipObject(url = actor_url['url'], title = 'asdf')
     container.add(video_object)
 
     return container
