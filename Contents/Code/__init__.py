@@ -19,9 +19,10 @@ ICEFILMS_URL_TVEPISODES   = 'http://www.icefilms.info/tv/series/%s/%s'
 ICEFILMS_FINDER_PERMALINK = r"<a href=\"?/ip.php\?v=([\d]+)(?:&|&amp;)?\"?>([^>]+)</a>"
 ICEFILMS_FINDER_TVSERIES  = r"<a href=\"?/tv/series/(\d+)/(\d+)\"?>([^<]+)</a>"
 
-SS_URL_SOURCES   = 'http://h.709scene.com/ss/sources?url=%s'
-SS_URL_TRANSLATE = 'http://h.709scene.com/ss/translate?original=%s&foreign=%s'
-SS_URL_WIZARD    = 'http://h.709scene.com/ss/wizard?url=%s'
+SS_URL_SOURCES   = 'http://h.709scene.com/ss/plex/sources?url=%s'
+SS_URL_TRANSLATE = 'http://h.709scene.com/ss/plex/translate?original=%s&foreign=%s'
+SS_URL_WIZARD    = 'http://h.709scene.com/ss/plex/wizard?url=%s'
+SS_URL_QUEUE     = 'http://h.709scene.com/ss/downloads.json'
 
 WSO_URL_LATEST     = 'http://www.watchseries-online.eu/page/%s'
 WSO_URL_TVAZ       = 'http://www.watchseries-online.eu/2005/07/index.html'
@@ -47,15 +48,15 @@ def Start():
 def MainMenu():
     """docstring for MainMenu"""
     container = ObjectContainer(objects = [
-        DirectoryObject(key = Callback(IcefilmsMenu), title = L('Icefilms')),
-        DirectoryObject(key = Callback(WSOMenu),      title = L('Watchseries'))
+        DirectoryObject(key = Callback(IcefilmsMenu), title = L('icefilms')),
+        DirectoryObject(key = Callback(WSOMenu),      title = L('wso'))
     ])
 
     return container
 
 @route(PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMenu():
-    container = ObjectContainer(objects = [
+    container = ObjectContainer(title1 = L('icefilms'), objects = [
         DirectoryObject(key = Callback(IcefilmsLatest),  title = L('latest_releases')),
         DirectoryObject(key = Callback(IcefilmsTV),      title = L('tv')),
         DirectoryObject(key = Callback(IcefilmsMovies),  title = L('movies')),
@@ -72,12 +73,16 @@ def IcefilmsSearch():
 @route('%s/latest' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsLatest():
     """docstring for IcefilmsLatest"""
-    return icefilms_container_permalinks(ICEFILMS_URL_LATEST)
+    container        = icefilms_container_permalinks(ICEFILMS_URL_LATEST)
+    container.title1 = L('latest_releases')
+    container.title2 = L('icefilms')
+
+    return container
 
 @route('%s/tv' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsTV():
     """docstring for IcefilmsTV"""
-    return ObjectContainer(objects = [
+    return ObjectContainer(title1 = L('tv'), title2 = L('icefilms'), objects = [
         DirectoryObject(key = Callback(IcefilmsTVAZ), title = L('by_letter')),
         DirectoryObject(key = Callback(IcefilmsTVByFilter, scope = 'popular'), title = L('by_popularity')),
         DirectoryObject(key = Callback(IcefilmsTVByFilter, scope = 'rating'),  title = L('by_rating')),
@@ -87,31 +92,42 @@ def IcefilmsTV():
 @route("%s/tv/a-z" % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsTVAZ():
     """docstring for IcefilmsTVAZ"""
+    container        = az_container(IcefilmsTVByLetter)
+    container.title2 = L('icefilms')
 
-    return az_container(IcefilmsTVByLetter)
+    return container
 
 @route("%s/tv/a-z/{letter}" % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsTVByLetter(letter):
-    """docstring for AZList"""
+    """docstring for IcefilmsTVByLetter"""
+    container        = icefilms_container_episode_list(ICEFILMS_URL_TVAZ % letter.upper())
+    container.title1 = F('tv_by_letter', letter.upper())
+    container.title2 = L('icefilms')
 
-    return icefilms_container_episode_list(ICEFILMS_URL_TVAZ % letter.upper())
+    return container
 
 @route('%s/tv/{scope}' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsTVByFilter(scope):
     """docstring for IcefilmsTVByFilter"""
+    container        = icefilms_container_episode_list(ICEFILMS_URL_TVFILTER % scope)
+    container.title1 = L('tv_by_%s' % scope)
+    container.title2 = L('icefilms')
 
-    return icefilms_container_episode_list(ICEFILMS_URL_TVFILTER % scope)
+    return container
 
 @route("%s/tv/show/{i}/{j}" % PLUGIN_PREFIX_ICEFILMS)
-def IcefilmsEpisodeList(i, j):
+def IcefilmsEpisodeList(i, j, show):
     """docstring for IcefilmsEpisodeList"""
+    container        = icefilms_container_permalinks(ICEFILMS_URL_TVEPISODES % (i, j))
+    container.title1 = show
+    container.title2 = L('icefilms')
 
-    return icefilms_container_permalinks(ICEFILMS_URL_TVEPISODES % (i, j))
+    return container
 
 @route('%s/movies' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMovies():
     """docstring for IcefilmsMovies"""
-    return ObjectContainer(objects = [
+    return ObjectContainer(title1 = L('movies'), title2 = L('icefilms'), objects = [
         DirectoryObject(key = Callback(IcefilmsMoviesAZ), title = L('by_letter')),
         DirectoryObject(key = Callback(IcefilmsMoviesByFilter, scope = 'popular'), title = L('by_popularity')),
         DirectoryObject(key = Callback(IcefilmsMoviesByFilter, scope = 'rating'),  title = L('by_rating')),
@@ -121,25 +137,33 @@ def IcefilmsMovies():
 @route('%s/movies/a-z' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMoviesAZ():
     """docstring for IcefilmsMoviesAZ"""
+    container        = az_container(IcefilmsMoviesByLetter)
+    container.title2 = L('icefilms')
 
-    return az_container(IcefilmsMoviesByLetter)
+    return container
 
 @route('%s/movies/a-z/{letter}' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMoviesByLetter(letter):
     """docstring for IcefilmsMoviesByLetter"""
+    container        = icefilms_container_permalinks(ICEFILMS_URL_MOVIESAZ % letter.upper())
+    container.title1 = F('movies_by_letter', letter.upper())
+    container.title2 = L('icefilms')
 
-    return icefilms_container_permalinks(ICEFILMS_URL_MOVIESAZ % letter.upper())
+    return container
 
 @route('%s/movies/{scope}' % PLUGIN_PREFIX_ICEFILMS)
 def IcefilmsMoviesByFilter(scope):
     """docstring for IcefilmsMoviesByFilter"""
+    container        = icefilms_container_permalinks(ICEFILMS_URL_MOVIESFILTER % scope)
+    container.title1 = L('movies_by_%s' % scope)
+    container.title2 = L('icefilms')
 
-    return icefilms_container_permalinks(ICEFILMS_URL_MOVIESFILTER % letter.upper())
+    return container
 
 @route(PLUGIN_PREFIX_WSO)
 def WSOMenu():
     """docstring for WSOMenu"""
-    container = ObjectContainer(objects = [
+    container = ObjectContainer(title1 = L('wso'), objects = [
         DirectoryObject(key = Callback(WSOLatest, page = 1), title = L('latest_releases')),
         DirectoryObject(key = Callback(WSOTV),               title = L('tv')),
         DirectoryObject(key = Callback(WSOSearch),           title = L('search'))
@@ -150,22 +174,27 @@ def WSOMenu():
 @route('%s/latest/{page}' % PLUGIN_PREFIX_WSO)
 def WSOLatest(page = 1):
     """docstring for WSOLatest"""
+    container        = wso_container_permalinks(WSO_URL_LATEST % page, page)
+    container.title1 = L('latest_releases')
+    container.title2 = L('wso')
 
-    return wso_container_permalinks(WSO_URL_LATEST % page, page)
+    return container
 
 @route('%s/tv' % PLUGIN_PREFIX_WSO)
 def WSOTV():
     """docstring for WSOTV"""
 
-    return ObjectContainer(objects = [
+    return ObjectContainer(title1 = L('tv'), title2 = L('wso'), objects = [
         DirectoryObject(key = Callback(WSOTVAZ), title = L('by_letter')),
     ])
 
 @route('%s/tv/a-z' % PLUGIN_PREFIX_WSO)
 def WSOTVAZ():
     """docstring for WSOTVAZ"""
+    container        = az_container(WSOTVByLetter)
+    container.title2 = L('wso')
 
-    return az_container(WSOTVByLetter)
+    return container
 
 @route('%s/tv/a-z/{letter}' % PLUGIN_PREFIX_WSO)
 def WSOTVByLetter(letter):
@@ -173,7 +202,7 @@ def WSOTVByLetter(letter):
     if letter == '1':
         letter = "'"
 
-    container   = ObjectContainer()
+    container   = ObjectContainer(title1 = F('tv_by_letter', letter.upper()), title2 = L('wso'))
     az_page     = HTML.ElementFromURL(WSO_URL_TVAZ)
     letter_list = az_page.get_element_by_id('goto_%s' % letter.upper()).getnext()
 
@@ -183,7 +212,7 @@ def WSOTVByLetter(letter):
 
         container.add(
             DirectoryObject(
-                key   = Callback(WSOEpisodeList, slug = slug, page = 1),
+                key   = Callback(WSOEpisodeList, slug = slug, page = 1, show = show_title),
                 title = show_title
             )
         )
@@ -191,20 +220,29 @@ def WSOTVByLetter(letter):
     return container
 
 @route('%s/tv/show/{slug}/{page}' % PLUGIN_PREFIX_WSO)
-def WSOEpisodeList(slug, page):
+def WSOEpisodeList(slug, page, show):
     """docstring for WSOEpisodeList"""
-    return wso_container_permalinks(WSO_URL_TVEPISODES % (slug, page), page)
+    container        = wso_container_permalinks(WSO_URL_TVEPISODES % (slug, page), page)
+    container.title1 = show
+    container.title2 = L('wso')
+
+    return container
 
 @route('%s/search' % PLUGIN_PREFIX_WSO)
 def WSOSearch():
     """docstring for WSOSearch"""
     pass
 
-def SSListSources(url):
+def SSListSources(url, title):
     """docstring for SSListSources"""
-    container   = ObjectContainer()
+    container   = ObjectContainer(title1 = title)
     sources_url = SS_URL_SOURCES % String.Quote(url)
     sources     = JSON.ObjectFromURL(sources_url)
+
+    container.add(DirectoryObject(
+        key   = Callback(SSWatchLater, url = url),
+        title = L('watch_later')
+    ))
 
     for pair in sources:
         foreign      = pair[0]
@@ -231,10 +269,20 @@ def SSTranslateFinal(original, foreign):
 
     return container
 
+def SSWatchLater(url):
+    """docstring for SSWatchLater"""
+    container = ObjectContainer(header = 'Watch Later', message = 'Check on something else')
+    values    = { 'download[url]': url }
+
+    HTTP.Request(SS_URL_QUEUE, values, cacheTime = 0)
+
+    return container
+
 def az_container(fn):
     """docstring for az_container"""
-    container  = ObjectContainer()
-    selections = list(string.uppercase)
+    container        = ObjectContainer()
+    container.title1 = L('pick_letter')
+    selections       = list(string.uppercase)
     selections.append('1')
 
     for letter in selections:
@@ -256,7 +304,7 @@ def icefilms_container_permalinks(url):
 
     for item in icefilms_find_permalinks(url):
         container.add(DirectoryObject(
-            key   = Callback(SSListSources, url = ICEFILMS_URL_PERMALINK % item[0]),
+            key   = Callback(SSListSources, url = ICEFILMS_URL_PERMALINK % item[0], title = item[1]),
             title = item[1]
         )
     )
@@ -268,7 +316,14 @@ def icefilms_container_episode_list(url):
     container  = ObjectContainer()
 
     for item in icefilmes_find_tvseries(url):
-        container.add(DirectoryObject(key = Callback(IcefilmsEpisodeList, i = item[0], j = item[1]), title = item[2]))
+        container.add(DirectoryObject(
+            title = item[2],
+            key   = Callback(IcefilmsEpisodeList,
+                i    = item[0],
+                j    = item[1],
+                show = item[2]
+            )
+        ))
 
     return container
 
@@ -281,7 +336,7 @@ def wso_container_permalinks(url, page):
 
     for link in episode_links:
         container.add(DirectoryObject(
-            key   = Callback(SSListSources, url = link.get('href')),
+            key   = Callback(SSListSources, url = link.get('href'), title = link.text.strip()),
             title = link.text.strip()
         )
     )

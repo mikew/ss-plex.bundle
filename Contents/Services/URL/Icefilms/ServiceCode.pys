@@ -3,15 +3,14 @@ def NormalizeURL(url):
 
 def MetadataObjectForURL(url):
     co = VideoClipObject(
-        title = 'foo',
+        title   = 'foo',
         summary = 'bar'
-        )
+    )
 
     return co
 
 def MediaObjectsForURL(url):
-    Log(url)
-    wizard_url = "http://h.709scene.com/ss/wizard?url=%s" % String.Quote(url)
+    wizard_url = "http://h.709scene.com/ss/plex/wizard?url=%s" % String.Quote(url)
     data       = JSON.ObjectFromURL(wizard_url)
 
     obj = MediaObject(

@@ -13,5 +13,21 @@
   'by_popularity' : 'Sorted by Popularity',
   'by_rating'     : 'Sorted by Rating',
   'by_release'    : 'Sorted by Release',
-  'search'        : 'Search'
+  'search'        : 'Search',
+
+  // ObjectContainer Titles (TV)
+  'tv_by_letter'  : 'TV (%s)',
+  'tv_by_popular' : 'TV by Popularity',
+  'tv_by_rating'  : 'TV by Rating',
+  'tv_by_release' : 'TV by Release',
+
+  // ObjectContainer Titles (Movies)
+  'movies_by_letter'  : 'Movies (%s)',
+  'movies_by_popular' : 'Movies by Popularity',
+  'movies_by_rating'  : 'Movies by Rating',
+  'movies_by_release' : 'Movies by Release',
+
+  // Other
+  'pick_letter' : 'Pick a letter',
+  'watch_later' : 'Watch later'
 }
