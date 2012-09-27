@@ -1,3 +1,5 @@
+URL_SS_LISTINGS = 'http://localhost:9292'
+
 def NormalizeURL(url):
     return url
 
@@ -10,7 +12,7 @@ def MetadataObjectForURL(url):
     return co
 
 def MediaObjectsForURL(url):
-    wizard_url = "http://h.709scene.com/ss/plex/wizard?url=%s" % String.Quote(url)
+    wizard_url = URL_SS_LISTINGS + '/wizard?url=%s' % String.Quote(url)
     data       = JSON.ObjectFromURL(wizard_url)
 
     obj = MediaObject(
