@@ -31,16 +31,13 @@ def MainMenu():
     return render_listings(listings_endpoint('/'))
 
 
-def RenderListings(url):
+def RenderListings(url, default_title = None):
     """docstring for RenderListings"""
-    return render_listings(String.Unquote(url))
+    return render_listings(url, default_title)
 
 def ListSources(url, title):
     """docstring for SSListSources"""
-    container        = render_listings(listings_endpoint('/sources?url=%s') % String.Quote(url))
-    container.title1 = title
-
-    return container
+    return render_listings(listings_endpoint('/sources?url=%s') % String.Quote(url), default_title = title)
 
 #def WatchLater(url):
     #"""docstring for SSWatchLater"""
@@ -51,21 +48,21 @@ def ListSources(url, title):
 
     #return container
 
-def render_listings(url):
+def render_listings(url, default_title = None):
     """docstring for _render_listings"""
     Log('Attempting payload from %s' % (url))
     response  = JSON.ObjectFromURL(url)
     container = ObjectContainer(
-        title1 = response.get( 'title' ),
+        title1 = response.get( 'title' ) or default_title,
         title2 = response.get( 'desc' )
     )
 
     for element in response.get( 'items', [] ):
-        naitive    = None
-        permalink  = element.get('url')
-        quoted_url = permalink
-        #quoted_url = String.Quote(permalink)
-        display_title = element.get('display_title') or element.get('title')
+        naitive          = None
+        permalink        = element.get('url')
+        display_title    = element.get('display_title') or element.get('title')
+        generic_callback = Callback(RenderListings, url = permalink, default_title = display_title)
+        sources_callback = Callback(ListSources, url = permalink, title = display_title)
 
         if 'endpoint' == element['_type']:
             Log('element is endpoint')
@@ -73,7 +70,7 @@ def render_listings(url):
                 title   = display_title,
                 tagline = element.get( 'tagline' ),
                 summary = element.get( 'desc' ),
-                key     = Callback( RenderListings, url = quoted_url )
+                key     = generic_callback
             )
         elif 'show' == element['_type']:
             Log('element is show')
@@ -81,13 +78,13 @@ def render_listings(url):
                 rating_key = permalink,
                 title      = display_title,
                 summary    = element.get( 'desc' ),
-                key        = Callback( RenderListings, url = quoted_url)
+                key        = generic_callback
             )
         elif 'movie' == element['_type'] or 'episode' == element['_type']:
             Log('element is playable')
             naitive = DirectoryObject(
                 title = display_title,
-                key   = Callback( ListSources, url = quoted_url, title = display_title )
+                key   = sources_callback
             )
         elif 'foreign' == element['_type']:
             naitive = VideoClipObject(url = permalink, title = display_title)
@@ -99,7 +96,7 @@ def render_listings(url):
                 #title      = display_title,
                 #tagline    = element.get( 'tagline' ),
                 #summary    = element.get( 'desc' ),
-                #key        = Callback( ListSources, url = quoted_url, title = display_title )
+                #key        = sources_callback
             #)
         #elif 'episode' == element['_type']:
             #Log('element is episode')
@@ -109,7 +106,7 @@ def render_listings(url):
                 #summary        = element.get( 'desc' ),
                 #season         = int( element.get( 'season', 0 ) ),
                 #absolute_index = int( element.get( 'number', 0 ) ),
-                #key            = Callback( ListSources, url = quoted_url, title = display_title )
+                #key            = sources_callback
             #)
 
         if None != naitive:
