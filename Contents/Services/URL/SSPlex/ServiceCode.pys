@@ -32,8 +32,7 @@ class SSPlexEnvironment:
 def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
     params   = cgi.parse_qs(query)
-    proc_url = listings_endpoint( path + '?url=%s' % (String.Quote( params['url'][0] )) )
-    consumer = SSConsumer(proc_url)
+    consumer = SSConsumer(params['url'][0])
     consumer.environment = SSPlexEnvironment()
 
     final = consumer.consume()
