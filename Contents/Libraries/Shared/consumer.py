@@ -1,6 +1,3 @@
-#json_proc = "[{\"args\":\"http://www.putlocker.com/file/E286CA8E40258355\",\"name\":\"get_page\",\"_type\":\"command\"},{\"args\":{\"name\":null,\"method\":\"POST\",\"button\":{\"name\":\"confirm\"}},\"name\":\"submit_form\",\"_type\":\"command\"},{\"args\":{\"method\":\"url_from_playlist\"},\"name\":\"helper\",\"_type\":\"command\"},{\"args\":{\"selector\":null,\"url\":\"last_page\"},\"name\":\"final_from_element\",\"_type\":\"command\"}]"
-proc_url = '/procedure?url=http%3A//billionuploads.com/zqva594akg2u'
-
 def listings_endpoint(path):
     """docstring for listings_endpoint"""
     base_url = 'http://localhost:9292'
@@ -20,7 +17,6 @@ class DefaultEnvironment(object):
         import urllib
         import urllib2
 
-        self.log(url)
         if params:
             params = urllib.urlencode(params)
         else:
@@ -61,7 +57,7 @@ class SSConsumer(object):
 
     def consume(self):
         """docstring for consume"""
-        self.proc = self.environment.json(self.url)
+        self.proc = self.environment.json( listings_endpoint('/procedure?url=%s' % self.url) )
 
         while not self.finished():
             self.run_step(self.proc.pop(0))
@@ -108,7 +104,7 @@ class SSConsumer(object):
             'page': self.page
         }
 
-        helper_url = self.endpoint_url('/helpers')
+        helper_url = listings_endpoint('/helpers')
         params     = dict(default_params, **args)
         req        = urllib2.Request(helper_url, urllib.urlencode(params))
         resp       = urllib2.urlopen(req)
@@ -130,7 +126,6 @@ class SSConsumer(object):
 
     def asset_from_css(self, args):
         """docstring for asset_from_css"""
-        self.environment.log(args)
         haystack_url = args.get('url', 'last_page')
         final        = args.get('final', False)
         attribute    = args.get('attribute', 'default')
@@ -145,7 +140,7 @@ class SSConsumer(object):
 
         if attribute == 'default':
             tag = element.tag
-            self.environment.log(tag)
+
             if 'a' == tag:
                 result = element.get('href')
             elif 'img' == tag:
@@ -159,10 +154,6 @@ class SSConsumer(object):
             self.final = result
 
         return result
-
-    def endpoint_url(self, part):
-        """docstring for endpoint_url"""
-        return 'http://localhost:9292/%s' % (part)
 
     #from http://mattshaw.org/news/python-mechanize-gzip-response-handling/
     def ungzipResponse(self, r):
@@ -183,6 +174,7 @@ class SSConsumer(object):
         return r
 
 if __name__ == '__main__':
+    proc_url = '/procedure?url=http%3A//billionuploads.com/zqva594akg2u'
     consumer = SSConsumer(listings_endpoint(proc_url))
     consumer.environment = DefaultEnvironment()
     print consumer.consume()
