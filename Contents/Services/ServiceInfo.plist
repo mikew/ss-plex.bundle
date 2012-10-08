@@ -3,17 +3,18 @@
 <dict>
   <key>URL</key>
   <dict>
-    <key>Icefilms</key>
+    <key>SSPlex</key>
     <dict>
       <key>URLPatterns</key>
       <array>
         <!--<string>http://www\.icefilms\.info/ip\.php\?v=\d+</string>-->
         <!--<string>http://(www\.)?(movreel|putlocker|sockshare|180upload|billionuploads|sharebees|jumbofiles|filebox|glumbouploads|movshare)</string>-->
-        <string>ss://</string>
+        <!--<string>ss://</string>-->
+        <string>^//ss</string>
       </array>
       <key>TestURLs</key>
       <array>
-          <string>ss://procedure_from_foreign</string>
+        <string>//ss/procedure?url=foo</string>
       </array>
     </dict>
   </dict>

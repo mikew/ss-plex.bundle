@@ -1,13 +1,10 @@
-import re
 import string
+from consumer import listings_endpoint
 
 PLUGIN_PREFIX = '/video/ssp'
 PLUGIN_TITLE  = L('title')
 PLUGIN_ART    = 'art-default.jpg'
 PLUGIN_ICON   = 'icon-default.png'
-
-#URL_SS_LISTINGS = 'http://h.709scene.com/ss/listings'
-URL_SS_LISTINGS = 'http://localhost:9292'
 
 def Start():
     # Initialize the plug-in
@@ -87,7 +84,9 @@ def render_listings(url, default_title = None):
                 key   = sources_callback
             )
         elif 'foreign' == element['_type']:
-            naitive = VideoClipObject(url = permalink, title = display_title)
+            Log('element is foreign')
+            ss_url = '//ss/procedure?url=%s&title=%s' % (String.Quote(permalink), String.Quote('FILE HINT HERE'))
+            naitive = VideoClipObject(url = ss_url, title = display_title)
 
         #elif 'movie' == element['_type']:
             #Log('element is movie')
@@ -113,7 +112,3 @@ def render_listings(url, default_title = None):
             container.add( naitive )
 
     return container
-
-def listings_endpoint(endpoint):
-    """docstring for listings_endpoint"""
-    return URL_SS_LISTINGS + endpoint
