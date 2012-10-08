@@ -8,11 +8,12 @@
       <key>URLPatterns</key>
       <array>
         <!--<string>http://www\.icefilms\.info/ip\.php\?v=\d+</string>-->
-        <string>http://(www\.)?(movreel|putlocker|sockshare|180upload|billionuploads|sharebees|jumbofiles|filebox|glumbouploads|movshare)</string>
+        <!--<string>http://(www\.)?(movreel|putlocker|sockshare|180upload|billionuploads|sharebees|jumbofiles|filebox|glumbouploads|movshare)</string>-->
+        <string>ss://</string>
       </array>
       <key>TestURLs</key>
       <array>
-          <string>http://180upload.com/twbdsfu4ddux</string>
+          <string>ss://procedure_from_foreign</string>
       </array>
     </dict>
   </dict>
