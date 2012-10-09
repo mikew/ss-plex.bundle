@@ -3,8 +3,6 @@ from urlparse import urlparse
 import cgi
 import inspect
 
-URL_SS_LISTINGS = 'http://localhost:9292'
-
 def NormalizeURL(url):
     return url
 
