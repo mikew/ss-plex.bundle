@@ -11,7 +11,7 @@ class DefaultEnvironment(object):
         """docstring for log"""
         print message
 
-    def json(self, url, **params):
+    def json(self, payload_url, **params):
         """docstring for json"""
         import json
         import urllib
@@ -22,13 +22,11 @@ class DefaultEnvironment(object):
         else:
             params = None
 
-        req    = urllib2.Request(url, params)
+        req    = urllib2.Request(payload_url, params)
         resp   = urllib2.urlopen(req)
         result = json.loads(resp.read())
 
         return result
-
-#import inspect
 
 class SSConsumer(object):
     """docstring for SSConsumer"""
@@ -54,6 +52,10 @@ class SSConsumer(object):
     def finished(self):
         """docstring for finished"""
         return self.final != None
+
+    def set_final(self, final):
+        """docstring for set_final"""
+        self.final = final
 
     def consume(self):
         """docstring for consume"""
@@ -87,13 +89,14 @@ class SSConsumer(object):
         self.agent.select_form(nr = 0)
         self.agent.form.set_all_readonly(False)
 
-        button_finder = args['button']
-        if button_finder['value']:
-            button_finder['label'] = button_finder['value']
-            del button_finder['value']
+        button_finder = args.get( 'button', {} )
+        if button_finder:
+            if button_finder.get('value', None):
+                button_finder['label'] = button_finder['value']
+                del button_finder['value']
 
-        button = self.agent.form.find_control(**button_finder)
-        button.disabled = False
+            button = self.agent.form.find_control(**button_finder)
+            button.disabled = False
 
         self.replace_page( self.agent.submit(**button_finder) )
 
@@ -106,23 +109,40 @@ class SSConsumer(object):
 
         helper_url = listings_endpoint('/helpers')
         params     = dict(default_params, **args)
-        req        = urllib2.Request(helper_url, urllib.urlencode(params))
-        resp       = urllib2.urlopen(req)
-        command    = json.loads(resp.read())
 
-        self.run_step(command)
+        self.run_step( self.environment.json(helper_url, **params) )
 
-    def attribute_from_element(self, args):
-        """docstring for attribute_from_element"""
-        url       = args['url']
-        selector  = args['selector']
-        final     = args.get('final', False)
-        attribute = args['attribute']
+    def asset_from_xpath(self, args):
+        """docstring for asset_from_xpath"""
+        self.environment.log(args)
+        haystack_url = args.get('url', 'last_page')
+        final        = args.get('final', False)
+        attribute    = args.get('attribute', 'default')
 
-        print self.ungzipResponse(self.agent.open(url)).read()
+        if haystack_url == 'last_page':
+            haystack = self.page
+        else:
+            haystack = self.ungzipResponse(self.agent.open(haystack_url)).read()
+
+        result  = None
+        element = self.environment.xpath(haystack, args['query'])[0]
+
+        if attribute == 'default':
+            tag = element.tag
+
+            if 'a' == tag:
+                result = element.get('href')
+            elif 'img' == tag:
+                result = element.getparent.get('href')
+            elif 'embed' == tag:
+                result = element.get('src')
+        else:
+            result = element.get(attribute)
 
         if final:
-            self.final = 'asdf'
+            self.set_final(result)
+
+        return result
 
     def asset_from_css(self, args):
         """docstring for asset_from_css"""
@@ -133,7 +153,7 @@ class SSConsumer(object):
         if haystack_url == 'last_page':
             haystack = self.page
         else:
-            haystack = self.ungzipResponse(self.agent.open(url)).read()
+            haystack = self.ungzipResponse(self.agent.open(haystack_url)).read()
 
         result  = None
         element = self.environment.css(haystack, args['selector'])[0]
@@ -151,9 +171,29 @@ class SSConsumer(object):
             result = element.get(attribute)
 
         if final:
-            self.final = result
+            self.set_final(result)
 
         return result
+
+    def asset_from_regex(self, args):
+        """docstring for asset_from_regex"""
+        import re
+
+        haystack_url = args.get('url', 'last_page')
+        final        = args.get('final', False)
+        expression   = re.compile(args['expression'][7:-1])
+
+        if haystack_url == 'last_page':
+            haystack = self.page
+        else:
+            haystack = self.ungzipResponse(self.agent.open(url)).read()
+
+        result = expression.findall(haystack)[0]
+
+        if final:
+            self.set_final(result)
+
+        result
 
     #from http://mattshaw.org/news/python-mechanize-gzip-response-handling/
     def ungzipResponse(self, r):

@@ -21,13 +21,18 @@ class SSPlexEnvironment:
         """docstring for log"""
         Log(message)
 
-    def json(self, url, **params):
+    def json(self, payload_url, **params):
         """docstring for json"""
-        return JSON.ObjectFromURL(url, values = params)
+        return JSON.ObjectFromURL(payload_url, values = params)
 
     def css(self, haystack, selector):
         """docstring for css"""
         return HTML.ElementFromString(haystack).cssselect(selector)
+
+
+    def xpath(self, haystack, query):
+        """docstring for css"""
+        return HTML.ElementFromString(haystack).xpath(query)
 
 def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
