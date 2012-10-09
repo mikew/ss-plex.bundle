@@ -1,6 +1,7 @@
 def listings_endpoint(path):
     """docstring for listings_endpoint"""
-    base_url = 'http://localhost:9292'
+    #base_url = 'http://localhost:9292'
+    base_url = 'http://h.709scene.com/ss/listings'
     return base_url + path
 
 class DefaultEnvironment(object):
