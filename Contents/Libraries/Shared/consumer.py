@@ -50,6 +50,14 @@ class SSConsumer(object):
         self.agent = br
         self.final = None
 
+    def agent_cookies(self):
+        """docstring for agent_cookies"""
+        return self.agent._ua_handlers['_cookies'].cookiejar
+
+    def agent_cookie_string(self):
+        """docstring for agent_cookie_string"""
+        return '; '.join( ["%s=%s" % (cookie.name, cookie.value) for cookie in self.agent_cookies()] )
+
     def finished(self):
         """docstring for finished"""
         return self.final != None
