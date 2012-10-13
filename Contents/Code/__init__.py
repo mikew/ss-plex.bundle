@@ -59,8 +59,10 @@ def Favorites():
         title1 = 'Favorites'
     )
 
-    for show_title, url in favorites.items():
-        list_item = DirectoryObject(
+    for key in sorted(favorites.iterkeys()):
+        show_title = key
+        url        = favorites[key]
+        list_item  = DirectoryObject(
             title = show_title,
             key   = Callback(ListTVShow, url = url, show_title = show_title)
         )
