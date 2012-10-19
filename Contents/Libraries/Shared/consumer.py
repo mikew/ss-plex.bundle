@@ -12,6 +12,20 @@ class DefaultEnvironment(object):
         """docstring for log"""
         print message
 
+    def css(self, haystack, selector):
+        """docstring for css"""
+        from lxml import etree
+        from lxml.cssselect import CSSSelector
+        sel  = CSSSelector(selector)
+        html = etree.HTML(haystack)
+
+        return sel(html)
+
+    def xpath(self, haystack, query):
+        """docstring for css"""
+        from lxml import etree
+        return etree.HTML(haystack).xpath(query)
+
     def json(self, payload_url, **params):
         """docstring for json"""
         import json
@@ -31,7 +45,7 @@ class DefaultEnvironment(object):
 
 class SSConsumer(object):
     """docstring for SSConsumer"""
-    def __init__(self, url):
+    def __init__(self, url, environment = DefaultEnvironment):
         import mechanize
 
         super(SSConsumer, self).__init__()
@@ -46,9 +60,11 @@ class SSConsumer(object):
             ('Accept-Language', 'en-us,en;q=0.5'),
         ]
 
-        self.url   = url
-        self.agent = br
-        self.final = None
+        self.url         = url
+        self.agent       = br
+        self.environment = environment()
+        self.final       = None
+        self.consumed    = False
 
     def agent_cookies(self):
         """docstring for agent_cookies"""
@@ -68,11 +84,19 @@ class SSConsumer(object):
 
     def consume(self):
         """docstring for consume"""
+        if self.consumed:
+            return
+
         self.proc = self.environment.json( listings_endpoint('/procedure?url=%s' % self.url) )
 
         while not self.finished():
             self.run_step(self.proc.pop(0))
 
+        self.consumed = True
+
+    def asset_url(self):
+        """docstring for asset_url"""
+        self.consume()
         return self.final
 
     def run_step(self, step):
@@ -109,6 +133,10 @@ class SSConsumer(object):
 
         self.replace_page( self.agent.submit(**button_finder) )
 
+    def file_name(self):
+        """docstring for file_name"""
+        return self.helper({ 'method': 'file_name', 'asset_url': self.asset_url() })
+
     def helper(self, args):
         """docstring for helper"""
         default_params = {
@@ -118,8 +146,12 @@ class SSConsumer(object):
 
         helper_url = listings_endpoint('/helpers')
         params     = dict(default_params, **args)
+        resp       = self.environment.json(helper_url, **params)
 
-        self.run_step( self.environment.json(helper_url, **params) )
+        if type(resp) is dict:
+            self.proc.insert(0, resp)
+
+        return resp
 
     def asset_from_xpath(self, args):
         """docstring for asset_from_xpath"""
