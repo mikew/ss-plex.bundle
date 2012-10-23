@@ -33,14 +33,14 @@ def MainMenu():
     )
 
     search_item = InputDirectoryObject(
-	key = Callback(SearchResults),
-	title = 'Search',
-	prompt = 'Search for ...'
+        key = Callback(SearchResults),
+        title = 'Search',
+        prompt = 'Search for ...'
     )
 
     saved_item = DirectoryObject(
-	title = 'Saved Searches',
-	key   = Callback(SavedSearches)
+        title = 'Saved Searches',
+        key   = Callback(SavedSearches)
     )
 
     container.add(favorite_item)
@@ -53,8 +53,8 @@ def SearchResults(query):
     """docstring for SearchResults"""
     container = render_listings(listings_endpoint('/search?query=%s') % String.Quote(query))
     save_item = DirectoryObject(
-	title = 'Save this search',
-	key   = Callback(SaveSearch, query = query)
+        title = 'Save this search',
+        key   = Callback(SaveSearch, query = query)
     )
 
     container.add(save_item)
@@ -64,8 +64,8 @@ def SavedSearches():
     """docstring for SavedSearches"""
     container = ObjectContainer()
     for query in sorted(dict_default('searches', [])):
-	item = DirectoryObject(title = query, key = Callback(SearchResults, query = query))
-	container.add(item)
+        item = DirectoryObject(title = query, key = Callback(SearchResults, query = query))
+        container.add(item)
 
     return container
 
@@ -75,7 +75,7 @@ def SaveSearch(query):
     saved_searches = dict_default('searches', [])
 
     if query not in saved_searches:
-	saved_searches.append(query)
+        saved_searches.append(query)
 
     Dict['searches'] = saved_searches
 
