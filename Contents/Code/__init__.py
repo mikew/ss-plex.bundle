@@ -26,13 +26,60 @@ def Start():
 def MainMenu():
     """docstring for MainMenu"""
     container     = render_listings(listings_endpoint('/'))
+
     favorite_item = DirectoryObject(
         title = 'Favorites',
         key   = Callback(Favorites)
     )
 
+    search_item = InputDirectoryObject(
+	key = Callback(SearchResults),
+	title = 'Search',
+	prompt = 'Search for ...'
+    )
+
+    saved_item = DirectoryObject(
+	title = 'Saved Searches',
+	key   = Callback(SavedSearches)
+    )
+
     container.add(favorite_item)
+    container.add(search_item)
+    container.add(saved_item)
+
     return container
+
+def SearchResults(query):
+    """docstring for SearchResults"""
+    container = render_listings(listings_endpoint('/search?query=%s') % String.Quote(query))
+    save_item = DirectoryObject(
+	title = 'Save this search',
+	key   = Callback(SaveSearch, query = query)
+    )
+
+    container.add(save_item)
+    return container
+
+def SavedSearches():
+    """docstring for SavedSearches"""
+    container = ObjectContainer()
+    for query in sorted(dict_default('searches', [])):
+	item = DirectoryObject(title = query, key = Callback(SearchResults, query = query))
+	container.add(item)
+
+    return container
+
+
+def SaveSearch(query):
+    """docstring for SaveSearch"""
+    saved_searches = dict_default('searches', [])
+
+    if query not in saved_searches:
+	saved_searches.append(query)
+
+    Dict['searches'] = saved_searches
+
+    return ObjectContainer(header = 'Saved', message = 'Your search has been saved.')
 
 def has_dict(key):
     """docstring for has_dict"""
@@ -110,6 +157,9 @@ def ListSources(url, title):
 
 def render_listings(url, default_title = None):
     """docstring for _render_listings"""
+    if not '://' in url:
+	url = listings_endpoint(url)
+
     Log('Attempting payload from %s' % (url))
     response  = JSON.ObjectFromURL(url)
     container = ObjectContainer(
