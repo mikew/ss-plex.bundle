@@ -25,7 +25,7 @@ def Start():
 @handler(PLUGIN_PREFIX, PLUGIN_TITLE)
 def MainMenu():
     """docstring for MainMenu"""
-    container     = render_listings(listings_endpoint('/'))
+    container     = render_listings('/')
 
     favorite_item = DirectoryObject(
         title = 'Favorites',
@@ -51,7 +51,7 @@ def MainMenu():
 
 def SearchResults(query):
     """docstring for SearchResults"""
-    container = render_listings(listings_endpoint('/search?query=%s') % String.Quote(query))
+    container = render_listings('/search/%s' % String.Quote(query))
     save_item = DirectoryObject(
         title = 'Save this search',
         key   = Callback(SaveSearch, query = query)
@@ -68,7 +68,6 @@ def SavedSearches():
         container.add(item)
 
     return container
-
 
 def SaveSearch(query):
     """docstring for SaveSearch"""
@@ -88,9 +87,9 @@ def has_dict(key):
     else:
         return False
 
-def show_is_favorite(show_title):
+def show_is_favorite(endpoint):
     """docstring for show_is_favorite"""
-    return show_title in dict_default('favorites', {}).keys()
+    return endpoint in dict_default('favorites', {}).keys()
 
 def dict_default(key, default = None):
     """docstring for dict_default"""
@@ -106,62 +105,79 @@ def Favorites():
         title1 = 'Favorites'
     )
 
-    for key in sorted(favorites.iterkeys()):
-        show_title = key
-        url        = favorites[key]
+    for endpoint, title in sorted(favorites.iteritems(), key = lambda x:x[1]):
         list_item  = DirectoryObject(
-            title = show_title,
-            key   = Callback(ListTVShow, url = url, show_title = show_title)
+            title = title,
+            key   = Callback(ListTVShow, endpoint = endpoint, show_title = title)
         )
 
         container.add(list_item)
 
+    container.add(DirectoryObject(
+        title = 'Clear Favorites',
+        key   = Callback(ClearFavorites)
+    ))
+
     return container
 
-def RenderListings(url, default_title = None):
-    """docstring for RenderListings"""
-    return render_listings(url, default_title)
+def ClearFavorites():
+    """docstring for ClearFavorites"""
+    Dict['favorites'] = {}
+    return ObjectContainer(header = 'Favorites', message = 'Your favorites have been cleared.')
 
-def ListTVShow(url, show_title):
+def RenderListings(endpoint, default_title = None):
+    """docstring for RenderListings"""
+    return render_listings(endpoint, default_title)
+
+def ListTVShow(endpoint, show_title, refresh = 0):
     """docstring for ListTVShow"""
-    container     = render_listings(url, show_title)
-    if show_is_favorite(show_title):
+    container = render_listings(endpoint, show_title)
+    if 0 < refresh:
+        container.replace_parent = True
+
+    if show_is_favorite(endpoint):
         favorite_label = '- Remove from Favorites'
     else:
         favorite_label = '+ Add to Favorites'
 
     favorite_item = DirectoryObject(
         title = favorite_label,
-        key   = Callback(ToggleFavorite, url = url, show_title = show_title)
+        key   = Callback(ToggleFavorite, endpoint = endpoint, show_title = show_title)
+    )
+
+    refresh_item = DirectoryObject(
+        title = 'Refresh',
+        key   = Callback(ListTVShow, endpoint = endpoint, show_title = show_title, refresh = refresh + 1)
     )
 
     container.objects.insert(0, favorite_item)
+    container.add(refresh_item)
+
     return container
 
-def ToggleFavorite(url, show_title):
+def ToggleFavorite(endpoint, show_title):
     """docstring for AddFavorite"""
-    if show_is_favorite(show_title):
-        del Dict['favorites'][show_title]
+    message = None
+
+    if show_is_favorite(endpoint):
+        del Dict['favorites'][endpoint]
+        message = '%s was removed from your favorites.'
     else:
         favorites             = dict_default('favorites', {})
-        favorites[show_title] = url
+        favorites[endpoint]   = show_title
+        message               = '%s was added to your favorites.'
         Dict['favorites']     = favorites
 
     #Dict['favorites'].save()
 
-    return ListTVShow(url, show_title)
+    return ObjectContainer(header = 'Favorites', message = message % show_title)
 
-def ListSources(url, title):
-    """docstring for SSListSources"""
-    return render_listings(listings_endpoint('/sources?url=%s') % String.Quote(url), default_title = title)
-
-def render_listings(url, default_title = None):
+def render_listings(endpoint, default_title = None):
     """docstring for _render_listings"""
-    if not '://' in url:
-	url = listings_endpoint(url)
+    endpoint = listings_endpoint(endpoint)
 
-    Log('Attempting payload from %s' % (url))
-    response  = JSON.ObjectFromURL(url)
+    Log('Attempting payload from %s' % (endpoint))
+    response  = JSON.ObjectFromURL(endpoint)
     container = ObjectContainer(
         title1 = response.get( 'title' ) or default_title,
         title2 = response.get( 'desc' )
@@ -169,10 +185,9 @@ def render_listings(url, default_title = None):
 
     for element in response.get( 'items', [] ):
         naitive          = None
-        permalink        = element.get('url')
+        permalink        = element.get('endpoint')
         display_title    = element.get('display_title') or element.get('title')
-        generic_callback = Callback(RenderListings, url = permalink, default_title = display_title)
-        sources_callback = Callback(ListSources,    url = permalink, title         = display_title)
+        generic_callback = Callback(RenderListings, endpoint = permalink, default_title = display_title)
 
         if 'endpoint' == element['_type']:
             Log('element is endpoint')
@@ -188,17 +203,23 @@ def render_listings(url, default_title = None):
                 rating_key = permalink,
                 title      = display_title,
                 summary    = element.get( 'desc' ),
-                key        = Callback(ListTVShow, url = permalink, show_title = display_title)
+                key        = Callback(ListTVShow, endpoint = permalink, show_title = display_title)
             )
         elif 'movie' == element['_type'] or 'episode' == element['_type']:
             Log('element is playable')
             naitive = DirectoryObject(
                 title = display_title,
-                key   = sources_callback
+                key   = generic_callback
             )
         elif 'foreign' == element['_type']:
             Log('element is foreign')
-            ss_url = '//ss/procedure?url=%s&title=%s' % (String.Quote(permalink), String.Quote('FILE HINT HERE'))
+            naitive = DirectoryObject(
+                title = element['domain'],
+                key   = generic_callback
+            )
+        elif 'final' == element['_type']:
+            Log('element is final')
+            ss_url = '//ss/procedure?url=%s&title=%s' % (String.Quote(element['url']), String.Quote('FILE HINT HERE'))
             naitive = VideoClipObject(url = ss_url, title = display_title)
 
         #elif 'movie' == element['_type']:
