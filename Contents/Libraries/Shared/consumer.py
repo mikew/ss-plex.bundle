@@ -1,7 +1,7 @@
 def listings_endpoint(path):
     """docstring for listings_endpoint"""
-    #base_url = 'http://localhost:9292'
-    base_url = 'http://h.709scene.com/listings'
+    base_url = 'http://localhost:9292'
+    #base_url = 'http://h.709scene.com/listings'
     return base_url + path
 
 class DefaultEnvironment(object):
@@ -11,6 +11,20 @@ class DefaultEnvironment(object):
     def log(self, message):
         """docstring for log"""
         print message
+
+    def css(self, haystack, selector):
+        """docstring for css"""
+        from lxml import etree
+        from lxml.cssselect import CSSSelector
+        sel  = CSSSelector(selector)
+        html = etree.HTML(haystack)
+
+        return sel(html)
+
+    def xpath(self, haystack, query):
+        """docstring for css"""
+        from lxml import etree
+        return etree.HTML(haystack).xpath(query)
 
     def json(self, payload_url, **params):
         """docstring for json"""
@@ -46,9 +60,10 @@ class SSConsumer(object):
             ('Accept-Language', 'en-us,en;q=0.5'),
         ]
 
-        self.url   = url
-        self.agent = br
-        self.final = None
+        self.url      = url
+        self.agent    = br
+        self.final    = None
+        self.consumed = False
 
     def agent_cookies(self):
         """docstring for agent_cookies"""
@@ -68,12 +83,24 @@ class SSConsumer(object):
 
     def consume(self):
         """docstring for consume"""
+        if self.consumed:
+            return
+
         self.proc = self.environment.json( listings_endpoint('/procedure?url=%s' % self.url) )
 
         while not self.finished():
             self.run_step(self.proc.pop(0))
 
+        self.consumed = True
+
+    def asset_url(self):
+        """docstring for asset_url"""
+        self.consume()
         return self.final
+
+    def file_name(self):
+        """docstring for file_name"""
+        return self.helper({ 'method': 'file_name', 'asset_url': self.asset_url() })
 
     def run_step(self, step):
         """docstring for run_step"""
@@ -125,12 +152,15 @@ class SSConsumer(object):
 
         helper_url = listings_endpoint('/helpers')
         params     = dict(default_params, **args)
+        resp       = self.environment.json(helper_url, **params)
 
-        self.run_step( self.environment.json(helper_url, **params) )
+        if type(resp) is dict:
+            self.proc.insert(0, resp)
+
+        return resp
 
     def asset_from_xpath(self, args):
         """docstring for asset_from_xpath"""
-        self.environment.log(args)
         haystack_url = args.get('url', 'last_page')
         final        = args.get('final', False)
         attribute    = args.get('attribute', 'default')
@@ -229,11 +259,82 @@ class SSConsumer(object):
 
         return r
 
+class SSWizard(object):
+    """docstring for SSWizard"""
+    def __init__(self, endpoint):
+        super(SSWizard, self).__init__()
+        self.endpoint = endpoint
+
+    def download(self):
+        """docstring for download"""
+        sources = self.environment.json(listings_endpoint(self.endpoint)).get('items', [])
+        for foreign in sources:
+            if foreign['_type'] != 'foreign':
+                pass
+
+            try:
+                final = self.environment.json(listings_endpoint(foreign['endpoint'])).get('items', [])[0]['url']
+                downloader = SSDownloader(final)
+                downloader.consumer.environment = self.environment
+                downloader.download()
+
+                break
+            except Exception, e:
+                print e
+                pass
+
+class SSDownloader(object):
+    """docstring for SSDownloader"""
+    def __init__(self, url):
+        super(SSDownloader, self).__init__()
+        self.url = url
+        self.consumer = SSConsumer(url)
+
+    def file_name(self):
+        """docstring for file_name"""
+        return self.consumer.file_name().encode()
+
+    def asset_url(self):
+        """docstring for asset_url"""
+        return self.consumer.asset_url().encode()
+
+    def curl_options(self):
+        """docstring for curl_options"""
+        options = [
+            'curl',
+            '--referer', self.url,
+            '-o',        self.file_name(),
+            '--cookie',  self.consumer.agent_cookie_string(),
+        ]
+
+        if hasattr(self, 'status_file'):
+            options.extend(['--stderr', normalize_url(self.status_file)])
+
+        options.append(self.asset_url())
+
+        return options
+
+    def download(self):
+        """docstring for download"""
+        import subprocess
+        piped = subprocess.Popen(self.curl_options())
+        piped.wait()
+        print piped.returncode
+
+def normalize_url(url):
+    """docstring for normalize_url"""
+    import re
+    return re.sub(r'\W+', '-', url).lower()
+
 if __name__ == '__main__':
     import sys
     args     = sys.argv
     test_url = args[1]
-    consumer = SSConsumer(test_url)
-    consumer.environment = DefaultEnvironment()
 
-    print consumer.consume()
+    #consumer = SSConsumer(test_url)
+    #consumer.environment = DefaultEnvironment()
+    #print consumer.consume()
+
+    wizard = SSWizard(test_url)
+    wizard.environment = DefaultEnvironment()
+    wizard.download()
