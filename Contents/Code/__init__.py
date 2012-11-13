@@ -49,6 +49,7 @@ def MainMenu():
 
     return container
 
+@route('%s/search' % PLUGIN_PREFIX)
 def SearchResults(query):
     """docstring for SearchResults"""
     container = render_listings('/search/%s' % String.Quote(query))
@@ -60,6 +61,7 @@ def SearchResults(query):
     container.add(save_item)
     return container
 
+@route('%s/searches' % PLUGIN_PREFIX)
 def SavedSearches():
     """docstring for SavedSearches"""
     container = ObjectContainer()
@@ -69,6 +71,7 @@ def SavedSearches():
 
     return container
 
+@route('%s/save-search' % PLUGIN_PREFIX)
 def SaveSearch(query):
     """docstring for SaveSearch"""
     saved_searches = dict_default('searches', [])
@@ -98,6 +101,7 @@ def dict_default(key, default = None):
     else:
         return default
 
+@route('%s/favorites' % PLUGIN_PREFIX)
 def Favorites():
     """docstring for Favorites"""
     favorites = dict_default('favorites', {})
@@ -120,15 +124,18 @@ def Favorites():
 
     return container
 
+@route('%s/favorites/clear' % PLUGIN_PREFIX)
 def ClearFavorites():
     """docstring for ClearFavorites"""
     Dict['favorites'] = {}
     return ObjectContainer(header = 'Favorites', message = 'Your favorites have been cleared.')
 
+@route('%s/RenderListings' % PLUGIN_PREFIX)
 def RenderListings(endpoint, default_title = None):
     """docstring for RenderListings"""
     return render_listings(endpoint, default_title)
 
+@route('%s/series' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
     """docstring for ListTVShow"""
     container = render_listings(endpoint, show_title)
@@ -155,6 +162,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 
     return container
 
+@route('%s/favorites/toggle' % PLUGIN_PREFIX)
 def ToggleFavorite(endpoint, show_title):
     """docstring for AddFavorite"""
     message = None
