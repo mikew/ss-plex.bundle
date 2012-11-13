@@ -95,7 +95,14 @@ class SSConsumer(object):
 
     def submit_form(self, args):
         """docstring for submit_form"""
-        self.agent.select_form(nr = 0)
+
+        # TODO: handle more cases
+        if args.get('index') is not None:
+            self.agent.select_form(nr = args['index'])
+
+        if args.get('name') is not None:
+            self.agent.select_form(name = args['name'])
+
         self.agent.form.set_all_readonly(False)
 
         button_finder = args.get( 'button', {} )
@@ -223,7 +230,10 @@ class SSConsumer(object):
         return r
 
 if __name__ == '__main__':
-    proc_url = '/procedure?url=http%3A//billionuploads.com/zqva594akg2u'
-    consumer = SSConsumer(listings_endpoint(proc_url))
+    import sys
+    args     = sys.argv
+    test_url = args[1]
+    consumer = SSConsumer(test_url)
     consumer.environment = DefaultEnvironment()
+
     print consumer.consume()
