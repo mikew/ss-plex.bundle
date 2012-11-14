@@ -1,6 +1,6 @@
 def listings_endpoint(path):
     """docstring for listings_endpoint"""
-    base_url = 'http://localhost:9292'
+    base_url = 'http://localhost:8080'
     #base_url = 'http://h.709scene.com/listings'
     return base_url + path
 
@@ -259,23 +259,34 @@ class SSConsumer(object):
 
         return r
 
+from daemon import Daemon
+#import tempfile
+
 class SSWizard(object):
     """docstring for SSWizard"""
     def __init__(self, endpoint):
+        #pidfile = '%s/%s' % (tempfile.gettempdir(), normalize_url(endpoint))
         super(SSWizard, self).__init__()
         self.endpoint = endpoint
 
-    def download(self):
+        #super(SSWizard, self).__init__(pidfile)
+
+    def run(self):
         """docstring for download"""
         sources = self.environment.json(listings_endpoint(self.endpoint)).get('items', [])
+
         for foreign in sources:
             if foreign['_type'] != 'foreign':
                 pass
 
             try:
                 final = self.environment.json(listings_endpoint(foreign['endpoint'])).get('items', [])[0]['url']
+
                 downloader = SSDownloader(final)
+                downloader.destination = self.destination
                 downloader.consumer.environment = self.environment
+                downloader.before = self.before
+                downloader.after  = self.after
                 downloader.download()
 
                 break
@@ -287,7 +298,7 @@ class SSDownloader(object):
     """docstring for SSDownloader"""
     def __init__(self, url):
         super(SSDownloader, self).__init__()
-        self.url = url
+        self.url      = url
         self.consumer = SSConsumer(url)
 
     def file_name(self):
@@ -298,12 +309,20 @@ class SSDownloader(object):
         """docstring for asset_url"""
         return self.consumer.asset_url().encode()
 
+    def local_file(self):
+        """docstring for local_file"""
+        return '%s/%s' % (self.destination, self.file_name())
+
+    def local_partfile(self):
+        """docstring for local_partfile"""
+        return self.local_file() + '.part'
+
     def curl_options(self):
         """docstring for curl_options"""
         options = [
             'curl',
             '--referer', self.url,
-            '-o',        self.file_name(),
+            '-o',        self.local_partfile(),
             '--cookie',  self.consumer.agent_cookie_string(),
         ]
 
@@ -316,18 +335,45 @@ class SSDownloader(object):
 
     def download(self):
         """docstring for download"""
+        from signal import SIGHUP, SIGTERM
         import subprocess
-        piped = subprocess.Popen(self.curl_options())
+
+        piped    = subprocess.Popen(self.curl_options())
+        self.pid = piped.pid
+
+        self.before(self)
         piped.wait()
-        print piped.returncode
+
+        returned = piped.returncode
+        if 0 == returned:
+            self.after(self)
+        if SIGTERM * -1 == returned:
+            self.cleanup()
+        elif SIGHUP * -1  == returned:
+            self.cleanup()
+            raise
+
+    def cleanup(self):
+        """docstring for cleanup"""
+        import os
+
+        try:
+            os.remove( self.local_file() )
+        except Exception, e:
+            pass
+
+        try:
+            os.remove( self.local_partfile() )
+        except Exception, e:
+            pass
 
 def normalize_url(url):
     """docstring for normalize_url"""
     import re
-    return re.sub(r'\W+', '-', url).lower()
+    return re.sub(r'\W+', '-', url).lower().encode()
 
 if __name__ == '__main__':
-    import sys
+    import os, sys
     args     = sys.argv
     test_url = args[1]
 
@@ -335,6 +381,17 @@ if __name__ == '__main__':
     #consumer.environment = DefaultEnvironment()
     #print consumer.consume()
 
+    def before(downloader):
+        """docstring for before"""
+        print downloader.pid
+
+    def after(downloader):
+        """docstring for after"""
+        print 'Done!'
+
     wizard = SSWizard(test_url)
+    wizard.before = before
+    wizard.after  = after
     wizard.environment = DefaultEnvironment()
-    wizard.download()
+    wizard.destination = os.getcwd()
+    wizard.run()
