@@ -258,70 +258,84 @@ class SSConsumer(object):
             self.agent.set_response(r)
 
         return r
-
 from daemon import Daemon
 #import tempfile
 
-class SSWizard(object):
-    """docstring for SSWizard"""
+class SSDownloader(object):
+    """docstring for SSDownloader"""
     def __init__(self, endpoint):
-        #pidfile = '%s/%s' % (tempfile.gettempdir(), normalize_url(endpoint))
-        super(SSWizard, self).__init__()
+        super(SSDownloader, self).__init__()
         self.endpoint = endpoint
+        self.init_callbacks()
 
-        #super(SSWizard, self).__init__(pidfile)
+    def file_name(self):      return self.consumer.file_name().encode()
+    def asset_url(self):      return self.consumer.asset_url().encode()
+    def local_file(self):     return '%s/%s' % (self.destination, self.file_name())
+    def local_partfile(self): return self.local_file() + '.part'
 
-    def run(self):
-        """docstring for download"""
-        sources = self.environment.json(listings_endpoint(self.endpoint)).get('items', [])
+    def add_callback(self, group, cb): self.callbacks[group].append(cb)
 
-        for foreign in sources:
-            if foreign['_type'] != 'foreign':
-                pass
+    def run_before_callbacks(self):
+        self.run_callbacks('_before')
+        self.run_callbacks('before')
 
+    def run_after_callbacks(self):
+        self.run_callbacks('_after')
+        self.run_callbacks('after')
+
+    def run_callbacks(self, group):
+        for cb in self.callbacks[group]:
+            cb(self)
+
+    def init_callbacks(self):
+        groups = ( '_before', 'before', '_after', 'after' )
+        self.callbacks = {}
+
+        for g in groups:
+            self.callbacks[g] = []
+
+        def debug_dl(dl):
+            lines = [ dl.pid, dl.asset_url(), dl.local_file() ]
+
+            for line in lines:
+                print line
+
+        def rename_partfile(dl):
+            import os
+            os.rename( dl.local_partfile(), dl.local_file() )
+
+        self.add_callback('_before', debug_dl)
+        self.add_callback('_after',  rename_partfile)
+
+    def download(self):
+        for foreign in self.sources():
             try:
-                final = self.environment.json(listings_endpoint(foreign['endpoint'])).get('items', [])[0]['url']
-
-                downloader = SSDownloader(final)
-                downloader.destination = self.destination
-                downloader.consumer.environment = self.environment
-                downloader.before = self.before
-                downloader.after  = self.after
-                downloader.download()
-
+                final                = self.translate(foreign)
+                consumer             = SSConsumer(final)
+                consumer.environment = self.environment
+                self.consumer        = consumer
+                self.really_download()
                 break
             except Exception, e:
                 print e
-                pass
+                continue
 
-class SSDownloader(object):
-    """docstring for SSDownloader"""
-    def __init__(self, url):
-        super(SSDownloader, self).__init__()
-        self.url      = url
-        self.consumer = SSConsumer(url)
+    def translate(self, foreign):
+        results = self.environment.json(listings_endpoint(foreign['endpoint'])).get('items', [])
 
-    def file_name(self):
-        """docstring for file_name"""
-        return self.consumer.file_name().encode()
+        if results:
+            return results[0]['url']
 
-    def asset_url(self):
-        """docstring for asset_url"""
-        return self.consumer.asset_url().encode()
+    def sources(self):
+        sources  = self.environment.json(listings_endpoint(self.endpoint)).get('items', [])
+        filtered = filter(lambda x: x['_type'] == 'foreign', sources)
 
-    def local_file(self):
-        """docstring for local_file"""
-        return '%s/%s' % (self.destination, self.file_name())
-
-    def local_partfile(self):
-        """docstring for local_partfile"""
-        return self.local_file() + '.part'
+        return filtered
 
     def curl_options(self):
-        """docstring for curl_options"""
         options = [
             'curl',
-            '--referer', self.url,
+            '--referer', self.consumer.url,
             '-o',        self.local_partfile(),
             '--cookie',  self.consumer.agent_cookie_string(),
         ]
@@ -333,42 +347,34 @@ class SSDownloader(object):
 
         return options
 
-    def download(self):
-        """docstring for download"""
+    def really_download(self):
         from signal import SIGHUP, SIGTERM
         import subprocess
 
         piped    = subprocess.Popen(self.curl_options())
         self.pid = piped.pid
 
-        self.before(self)
+        self.run_before_callbacks()
         piped.wait()
 
         returned = piped.returncode
-        if 0 == returned:
-            self.after(self)
-        if SIGTERM * -1 == returned:
-            self.cleanup()
-        elif SIGHUP * -1  == returned:
+
+        if   0            == returned: self.run_after_callbacks()
+        elif SIGTERM * -1 == returned: self.cleanup()
+        elif SIGHUP  * -1 == returned:
             self.cleanup()
             raise
 
     def cleanup(self):
-        """docstring for cleanup"""
         import os
 
-        try:
-            os.remove( self.local_file() )
-        except Exception, e:
-            pass
+        try: os.remove( self.local_file() )
+        except Exception, e: pass
 
-        try:
-            os.remove( self.local_partfile() )
-        except Exception, e:
-            pass
+        try: os.remove( self.local_partfile() )
+        except Exception, e: pass
 
 def normalize_url(url):
-    """docstring for normalize_url"""
     import re
     return re.sub(r'\W+', '-', url).lower().encode()
 
@@ -381,17 +387,7 @@ if __name__ == '__main__':
     #consumer.environment = DefaultEnvironment()
     #print consumer.consume()
 
-    def before(downloader):
-        """docstring for before"""
-        print downloader.pid
-
-    def after(downloader):
-        """docstring for after"""
-        print 'Done!'
-
-    wizard = SSWizard(test_url)
-    wizard.before = before
-    wizard.after  = after
-    wizard.environment = DefaultEnvironment()
-    wizard.destination = os.getcwd()
-    wizard.run()
+    dl = SSDownloader(test_url)
+    dl.environment = DefaultEnvironment()
+    dl.destination = os.getcwd()
+    dl.download()
