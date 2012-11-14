@@ -159,19 +159,18 @@ class SSConsumer(object):
 
         return resp
 
-    def asset_from_xpath(self, args):
-        """docstring for asset_from_xpath"""
-        haystack_url = args.get('url', 'last_page')
-        final        = args.get('final', False)
-        attribute    = args.get('attribute', 'default')
+    def haystack_from(self, args):
+        haystack = None
+        url      = args.get('url', 'last_page')
 
-        if haystack_url == 'last_page':
-            haystack = self.page
-        else:
-            haystack = self.ungzipResponse(self.agent.open(haystack_url)).read()
+        if 'last_page' == url: haystack = self.page
+        else: haystack = self.ungzipResponse(self.agent.open(url)).read()
 
-        result  = None
-        element = self.environment.xpath(haystack, args['query'])[0]
+        return haystack
+
+    def attribute_from(self, element, args):
+        result    = None
+        attribute = args.get('attribute', 'default')
 
         if attribute == 'default':
             tag = element.tag
@@ -185,61 +184,30 @@ class SSConsumer(object):
         else:
             result = element.get(attribute)
 
-        if final:
-            self.set_final(result)
-
         return result
+
+    def set_final_if_requested(self, final, args):
+        if args.get('final', False): self.set_final(final)
+
+    def asset_from_xpath(self, args):
+        haystack = self.haystack_from(args)
+        element  = self.environment.xpath(haystack, args['query'])[0]
+        result   = self.attribute_from(element, args)
+        self.set_final_if_requested(result, args)
 
     def asset_from_css(self, args):
-        """docstring for asset_from_css"""
-        haystack_url = args.get('url', 'last_page')
-        final        = args.get('final', False)
-        attribute    = args.get('attribute', 'default')
-
-        if haystack_url == 'last_page':
-            haystack = self.page
-        else:
-            haystack = self.ungzipResponse(self.agent.open(haystack_url)).read()
-
-        result  = None
-        element = self.environment.css(haystack, args['selector'])[0]
-
-        if attribute == 'default':
-            tag = element.tag
-
-            if 'a' == tag:
-                result = element.get('href')
-            elif 'img' == tag:
-                result = element.getparent.get('href')
-            elif 'embed' == tag:
-                result = element.get('src')
-        else:
-            result = element.get(attribute)
-
-        if final:
-            self.set_final(result)
-
-        return result
+        haystack = self.haystack_from(args)
+        element  = self.environment.css(haystack, args['selector'])[0]
+        result   = self.attribute_from(element, args)
+        self.set_final_if_requested(result, args)
 
     def asset_from_regex(self, args):
-        """docstring for asset_from_regex"""
         import re
 
-        haystack_url = args.get('url', 'last_page')
-        final        = args.get('final', False)
-        expression   = re.compile(args['expression'][7:-1])
-
-        if haystack_url == 'last_page':
-            haystack = self.page
-        else:
-            haystack = self.ungzipResponse(self.agent.open(url)).read()
-
-        result = expression.findall(haystack)[0]
-
-        if final:
-            self.set_final(result)
-
-        result
+        expression = re.compile(args['expression'][7:-1])
+        haystack   = self.haystack_from(args)
+        result     = expression.findall(haystack)[0]
+        self.set_final_if_requested(result, args)
 
     #from http://mattshaw.org/news/python-mechanize-gzip-response-handling/
     def ungzipResponse(self, r):
