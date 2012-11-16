@@ -226,15 +226,17 @@ class SSConsumer(object):
             self.agent.set_response(r)
 
         return r
-from daemon import Daemon
-#import tempfile
 
 class SSDownloader(object):
-    """docstring for SSDownloader"""
     def __init__(self, endpoint):
         super(SSDownloader, self).__init__()
         self.endpoint = endpoint
         self.init_callbacks()
+
+    @classmethod
+    def status_file_for(cls, endpoint):
+        import os
+        return '%s/%s' % (tempfile.gettempdir(), normalize_url(endpoint))
 
     def file_name(self):      return self.consumer.file_name().encode()
     def asset_url(self):      return self.consumer.asset_url().encode()
@@ -242,6 +244,9 @@ class SSDownloader(object):
     def local_partfile(self): return self.local_file() + '.part'
 
     def add_callback(self, group, cb): self.callbacks[group].append(cb)
+    def add_before_callback(self, cb): self.add_callback('before', cb)
+    def add_after_callback(self,  cb): self.add_callback('after',  cb)
+    def add_ensure_callback(self, cb): self.add_callback('ensure', cb)
 
     def run_before_callbacks(self):
         self.run_callbacks('_before')
@@ -250,23 +255,29 @@ class SSDownloader(object):
     def run_after_callbacks(self):
         self.run_callbacks('_after')
         self.run_callbacks('after')
+        self.run_ensure_callbacks()
+
+    def run_ensure_callbacks(self):
+        self.run_callbacks('_ensure')
+        self.run_callbacks('ensure')
 
     def run_callbacks(self, group):
         for cb in self.callbacks[group]:
             cb(self)
 
     def init_callbacks(self):
-        groups = ( '_before', 'before', '_after', 'after' )
+        groups = ( 'before', 'after', 'ensure' )
         self.callbacks = {}
 
         for g in groups:
-            self.callbacks[g] = []
+            self.callbacks[g]       = []
+            self.callbacks['_' + g] = []
 
         def debug_dl(dl):
-            lines = [ dl.pid, dl.asset_url(), dl.local_file() ]
+            lines = [ dl.pid, dl.consumer.url, dl.asset_url(), dl.local_file() ]
 
             for line in lines:
-                print line
+                self.environment.log(line)
 
         def rename_partfile(dl):
             import os
@@ -276,7 +287,14 @@ class SSDownloader(object):
         self.add_callback('_after',  rename_partfile)
 
     def download(self):
-        for foreign in self.sources():
+        try:
+            sources = self.sources()
+        except Exception, e:
+            self.environment.log(e)
+            self.run_ensure_callbacks()
+            return
+
+        for foreign in sources:
             try:
                 final                = self.translate(foreign)
                 consumer             = SSConsumer(final)
@@ -285,7 +303,7 @@ class SSDownloader(object):
                 self.really_download()
                 break
             except Exception, e:
-                print e
+                self.run_ensure_callbacks()
                 continue
 
     def translate(self, foreign):
@@ -327,10 +345,14 @@ class SSDownloader(object):
 
         returned = piped.returncode
 
-        if   0            == returned: self.run_after_callbacks()
-        elif SIGTERM * -1 == returned: self.cleanup()
-        elif SIGHUP  * -1 == returned:
+        if 0 == returned:
+            self.run_after_callbacks()
+        elif SIGTERM * -1 == returned:
             self.cleanup()
+            self.run_after_callbacks()
+        elif SIGHUP * -1 == returned:
+            self.cleanup()
+            self.run_ensure_callbacks()
             raise
 
     def cleanup(self):
@@ -346,16 +368,31 @@ def normalize_url(url):
     import re
     return re.sub(r'\W+', '-', url).lower().encode()
 
+def redirect_output():
+    import os, sys
+    of = '/Users/mike/Work/other/ss-plex.bundle/out'
+    sys.stdout.flush()
+    sys.stderr.flush()
+    so = file(of, 'a+')
+    se = file(of, 'a+', 0)
+    os.dup2(so.fileno(), sys.stdout.fileno())
+    os.dup2(se.fileno(), sys.stderr.fileno())
+
 if __name__ == '__main__':
     import os, sys
     args     = sys.argv
     test_url = args[1]
 
-    #consumer = SSConsumer(test_url)
-    #consumer.environment = DefaultEnvironment()
-    #print consumer.consume()
+    def before(dl): print 'before'
+    def after(dl):  print 'after'
+    def ensure(dl): print 'ensure'
 
     dl = SSDownloader(test_url)
     dl.environment = DefaultEnvironment()
     dl.destination = os.getcwd()
+
+    dl.add_before_callback(before)
+    dl.add_after_callback(after)
+    dl.add_ensure_callback(ensure)
+
     dl.download()
