@@ -1,5 +1,8 @@
 import string
-from consumer import listings_endpoint
+from ss import Downloader
+from ss import util
+
+util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
 
 PLUGIN_PREFIX = '/video/ssp'
 PLUGIN_TITLE  = L('title')
@@ -24,8 +27,7 @@ def Start():
 
 @handler(PLUGIN_PREFIX, PLUGIN_TITLE)
 def MainMenu():
-    """docstring for MainMenu"""
-    container     = render_listings('/')
+    container = render_listings('/')
 
     favorite_item = DirectoryObject(
         title = 'Favorites',
@@ -51,7 +53,6 @@ def MainMenu():
 
 @route('%s/search/results' % PLUGIN_PREFIX)
 def SearchResults(query):
-    """docstring for SearchResults"""
     container = render_listings('/search/%s' % String.Quote(query))
     save_item = DirectoryObject(
         title = 'Save this search',
@@ -63,8 +64,8 @@ def SearchResults(query):
 
 @route('%s/search' % PLUGIN_PREFIX)
 def SavedSearches():
-    """docstring for SavedSearches"""
     container = ObjectContainer()
+
     for query in sorted(dict_default('searches', [])):
         item = DirectoryObject(title = query, key = Callback(SearchResults, query = query))
         container.add(item)
@@ -73,19 +74,16 @@ def SavedSearches():
 
 @route('%s/search/save' % PLUGIN_PREFIX)
 def SaveSearch(query):
-    """docstring for SaveSearch"""
     saved_searches = PluginHelpers.dict_searches()
 
     if query not in saved_searches:
         saved_searches.append(query)
-
-    #Dict['searches'] = saved_searches
+        Dict.Save()
 
     return ObjectContainer(header = 'Saved', message = 'Your search has been saved.')
 
 @route('%s/favorites' % PLUGIN_PREFIX)
 def Favorites():
-    """docstring for Favorites"""
     favorites = PluginHelpers.dict_favorites()
     container = ObjectContainer(
         title1 = 'Favorites'
@@ -108,18 +106,27 @@ def Favorites():
 
 @route('%s/favorites/clear' % PLUGIN_PREFIX)
 def ClearFavorites():
-    """docstring for ClearFavorites"""
-    Dict['favorites'] = {}
+    del Dict['favorites']
+    Dict.Save()
     return ObjectContainer(header = 'Favorites', message = 'Your favorites have been cleared.')
 
 @route('%s/RenderListings' % PLUGIN_PREFIX)
 def RenderListings(endpoint, default_title = None):
-    """docstring for RenderListings"""
     return render_listings(endpoint, default_title)
+
+@route('%s/ListSources' % PLUGIN_PREFIX)
+def ListSources(endpoint, title, media_hint):
+    container     = render_listings(endpoint, default_title = title)
+    download_item = DirectoryObject(
+        title = 'Download',
+        key   = Callback(DownloadsQueue, endpoint = endpoint, media_hint = media_hint)
+    )
+
+    container.objects.insert(0, download_item)
+    return container
 
 @route('%s/series' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
-    """docstring for ListTVShow"""
     container = render_listings(endpoint, show_title)
     if 0 < refresh:
         container.replace_parent = True
@@ -146,7 +153,6 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 
 @route('%s/favorites/toggle' % PLUGIN_PREFIX)
 def ToggleFavorite(endpoint, show_title):
-    """docstring for AddFavorite"""
     message = None
 
     if show_is_favorite(endpoint):
@@ -156,9 +162,8 @@ def ToggleFavorite(endpoint, show_title):
         favorites             = PluginHelpers.dict_favorites()
         favorites[endpoint]   = show_title
         message               = '%s was added to your favorites.'
-        Dict['favorites']     = favorites
 
-    #Dict['favorites'].save()
+    Dict.Save()
 
     return ObjectContainer(header = 'Favorites', message = message % show_title)
 
@@ -179,6 +184,12 @@ class PluginHelpers(object):
     def dict_searches(cls):  return cls.initialize_dict('searches',  [])
 
     @classmethod
+    def clear_current_download(cls):
+        if 'download_current' in Dict:
+            del Dict['download_current']
+            Dict.Save()
+
+    @classmethod
     def show_is_favorite(cls, endpoint):
         return endpoint in cls.dict_favorites().keys()
 
@@ -192,7 +203,7 @@ class PluginHelpers(object):
     @classmethod
     def plex_section_destination(cls, section):
         query     = '//Directory[@type="%s"]/Location' % section
-        locations = XML.ElementFromURL('http://localhost:32400/library/sections').xpath(query)
+        locations = XML.ElementFromURL('http://127.0.0.1:32400/library/sections').xpath(query)
         location  = locations[0].get('path')
         return location
 
@@ -205,100 +216,89 @@ def download_for_endpoint(endpoint):
 
 @route('%s/downloads' % PLUGIN_PREFIX)
 def DownloadsIndex():
-    """docstring for DownloadsIndex"""
     downloads = PluginHelpers.dict_downloads()
-    Log(downloads)
-    pass
 
 @route('%s/downloads/show' % PLUGIN_PREFIX)
 def DownloadsShow(endpoint):
-    """docstring for DownloadsShow"""
     pass
 
 @route('%s/downloads/queue' % PLUGIN_PREFIX)
-def DownloadsQueue(endpoint):
-    """docstring for DownloadsQueue"""
-    Log(PluginHelpers.dict_downloads())
+def DownloadsQueue(endpoint, media_hint):
+    Log(download_for_endpoint(endpoint))
     if download_for_endpoint(endpoint):
         return
 
     PluginHelpers.dict_downloads().append({
         'created_at': Datetime.Now(),
-        'endpoint':   endpoint
+        'endpoint':   endpoint,
+        'media_hint': media_hint
     })
 
     Dict.Save()
+    dispatch_download()
 
 @route('%s/downloads/dispatch' % PLUGIN_PREFIX)
 def DownloadsDispatch():
-    #if not Dict['download_current']:
-    from consumer import SSDownloader
-    import thread
+    dispatch_download()
 
-    def store_curl_pid(dl):
-        Dict['download_current']['pid'] = dl.pid
-        Dict.Save()
+@route('%s/downloads/cancel' % PLUGIN_PREFIX)
+def DownloadsCancel():
+    if 'download_current' in Dict:
+        import os, signal
+        pid = Dict['download_current'].get('pid')
 
-    def clear_current_download(dl):
-        if 'download_current' in Dict:
-            del Dict['download_current']
+        if pid:
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except: pass
+
+def dispatch_download(should_thread = True):
+    if not 'download_current' in Dict:
+        import thread
+
+        def store_curl_pid(dl):
+            Dict['download_current']['pid'] = dl.pid
             Dict.Save()
 
-    try:
-        download = PluginHelpers.dict_downloads().pop(0)
-    except IndexError, e:
-        clear_current_download(None)
-        return
+        def clear_current_download(dl):
+            PluginHelpers.clear_current_download()
+            #HTTP.Request('http://127.0.0.1:32400/video/ssp/downloads/dispatch', immediate = True)
+            dispatch_download(False)
 
-    Dict['download_current'] = download
+        try:
+            download = PluginHelpers.dict_downloads().pop(0)
+        except IndexError, e:
+            #PluginHelpers.clear_current_download()
+            return
 
-    endpoint  = download['endpoint']
+        Dict['download_current'] = download
+        Dict.Save()
 
-    dl = SSDownloader(endpoint)
-    dl.environment = SSPlexEnvironment()
-    dl.destination = PluginHelpers.plex_section_destination('show')
-    dl.add_before_callback(store_curl_pid)
-    dl.add_after_callback(clear_current_download)
+        endpoint       = download['endpoint']
+        media_hint     = download['media_hint']
+        dl             = Downloader(endpoint)
+        dl.environment = SSPlexEnvironment()
+        dl.destination = PluginHelpers.plex_section_destination(media_hint)
 
-    thread.start_new_thread(dl.download, ())
+        dl.on_start(store_curl_pid)
+        dl.on_success(clear_current_download)
+        dl.on_error(clear_current_download)
 
-    return ObjectContainer(header = 'Test', message = 'hello')
+        if should_thread:
+            thread.start_new_thread(dl.download, ())
+        else:
+            dl.download()
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
-    from consumer import SSDownloader
-    import thread
-
-    endpoint  = '/shows/18/episodes/34'
-    downloads = dict_default('downloads', {})
-
-    def before(dl):
-        """docstring for before"""
-        downloads[endpoint] = {}
-        downloads[endpoint]['pid'] = dl.pid
-        Dict['downloads'] = downloads
-
-    def at_fork(pid):
-        """docstring for at_form"""
-        Log(pid)
-
-    dl = SSDownloader(endpoint)
-    dl.add_before_callback(before)
-    dl.environment = SSPlexEnvironment()
-    dl.destination = plex_section_destination('show')
-    thread.start_new_thread(dl.download, ())
-    dl.download()
-
     return ObjectContainer(header = 'Test', message = 'hello')
 
 @route('%s/reset' % PLUGIN_PREFIX)
 def FactoryReset():
-    """docstring for FactoryReset"""
     Dict.Reset()
 
 def render_listings(endpoint, default_title = None):
-    """docstring for _render_listings"""
-    endpoint = listings_endpoint(endpoint)
+    endpoint = util.listings_endpoint(endpoint)
 
     Log('Attempting payload from %s' % (endpoint))
     response  = JSON.ObjectFromURL(endpoint)
@@ -331,9 +331,13 @@ def render_listings(endpoint, default_title = None):
             )
         elif 'movie' == element['_type'] or 'episode' == element['_type']:
             Log('element is playable')
+            media_hint = element['_type']
+            if 'episode' == media_hint:
+                media_hint = 'show'
+
             naitive = DirectoryObject(
                 title = display_title,
-                key   = generic_callback
+                key   = Callback(ListSources, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
         elif 'foreign' == element['_type']:
             Log('element is foreign')
