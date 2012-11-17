@@ -1,4 +1,5 @@
-from consumer import SSConsumer, listings_endpoint
+from ss import Consumer
+
 from urlparse import urlparse
 import cgi
 import inspect
@@ -15,33 +16,21 @@ def MetadataObjectForURL(url):
     return co
 
 class SSPlexEnvironment:
-    def log(self, message):
-        """docstring for log"""
-        Log(message)
-
-    def json(self, payload_url, **params):
-        """docstring for json"""
-        return JSON.ObjectFromURL(payload_url, values = params)
-
-    def css(self, haystack, selector):
-        """docstring for css"""
-        return HTML.ElementFromString(haystack).cssselect(selector)
-
-
-    def xpath(self, haystack, query):
-        """docstring for css"""
-        return HTML.ElementFromString(haystack).xpath(query)
+    def log(self,   message):               Log(message)
+    def json(self,  payload_url, **params): return JSON.ObjectFromURL(payload_url, values = params)
+    def css(self,   haystack,    selector): return HTML.ElementFromString(haystack).cssselect(selector)
+    def xpath(self, haystack,    query):    return HTML.ElementFromString(haystack).xpath(query)
 
 def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
     params   = cgi.parse_qs(query)
-    consumer = SSConsumer(params['url'][0])
+    consumer = Consumer(params['url'][0])
     consumer.environment = SSPlexEnvironment()
 
     final = consumer.consume()
 
     obj = MediaObject(
-            parts = [ PartObject(key = final) ],
+        parts = [ PartObject(key = final) ],
     )
 
     return [ obj ]
