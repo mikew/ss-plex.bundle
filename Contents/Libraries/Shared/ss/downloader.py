@@ -1,17 +1,25 @@
 from consumer import Consumer, DefaultEnvironment
 import util
 
+#util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
+
 class Downloader(object):
     def __init__(self, endpoint, environment = None, destination = None):
         super(Downloader, self).__init__()
         self.endpoint    = endpoint
         self.destination = destination
+        self.environment = environment
 
-        if not environment:
+        if not self.environment:
             self.environment = DefaultEnvironment()
 
-        self.payload = self.environment.json(util.listings_endpoint(self.endpoint))
         self.init_callbacks()
+
+        try:
+            self.payload = self.environment.json(util.listings_endpoint(self.endpoint))
+        except Exception, e:
+            util.print_exception(e)
+            self.run_error_callbacks()
 
     @classmethod
     def status_file_for(cls, endpoint):
@@ -76,23 +84,15 @@ class Downloader(object):
     def download(self):
         success = False
 
-        try:
-            sources = self.sources()
-        except Exception, e:
-            sources = []
-            print_exception(e)
-
-        for foreign in sources:
+        for foreign in self.sources():
             try:
-                final                = self.translate(foreign)
-                consumer             = Consumer(final)
-                consumer.environment = self.environment
-                self.consumer        = consumer
+                final         = self.translate(foreign)
+                self.consumer = Consumer(final, environment = self.environment)
 
                 success = self.really_download()
                 break
             except Exception, e:
-                print_exception(e)
+                util.print_exception(e)
                 continue
 
         if not success:
@@ -105,9 +105,12 @@ class Downloader(object):
             return results[0]['url']
 
     def sources(self):
-        sources  = self.environment.json(util.listings_endpoint(self.endpoint)).get('items', [])
-        sources  = self.payload.get('items', [])
-        filtered = filter(lambda x: x['_type'] == 'foreign', sources)
+        filtered = []
+
+        try:
+            sources  = self.payload.get('items', [])
+            filtered = filter(lambda x: x['_type'] == 'foreign', sources)
+        except: pass
 
         return filtered
 

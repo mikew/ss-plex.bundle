@@ -2,7 +2,7 @@ import string
 from ss import Downloader
 from ss import util
 
-util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
+#util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
 
 PLUGIN_PREFIX = '/video/ssp'
 PLUGIN_TITLE  = L('title')
@@ -187,7 +187,8 @@ class PluginHelpers(object):
     def clear_current_download(cls):
         if 'download_current' in Dict:
             del Dict['download_current']
-            Dict.Save()
+
+        Dict.Save()
 
     @classmethod
     def show_is_favorite(cls, endpoint):
@@ -207,6 +208,10 @@ class PluginHelpers(object):
         location  = locations[0].get('path')
         return location
 
+    @classmethod
+    def currently_downloading(cls):
+        return 'download_current' in Dict
+
 def download_for_endpoint(endpoint):
     """docstring for download_for_endpoint"""
     found = filter(lambda h: h['endpoint'] == endpoint, PluginHelpers.dict_downloads())
@@ -224,7 +229,6 @@ def DownloadsShow(endpoint):
 
 @route('%s/downloads/queue' % PLUGIN_PREFIX)
 def DownloadsQueue(endpoint, media_hint):
-    Log(download_for_endpoint(endpoint))
     if download_for_endpoint(endpoint):
         return
 
@@ -243,7 +247,7 @@ def DownloadsDispatch():
 
 @route('%s/downloads/cancel' % PLUGIN_PREFIX)
 def DownloadsCancel():
-    if 'download_current' in Dict:
+    if PluginHelpers.currently_downloading():
         import os, signal
         pid = Dict['download_current'].get('pid')
 
@@ -253,41 +257,38 @@ def DownloadsCancel():
             except: pass
 
 def dispatch_download(should_thread = True):
-    if not 'download_current' in Dict:
+    if not PluginHelpers.currently_downloading():
         import thread
 
         def store_curl_pid(dl):
             Dict['download_current']['pid'] = dl.pid
             Dict.Save()
 
-        def clear_current_download(dl):
+        def clear_download_and_dispatch(dl):
             PluginHelpers.clear_current_download()
-            #HTTP.Request('http://127.0.0.1:32400/video/ssp/downloads/dispatch', immediate = True)
             dispatch_download(False)
 
         try:
             download = PluginHelpers.dict_downloads().pop(0)
         except IndexError, e:
-            #PluginHelpers.clear_current_download()
             return
 
         Dict['download_current'] = download
         Dict.Save()
 
-        endpoint       = download['endpoint']
-        media_hint     = download['media_hint']
-        dl             = Downloader(endpoint)
-        dl.environment = SSPlexEnvironment()
-        dl.destination = PluginHelpers.plex_section_destination(media_hint)
+        downloader = Downloader(download['endpoint'],
+            environment = SSPlexEnvironment(),
+            destination = PluginHelpers.plex_section_destination(download['media_hint'])
+        )
 
-        dl.on_start(store_curl_pid)
-        dl.on_success(clear_current_download)
-        dl.on_error(clear_current_download)
+        downloader.on_start(store_curl_pid)
+        downloader.on_success(clear_download_and_dispatch)
+        downloader.on_error(clear_download_and_dispatch)
 
         if should_thread:
-            thread.start_new_thread(dl.download, ())
+            thread.start_new_thread(downloader.download, ())
         else:
-            dl.download()
+            downloader.download()
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
@@ -296,11 +297,11 @@ def QuickTest():
 @route('%s/reset' % PLUGIN_PREFIX)
 def FactoryReset():
     Dict.Reset()
+    Dict.Save()
 
 def render_listings(endpoint, default_title = None):
     endpoint = util.listings_endpoint(endpoint)
 
-    Log('Attempting payload from %s' % (endpoint))
     response  = JSON.ObjectFromURL(endpoint)
     container = ObjectContainer(
         title1 = response.get( 'title' ) or default_title,
@@ -314,7 +315,6 @@ def render_listings(endpoint, default_title = None):
         generic_callback = Callback(RenderListings, endpoint = permalink, default_title = display_title)
 
         if 'endpoint' == element['_type']:
-            Log('element is endpoint')
             naitive = DirectoryObject(
                 title   = display_title,
                 tagline = element.get( 'tagline' ),
@@ -322,7 +322,6 @@ def render_listings(endpoint, default_title = None):
                 key     = generic_callback
             )
         elif 'show' == element['_type']:
-            Log('element is show')
             naitive = TVShowObject(
                 rating_key = permalink,
                 title      = display_title,
@@ -330,7 +329,6 @@ def render_listings(endpoint, default_title = None):
                 key        = Callback(ListTVShow, endpoint = permalink, show_title = display_title)
             )
         elif 'movie' == element['_type'] or 'episode' == element['_type']:
-            Log('element is playable')
             media_hint = element['_type']
             if 'episode' == media_hint:
                 media_hint = 'show'
@@ -340,18 +338,15 @@ def render_listings(endpoint, default_title = None):
                 key   = Callback(ListSources, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
         elif 'foreign' == element['_type']:
-            Log('element is foreign')
             naitive = DirectoryObject(
                 title = element['domain'],
                 key   = generic_callback
             )
         elif 'final' == element['_type']:
-            Log('element is final')
             ss_url = '//ss/procedure?url=%s&title=%s' % (String.Quote(element['url']), String.Quote('FILE HINT HERE'))
             naitive = VideoClipObject(url = ss_url, title = display_title)
 
         #elif 'movie' == element['_type']:
-            #Log('element is movie')
             #naitive = MovieObject(
                 #rating_key = permalink,
                 #title      = display_title,
@@ -360,7 +355,6 @@ def render_listings(endpoint, default_title = None):
                 #key        = sources_callback
             #)
         #elif 'episode' == element['_type']:
-            #Log('element is episode')
             #naitive = EpisodeObject(
                 #rating_key     = permalink,
                 #title          = display_title,

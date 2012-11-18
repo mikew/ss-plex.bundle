@@ -36,7 +36,7 @@ class DefaultEnvironment(object):
         return result
 
 class Consumer(object):
-    def __init__(self, url):
+    def __init__(self, url, environment = None):
         import mechanize
 
         super(Consumer, self).__init__()
@@ -51,11 +51,15 @@ class Consumer(object):
             ('Accept-Language', 'en-us,en;q=0.5'),
         ]
 
-        self.url       = url
-        self.agent     = br
-        self.final     = None
-        self.fname     = None
-        self.consumed  = False
+        self.url         = url
+        self.agent       = br
+        self.final       = None
+        self.fname       = None
+        self.consumed    = False
+        self.environment = environment
+
+        if not self.environment:
+            self.environment = DefaultEnvironment()
 
     def agent_cookies(self):
         return self.agent._ua_handlers['_cookies'].cookiejar
@@ -215,7 +219,6 @@ if __name__ == '__main__':
     test_url = args[1]
 
     consumer = Consumer(test_url)
-    consumer.environment = DefaultEnvironment()
 
     print consumer.asset_url()
     print consumer.file_name()
