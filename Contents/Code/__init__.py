@@ -3,7 +3,7 @@ from ss import Downloader
 from ss import util
 from ss import DownloadStatus
 
-util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
+#util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
 
 PLUGIN_PREFIX = '/video/ssp'
 PLUGIN_TITLE  = L('title')
