@@ -57,9 +57,7 @@ class Consumer(object):
         self.fname       = None
         self.consumed    = False
         self.environment = environment
-
-        if not self.environment:
-            self.environment = DefaultEnvironment()
+        if not self.environment: self.environment = DefaultEnvironment()
 
     def agent_cookies(self):
         return self.agent._ua_handlers['_cookies'].cookiejar

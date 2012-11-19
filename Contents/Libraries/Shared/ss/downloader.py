@@ -9,6 +9,7 @@ class Downloader(object):
         super(Downloader, self).__init__()
         self.endpoint    = endpoint
         self.destination = destination
+        self.success     = False
         self.environment = environment
         if not self.environment: self.environment = DefaultEnvironment()
         self.wizard      = Wizard(self.endpoint, environment = self.environment)
@@ -76,15 +77,15 @@ class Downloader(object):
         self.add_callback('_success', rename_partfile)
 
     def download(self):
-        success = False
-
         def perform_download(consumer):
             self.consumer = consumer
-            success = self.really_download()
+            self.success  = self.really_download()
 
         self.wizard.sources(perform_download)
 
-        if not success:
+        if self.success:
+            self.run_success_callbacks()
+        else:
             self.run_error_callbacks()
 
     def curl_options(self):
@@ -113,7 +114,6 @@ class Downloader(object):
         returned = piped.returncode
 
         if 0 == returned:
-            self.run_success_callbacks()
             return True
         elif SIGTERM * -1 == returned:
             self.cleanup()

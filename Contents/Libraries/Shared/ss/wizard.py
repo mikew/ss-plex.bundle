@@ -5,11 +5,9 @@ class Wizard(object):
     def __init__(self, endpoint, environment = None):
         super(Wizard, self).__init__()
         self.endpoint    = endpoint
-        self.environment = environment
         self.file_hint   = None
-
-        if not self.environment:
-            self.environment = DefaultEnvironment()
+        self.environment = environment
+        if not self.environment: self.environment = DefaultEnvironment()
 
         try:
             self.payload   = self.environment.json(util.listings_endpoint(self.endpoint))
@@ -49,6 +47,7 @@ class Wizard(object):
                 cb(consumer)
                 break
             except Exception, e:
+                #util.print_exception(e)
                 continue
 
 if __name__ == '__main__':
@@ -63,6 +62,3 @@ if __name__ == '__main__':
         print c.asset_url()
 
     w.sources(print_url)
-
-    #for c in w.sources():
-        #print c.asset_url()
