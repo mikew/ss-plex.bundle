@@ -182,8 +182,10 @@ def DownloadsCancel(endpoint):
         if 'current' == endpoint:
             PluginHelpers.signal_download('cancel')
         else:
-            PluginHelpers.dict_downloads().remove(download)
-            Dict.Save()
+            try:
+                PluginHelpers.dict_downloads().remove(download)
+                Dict.Save()
+            except: pass
 
         return dialog('Downloads', '%s has been cancelled.' % download['title'])
     else:
@@ -359,9 +361,7 @@ class PluginHelpers(object):
 
     @classmethod
     def clear_current_download(cls):
-        if 'download_current' in Dict:
-            del Dict['download_current']
-
+        if cls.currently_downloading(): del Dict['download_current']
         Dict.Save()
 
     @classmethod
@@ -376,6 +376,7 @@ class PluginHelpers(object):
         query     = '//Directory[@type="%s"]/Location' % section
         locations = XML.ElementFromURL('http://127.0.0.1:32400/library/sections').xpath(query)
         location  = locations[0].get('path')
+
         return location
 
     @classmethod
@@ -409,19 +410,6 @@ class PluginHelpers(object):
         if not cls.currently_downloading():
             import thread
 
-            def store_curl_pid(dl):
-                Dict['download_current']['title'] = dl.file_name()
-                Dict['download_current']['pid']   = dl.pid
-                Dict.Save()
-
-            def clear_download_and_dispatch(dl):
-                cls.clear_current_download()
-                cls.dispatch_download(False)
-
-            def remove_endpoint_from_history(dl):
-                cls.download_history().remove(dl.endpoint)
-                Dict.Save()
-
             try:
                 download = cls.dict_downloads().pop(0)
             except IndexError, e:
@@ -435,8 +423,27 @@ class PluginHelpers(object):
                 destination = cls.plex_section_destination(download['media_hint'])
             )
 
+            def store_curl_pid(dl):
+                Dict['download_current']['title'] = dl.file_name()
+                Dict['download_current']['pid']   = dl.pid
+                Dict.Save()
+
+            def update_library(dl):
+                plex_refresh_section(download['media_hint'])
+
+            def clear_download_and_dispatch(dl):
+                cls.clear_current_download()
+                cls.dispatch_download(False)
+
+            def remove_endpoint_from_history(dl):
+                cls.download_history().remove(dl.endpoint)
+                Dict.Save()
+
             downloader.on_start(store_curl_pid)
+
+            downloader.on_success(update_library)
             downloader.on_success(clear_download_and_dispatch)
+
             downloader.on_error(remove_endpoint_from_history)
             downloader.on_error(clear_download_and_dispatch)
 
@@ -450,3 +457,11 @@ class PluginHelpers(object):
 def plobj(obj, otitle, cb, **kwargs): return obj(title = otitle, key = Callback(cb, **kwargs))
 def dialog(title, message):           return ObjectContainer(header = title, message = message)
 
+def plex_refresh_section(section):
+    base    = 'http://127.0.0.1:32400/library/sections'
+    query   = '//Directory[@type="%s"]' % section
+    element = XML.ElementFromURL(base).xpath(query)[0]
+    key     = element.get('key')
+    url     = base + '/%s/refresh' % key
+
+    HTTP.Request(url, immediate = True)
