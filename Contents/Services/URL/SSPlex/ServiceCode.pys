@@ -24,13 +24,10 @@ class SSPlexEnvironment:
 def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
     params   = cgi.parse_qs(query)
-    consumer = Consumer(params['url'][0])
-    consumer.environment = SSPlexEnvironment()
-
-    final = consumer.consume()
+    consumer = Consumer(params['url'][0], environment = SSPlexEnvironment())
 
     obj = MediaObject(
-        parts = [ PartObject(key = final) ],
+        parts = [ PartObject(key = consumer.asset_url()) ],
     )
 
     return [ obj ]

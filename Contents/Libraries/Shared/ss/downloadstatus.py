@@ -16,24 +16,37 @@ keys = [
 class DownloadStatus(object):
     def __init__(self, fname):
         super(DownloadStatus, self).__init__()
-        self.fname = fname
+        self.fname  = fname
+        self.parsed = False
+
+    def report_progress(self):
+        self.parse_status_file()
+        return '%s%% of %s' % (self.percent_total, self.total_size)
+
+    def report_speed(self):
+        self.parse_status_file()
+        return '%s remaning; %s average.' % (self.time_left, self.average_download)
 
     def report(self):
-        self.parse_status_file()
-        return '%s remaning at an average of %s.' % (self.time_left, self.average_download)
+        return [ self.report_progress(), self.report_speed() ]
 
     def parse_status_file(self):
-      f = open(self.fname, 'r')
-      f.seek(-100, 2)
-      values = f.read().split("\r")[-1].split()
-      f.close()
+        if self.parsed: return
 
-      for i, value in enumerate(values):
-          setattr(self, keys[i], value)
+        f = open(self.fname, 'r')
+        f.seek(-100, 2)
+        values = f.read().split("\r")[-1].split()
+        f.close()
+
+        for i, value in enumerate(values):
+            setattr(self, keys[i], value)
+
+        self.parsed = True
 
 if __name__ == '__main__':
     import sys
     args = sys.argv
 
     status = DownloadStatus('curl-status-file')
-    print status.report()
+    for ln in status.report():
+        print ln

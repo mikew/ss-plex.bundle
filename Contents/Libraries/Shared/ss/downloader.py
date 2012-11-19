@@ -1,4 +1,5 @@
 from consumer import Consumer, DefaultEnvironment
+from wizard   import Wizard
 import util
 
 #util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
@@ -9,17 +10,10 @@ class Downloader(object):
         self.endpoint    = endpoint
         self.destination = destination
         self.environment = environment
-
-        if not self.environment:
-            self.environment = DefaultEnvironment()
+        if not self.environment: self.environment = DefaultEnvironment()
+        self.wizard      = Wizard(self.endpoint, environment = self.environment)
 
         self.init_callbacks()
-
-        try:
-            self.payload = self.environment.json(util.listings_endpoint(self.endpoint))
-        except Exception, e:
-            util.print_exception(e)
-            self.run_error_callbacks()
 
     @classmethod
     def status_file_for(cls, endpoint):
@@ -33,7 +27,7 @@ class Downloader(object):
         return '%s.%s' % (self.file_hint(), ext)
 
     def file_hint(self):
-        return self.payload['title']
+        return self.wizard.file_hint
 
     def asset_url(self):      return self.consumer.asset_url().encode()
     def local_file(self):     return '%s/%s' % (self.destination, self.file_name())
@@ -78,41 +72,20 @@ class Downloader(object):
             import os
             os.rename( dl.local_partfile(), dl.local_file() )
 
-        self.add_callback('_start',   debug_dl)
+        #self.add_callback('_start',   debug_dl)
         self.add_callback('_success', rename_partfile)
 
     def download(self):
         success = False
 
-        for foreign in self.sources():
-            try:
-                final         = self.translate(foreign)
-                self.consumer = Consumer(final, environment = self.environment)
+        def perform_download(consumer):
+            self.consumer = consumer
+            success = self.really_download()
 
-                success = self.really_download()
-                break
-            except Exception, e:
-                util.print_exception(e)
-                continue
+        self.wizard.sources(perform_download)
 
         if not success:
             self.run_error_callbacks()
-
-    def translate(self, foreign):
-        results = self.environment.json(util.listings_endpoint(foreign['endpoint'])).get('items', [])
-
-        if results:
-            return results[0]['url']
-
-    def sources(self):
-        filtered = []
-
-        try:
-            sources  = self.payload.get('items', [])
-            filtered = filter(lambda x: x['_type'] == 'foreign', sources)
-        except: pass
-
-        return filtered
 
     def curl_options(self):
         options = [
@@ -131,7 +104,6 @@ class Downloader(object):
         from signal import SIGHUP, SIGTERM
         import subprocess
 
-        self.environment.log(self.curl_options())
         piped    = subprocess.Popen(self.curl_options())
         self.pid = piped.pid
 
