@@ -151,19 +151,22 @@ def DownloadsShow(endpoint):
 
 @route('%s/downloads/queue' % PLUGIN_PREFIX)
 def DownloadsQueue(endpoint, media_hint, title):
-    if PluginHelpers.download_for_endpoint(endpoint):
-        return
+    if PluginHelpers.has_downloaded(endpoint):
+        message = '%s is already in your library.'
+    else:
+        message = '%s will be downloaded shortly.'
+        PluginHelpers.dict_downloads().append({
+            'title':      title,
+            'endpoint':   endpoint,
+            'media_hint': media_hint
+        })
 
-    PluginHelpers.dict_downloads().append({
-        'title':      title,
-        'endpoint':   endpoint,
-        'media_hint': media_hint
-    })
+        PluginHelpers.download_history().append(endpoint)
 
-    PluginHelpers.download_history().append(endpoint)
+        Dict.Save()
 
-    Dict.Save()
     PluginHelpers.dispatch_download()
+    return dialog('Downloads', message % title)
 
 @route('%s/downloads/dispatch' % PLUGIN_PREFIX)
 def DownloadsDispatch():
