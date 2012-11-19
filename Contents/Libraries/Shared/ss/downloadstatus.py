@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 keys = [
   'percent_total',
   'total_size',
@@ -33,10 +35,13 @@ class DownloadStatus(object):
     def parse_status_file(self):
         if self.parsed: return
 
-        f = open(self.fname, 'r')
-        f.seek(-100, 2)
-        values = f.read().split("\r")[-1].split()
-        f.close()
+        try:
+            f = open(self.fname, 'r')
+            f.seek(-100, 2)
+            values = f.read().split("\r")[-1].split()
+            f.close()
+        except:
+            values = [ 0, '?', 0, 0, 0, 0, 0, 0, u'∞', 0, u'∞', 0 ]
 
         for i, value in enumerate(values):
             setattr(self, keys[i], value)
@@ -48,5 +53,6 @@ if __name__ == '__main__':
     args = sys.argv
 
     status = DownloadStatus('curl-status-file')
+    #status = DownloadStatus('zcurl-status-file')
     for ln in status.report():
         print ln
