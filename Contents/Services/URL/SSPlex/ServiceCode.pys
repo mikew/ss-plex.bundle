@@ -1,8 +1,9 @@
 from ss import Consumer
+from ss import Wizard
+from ss import util
 
 from urlparse import urlparse
 import cgi
-import inspect
 
 def NormalizeURL(url):
     return url
@@ -21,13 +22,53 @@ class SSPlexEnvironment:
     def css(self,   haystack,    selector): return HTML.ElementFromString(haystack).cssselect(selector)
     def xpath(self, haystack,    query):    return HTML.ElementFromString(haystack).xpath(query)
 
+#@deferred
 def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
     params   = cgi.parse_qs(query)
-    consumer = Consumer(params['url'][0], environment = SSPlexEnvironment())
 
-    obj = MediaObject(
-        parts = [ PartObject(key = consumer.asset_url()) ],
-    )
+    if '/procedure' == path:
+        obj = MediaObject(
+            parts = [ PartObject( key = Callback(PlayConsumer, url = params['url'][0]) ) ],
+        )
+    elif '/wizard' == path:
+        obj = MediaObject(
+            parts = [ PartObject( key = Callback(PlayWizard, endpoint = params['endpoint'][0]) ) ],
+        )
 
     return [ obj ]
+
+found    = None
+cookies  = None
+referer  = None
+@indirect
+def PlayWizard(endpoint):
+    wizard   = Wizard(endpoint, environment = SSPlexEnvironment())
+
+    def first_working(consumer):
+        global found, cookies, referer
+
+        found   = consumer.asset_url()
+        cookies = consumer.agent_cookie_string()
+        referer = consumer.url
+
+    wizard.sources(first_working)
+
+    if found: return video(found, referer, cookies)
+
+@indirect
+def PlayConsumer(url):
+    consumer = Consumer(url, environment = SSPlexEnvironment())
+    return video(consumer.asset_url(), url, consumer.agent_cookie_string())
+
+def video(url, referer, cookies):
+    container = ObjectContainer()
+    container.http_headers = { 'Referer': referer, 'Cookies': cookies }
+    naitive = VideoClipObject(
+        items = [ MediaObject(
+            parts = [ PartObject(key = url) ],
+        ) ]
+    )
+    container.add(naitive)
+
+    return container

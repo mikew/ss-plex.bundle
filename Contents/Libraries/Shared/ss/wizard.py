@@ -37,7 +37,10 @@ class Wizard(object):
                 #consumer.consume()
                 #yield consumer
                 #break
+            #except GeneratorExit:
+                #pass
             #except Exception, e:
+                #util.print_exception(e)
                 #continue
 
     def sources(self, cb):
@@ -55,10 +58,16 @@ if __name__ == '__main__':
     args     = sys.argv
     test_url = args[1]
 
-    w = Wizard(test_url)
-    print w.file_hint
+    found = None
+    def test():
+        w = Wizard(test_url)
+        print w.file_hint
 
-    def print_url(c):
-        print c.asset_url()
+        def print_url(c):
+            global found
+            found = c.asset_url()
 
-    w.sources(print_url)
+        w.sources(print_url)
+        print found
+
+    test()
