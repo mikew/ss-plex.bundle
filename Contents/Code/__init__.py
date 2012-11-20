@@ -334,36 +334,6 @@ def render_listings(endpoint, default_title = None):
 
     return container
 
-#@indirect
-#@route('%s/Wizard' % PLUGIN_PREFIX)
-#def Wizard(endpoint):
-    #from ss import Wizard
-
-    #found   = None
-    #cookies = None
-    #referer = None
-    #wizard  = Wizard(endpoint, environment = SSPlexEnvironment())
-
-    #for consumer in wizard.sources():
-        #found   = consumer.asset_url()
-        #cookies = consumer.agent_cookie_string()
-        #referer = consumer.url
-
-    #if found:
-        #container = ObjectContainer()
-        #container.http_headers = { 'Referer': referer, 'Cookies': cookies }
-        #naitive = VideoClipObject(
-            #title      = wizard.file_hint,
-            #key        = found,
-            #rating_key = found,
-            #items      = [ MediaObject(
-                    #parts = [ PartObject(key = found) ],
-            #) ]
-        #)
-        #container.add(naitive)
-
-        #return container
-
 #######################
 # SS Plex Environment #
 #######################
