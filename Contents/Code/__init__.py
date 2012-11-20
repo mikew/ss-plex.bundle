@@ -219,23 +219,29 @@ def FactoryReset():
 def RenderListings(endpoint, default_title = None):
     return render_listings(endpoint, default_title)
 
-@route('%s/ListSources' % PLUGIN_PREFIX)
-def ListSources(endpoint, title, media_hint):
-    container = render_listings(endpoint, default_title = title)
+@route('%s/WatchOptions' % PLUGIN_PREFIX)
+def WatchOptions(endpoint, title, media_hint):
+    container        = render_listings(endpoint, default_title = title)
+
+    wizard_url       = '//ss/wizard?endpoint=%s' % endpoint
+    wizard_item      = VideoClipObject(title = 'Watch Now', url = wizard_url)
+
+    sources_endpoint = util.sources_endpoint(endpoint, True)
+    sources_item     = plobj(DirectoryObject, 'View all Sources', RenderListings, endpoint = sources_endpoint, default_title = title)
+
     if PluginHelpers.has_downloaded(endpoint):
         download_item = plobj(DirectoryObject, 'Already in library.', DownloadsShow, endpoint = endpoint)
     else:
-        download_item = plobj(DirectoryObject, 'Download', DownloadsQueue,
+        download_item = plobj(DirectoryObject, 'Watch Later', DownloadsQueue,
             endpoint   = endpoint,
             media_hint = media_hint,
             title      = title
         )
 
-    #container.objects.insert(0, plobj(DirectoryObject, 'Watch Now', Wizard, endpoint = endpoint))
-    wizard_url = '//ss/wizard?endpoint=%s' % endpoint
-    wizard     = VideoClipObject(title = 'Watch Now', url = wizard_url)
-    container.objects.insert(0, wizard)
-    container.objects.insert(0, download_item)
+    container.objects.insert(0, wizard_item)
+    container.objects.insert(1, download_item)
+    container.objects.insert(2, sources_item)
+
     return container
 
 @route('%s/series/{refresh}' % PLUGIN_PREFIX)
@@ -296,7 +302,7 @@ def render_listings(endpoint, default_title = None):
 
             naitive = DirectoryObject(
                 title = display_title,
-                key   = Callback(ListSources, endpoint = permalink, title = display_title, media_hint = media_hint)
+                key   = Callback(WatchOptions, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
         elif 'foreign' == element['_type']:
             foreign_url = '//ss%s' % util.translate_endpoint(element['original_url'], element['foreign_url'], True)

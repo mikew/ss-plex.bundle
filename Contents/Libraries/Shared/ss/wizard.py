@@ -10,7 +10,7 @@ class Wizard(object):
         if not self.environment: self.environment = DefaultEnvironment()
 
         try:
-            self.payload   = self.environment.json(util.listings_endpoint(self.endpoint))
+            self.payload   = self.environment.json(util.sources_endpoint(self.endpoint))
             self.file_hint = self.payload['title']
         except: pass
 

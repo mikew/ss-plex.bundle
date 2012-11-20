@@ -46,7 +46,7 @@ def PlayWizard(endpoint):
 
     wizard.sources(first_working)
 
-    if found: return video(consumer)
+    if found: return video(found)
 
 @indirect
 def PlayConsumer(url):
@@ -58,6 +58,7 @@ def PlayForeign(original, foreign):
     response = JSON.ObjectFromURL( util.translate_endpoint(original, foreign) )
     url      = util.translated_from(response)
     consumer = Consumer(url, environment = SSPlexEnvironment())
+
     return video(consumer)
 
 def video(consumer):

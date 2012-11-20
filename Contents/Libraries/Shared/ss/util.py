@@ -6,8 +6,14 @@ def listings_endpoint(path):
     #base_url = 'http://h.709scene.com/listings'
     return base_url + path
 
-def sources_endpoint(base):
-    return listings_endpoint(base + '/sources')
+def sources_endpoint(base, only_path = False):
+    path = base + '/sources'
+
+    if only_path:
+        return path
+    else:
+        return listings_endpoint(path)
+
 
 def translate_endpoint(original, foreign, only_path = False):
     path = '/translate?original=%s&foreign=%s' % ( q(original), q(foreign) )
