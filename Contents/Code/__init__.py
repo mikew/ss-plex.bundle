@@ -54,7 +54,7 @@ def SearchIndex():
 
 @route('%s/search/results/{query}' % PLUGIN_PREFIX)
 def SearchResults(query):
-    container = render_listings('/search/%s' % String.Quote(query))
+    container = render_listings('/search/%s' % util.q(query))
     container.add(plobj(DirectoryObject, 'Save this search', SearchSave, query = query))
     return container
 
@@ -299,12 +299,10 @@ def render_listings(endpoint, default_title = None):
                 key   = Callback(ListSources, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
         elif 'foreign' == element['_type']:
-            naitive = DirectoryObject(
-                title = element['domain'],
-                key   = generic_callback
-            )
+            foreign_url = '//ss%s' % util.translate_endpoint(element['original_url'], element['foreign_url'], True)
+            naitive = VideoClipObject(title = element['domain'], url = foreign_url)
         elif 'final' == element['_type']:
-            ss_url = '//ss/procedure?url=%s&title=%s' % (String.Quote(element['url']), String.Quote('FILE HINT HERE'))
+            ss_url = '//ss/procedure?url=%s&title=%s' % (util.q(element['url']), util.q('FILE HINT HERE'))
             naitive = VideoClipObject(url = ss_url, title = display_title)
 
         #elif 'movie' == element['_type']:

@@ -1,8 +1,21 @@
+from urllib import quote_plus as q
+
 def listings_endpoint(path):
     """docstring for listings_endpoint"""
-    #base_url = 'http://localhost:8080'
-    base_url = 'http://h.709scene.com/listings'
+    base_url = 'http://localhost:8080'
+    #base_url = 'http://h.709scene.com/listings'
     return base_url + path
+
+def sources_endpoint(base):
+    return listings_endpoint(base + '/sources')
+
+def translate_endpoint(original, foreign, only_path = False):
+    path = '/translate?original=%s&foreign=%s' % ( q(original), q(foreign) )
+
+    if only_path:
+        return path
+    else:
+        return listings_endpoint(path)
 
 def normalize_url(url):
     import re
@@ -22,3 +35,9 @@ def print_exception(e):
 
     print e
     traceback.print_tb(sys.exc_info()[2])
+
+def translated_from(response):
+    results = response.get('items', [])
+
+    if results:
+        return results[0]['url']

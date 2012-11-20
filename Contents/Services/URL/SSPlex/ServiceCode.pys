@@ -27,48 +27,55 @@ def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
     params   = cgi.parse_qs(query)
 
-    if '/procedure' == path:
-        obj = MediaObject(
-            parts = [ PartObject( key = Callback(PlayConsumer, url = params['url'][0]) ) ],
-        )
-    elif '/wizard' == path:
-        obj = MediaObject(
-            parts = [ PartObject( key = Callback(PlayWizard, endpoint = params['endpoint'][0]) ) ],
-        )
+    Log(params)
+    if   '/procedure' == path: obj = mo(PlayConsumer, url      = params['url'][0])
+    elif '/wizard'    == path: obj = mo(PlayWizard,   endpoint = params['endpoint'][0])
+    elif '/translate' == path: obj = mo(PlayForeign,  original = params['original'][0], foreign = params['foreign'][0])
 
     return [ obj ]
 
-found    = None
-cookies  = None
-referer  = None
+found = None
 @indirect
 def PlayWizard(endpoint):
     wizard   = Wizard(endpoint, environment = SSPlexEnvironment())
 
     def first_working(consumer):
         global found, cookies, referer
-
-        found   = consumer.asset_url()
-        cookies = consumer.agent_cookie_string()
-        referer = consumer.url
+        consumer.consume()
+        found = consumer
 
     wizard.sources(first_working)
 
-    if found: return video(found, referer, cookies)
+    if found: return video(consumer)
 
 @indirect
 def PlayConsumer(url):
     consumer = Consumer(url, environment = SSPlexEnvironment())
-    return video(consumer.asset_url(), url, consumer.agent_cookie_string())
+    return video(consumer)
 
-def video(url, referer, cookies):
+@indirect
+def PlayForeign(original, foreign):
+    response = JSON.ObjectFromURL( util.translate_endpoint(original, foreign) )
+    url      = util.translated_from(response)
+    consumer = Consumer(url, environment = SSPlexEnvironment())
+    return video(consumer)
+
+def video(consumer):
+    referer = consumer.url
+    cookies = consumer.agent_cookie_string()
+
     container = ObjectContainer()
     container.http_headers = { 'Referer': referer, 'Cookies': cookies }
     naitive = VideoClipObject(
         items = [ MediaObject(
-            parts = [ PartObject(key = url) ],
+            parts = [ PartObject(key = consumer.asset_url()) ],
         ) ]
     )
     container.add(naitive)
 
     return container
+
+def mo(cb, **kwargs):
+    return MediaObject(
+        parts = [ PartObject( key = Callback(cb, **kwargs) ) ],
+    )

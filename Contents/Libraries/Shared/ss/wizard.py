@@ -25,10 +25,8 @@ class Wizard(object):
         return filtered
 
     def translate(self, foreign):
-        results = self.environment.json(util.listings_endpoint(foreign['endpoint'])).get('items', [])
-
-        if results:
-            return results[0]['url']
+        response = self.environment.json( util.translate_endpoint( foreign['original_url'], foreign['foreign_url'] ) )
+        return util.translated_from(response)
 
     #def sources(self):
         #for foreign in self.filtered_sources():
