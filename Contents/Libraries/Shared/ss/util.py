@@ -2,8 +2,8 @@ from urllib import quote_plus as q
 
 def listings_endpoint(path):
     """docstring for listings_endpoint"""
-    base_url = 'http://localhost:8080'
-    #base_url = 'http://h.709scene.com/listings'
+    #base_url = 'http://localhost:8080'
+    base_url = 'http://h.709scene.com/listings'
     return base_url + path
 
 def sources_endpoint(base, only_path = False):
