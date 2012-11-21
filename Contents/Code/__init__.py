@@ -300,7 +300,7 @@ def render_listings(endpoint, default_title = None):
             if 'episode' == media_hint:
                 media_hint = 'show'
 
-            naitive = DirectoryObject(
+            naitive = PopupDirectoryObject(
                 title = display_title,
                 key   = Callback(WatchOptions, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
