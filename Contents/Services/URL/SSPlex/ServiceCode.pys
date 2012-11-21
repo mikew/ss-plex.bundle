@@ -27,7 +27,6 @@ def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
     params   = cgi.parse_qs(query)
 
-    Log(params)
     if   '/procedure' == path: obj = mo(PlayConsumer, url      = params['url'][0])
     elif '/wizard'    == path: obj = mo(PlayWizard,   endpoint = params['endpoint'][0])
     elif '/translate' == path: obj = mo(PlayForeign,  original = params['original'][0], foreign = params['foreign'][0])
@@ -40,7 +39,7 @@ def PlayWizard(endpoint):
     wizard   = Wizard(endpoint, environment = SSPlexEnvironment())
 
     def first_working(consumer):
-        global found, cookies, referer
+        global found
         consumer.consume()
         found = consumer
 

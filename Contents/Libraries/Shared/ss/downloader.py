@@ -18,8 +18,10 @@ class Downloader(object):
 
     @classmethod
     def status_file_for(cls, endpoint):
-        import tempfile
-        return '%s/%s' % (tempfile.gettempdir(), util.normalize_url(endpoint))
+        import os.path, tempfile
+        tmpdir = tempfile.gettempdir()
+        status = util.normalize_url(endpoint)
+        return os.path.join(tmpdir, status)
 
     def file_name(self):
         original = self.consumer.file_name().encode()
@@ -31,8 +33,10 @@ class Downloader(object):
         return self.wizard.file_hint
 
     def asset_url(self):      return self.consumer.asset_url().encode()
-    def local_file(self):     return '%s/%s' % (self.destination, self.file_name())
     def local_partfile(self): return self.local_file() + '.part'
+    def local_file(self):
+        import os.path
+        return os.path.join(self.destination, self.file_name())
 
     def add_callback(self, group, cb): self.callbacks[group].append(cb)
     def on_start(self, cb):    self.add_callback('start',    cb)
@@ -102,7 +106,7 @@ class Downloader(object):
         return options
 
     def really_download(self):
-        from signal import SIGHUP, SIGTERM
+        from signal import SIGTERM
         import subprocess
 
         piped    = subprocess.Popen(self.curl_options())
@@ -111,11 +115,10 @@ class Downloader(object):
         self.run_start_callbacks()
         piped.wait()
 
-        returned = piped.returncode
-
+        returned = abs(piped.returncode)
         if 0 == returned:
             return True
-        elif SIGTERM * -1 == returned:
+        elif SIGTERM == returned:
             self.cleanup()
             return False
         else:

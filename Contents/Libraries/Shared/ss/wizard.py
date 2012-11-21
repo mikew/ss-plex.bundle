@@ -48,7 +48,6 @@ class Wizard(object):
                 cb(consumer)
                 break
             except Exception, e:
-                #util.print_exception(e)
                 continue
 
 if __name__ == '__main__':

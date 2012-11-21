@@ -40,11 +40,13 @@ class DownloadStatus(object):
             f.seek(-100, 2)
             values = f.read().split("\r")[-1].split()
             f.close()
+
+            for i, value in enumerate(values):
+                setattr(self, keys[i], value)
         except:
             values = [ 0, '?', 0, 0, 0, 0, 0, 0, u'∞', 0, u'∞', 0 ]
-
-        for i, value in enumerate(values):
-            setattr(self, keys[i], value)
+            for i, value in enumerate(values):
+                setattr(self, keys[i], value)
 
         self.parsed = True
 

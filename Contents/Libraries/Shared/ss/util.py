@@ -1,4 +1,11 @@
 from urllib import quote_plus as q
+# import logging
+# logging.basicConfig(
+#     filename = r'C:\Users\Mike\Desktop\ss.log',
+#     level    = logging.DEBUG,
+#     format   = '%(asctime)s %(message)s [%(levelname)s]',
+#     datefmt  = '%m/%d/%Y %I:%M:%S %p'
+# )
 
 def listings_endpoint(path):
     """docstring for listings_endpoint"""

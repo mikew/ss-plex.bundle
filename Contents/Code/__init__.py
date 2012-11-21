@@ -406,15 +406,23 @@ class PluginHelpers(object):
         if cls.currently_downloading():
             import os, signal
 
-            signals = [ signal.SIGTERM, signal.SIGHUP ]
+            signals = [ signal.SIGTERM, signal.SIGINT ]
             names   = [ 'cancel',       'next' ]
             to_send = signals[names.index(sig)]
             pid     = Dict['download_current'].get('pid')
 
             if pid:
                 try:
-                    os.kill(pid, to_send)
-                except: pass
+                    if 'nt' == os.name:
+                        import ctypes
+                        # 1 == PROCESS_TERMINATE
+                        handle = ctypes.windll.kernel32.OpenProcess(1, False, pid)
+                        ctypes.windll.kernel32.TerminateProcess(handle, to_send * -1)
+                        ctypes.windll.kernel32.CloseHandle(handle)
+                    else:
+                        os.kill(pid, to_send)
+                except Exception, e:
+                    pass
 
     @classmethod
     def dispatch_download(cls, should_thread = True):
