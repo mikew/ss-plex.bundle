@@ -32,6 +32,7 @@ class Downloader(object):
     def file_hint(self):
         return self.wizard.file_hint
 
+    def status_file(self):    return Downloader.status_file_for(self.endpoint)
     def asset_url(self):      return self.consumer.asset_url().encode()
     def local_partfile(self): return self.local_file() + '.part'
     def local_file(self):
@@ -77,8 +78,12 @@ class Downloader(object):
             import os
             os.rename( dl.local_partfile(), dl.local_file() )
 
+        def cleanup_status_file(dl):
+            dl.cleanup_status_file()
+
         #self.add_callback('_start',   debug_dl)
         self.add_callback('_success', rename_partfile)
+        self.add_callback('_success', cleanup_status_file)
 
     def download(self):
         def perform_download(consumer):
@@ -95,10 +100,11 @@ class Downloader(object):
     def curl_options(self):
         options = [
             'curl',
-            '--referer', self.consumer.url,
-            '-o',        self.local_partfile(),
-            '--cookie',  self.consumer.agent_cookie_string(),
-            '--stderr',  Downloader.status_file_for(self.endpoint)
+            '--referer',    self.consumer.url,
+            '--cookie',     self.consumer.agent_cookie_string(),
+            '--user-agent', self.consumer.ua,
+            '--stderr',     self.status_file(),
+            '--output',     self.local_partfile()
         ]
 
         options.append(self.asset_url())
@@ -125,13 +131,17 @@ class Downloader(object):
             self.cleanup()
             raise
 
+    def cleanup_status_file(self):
+        self.attempt_remove(self.status_file())
+
     def cleanup(self):
+        self.cleanup_status_file()
+        self.attempt_remove(self.local_file())
+        self.attempt_remove(self.local_partfile())
+
+    def attempt_remove(self, f):
         import os
-
-        try:    os.remove( self.local_file() )
-        except: pass
-
-        try:    os.remove( self.local_partfile() )
+        try:    os.remove(f)
         except: pass
 
 if __name__ == '__main__':

@@ -201,8 +201,6 @@ def DownloadsQueue(endpoint, media_hint, title):
             'media_hint': media_hint
         })
 
-        #User.download_history().append(endpoint)
-
         Dict.Save()
 
     User.dispatch_download()
@@ -288,9 +286,6 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 
     if 0 < refresh:
         container.replace_parent = True
-
-    #if User.endpoint_is_favorite(endpoint): favorite_label = '- Remove from Favorites'
-    #else:                                   favorite_label = '+ Add to Favorites'
 
     if User.endpoint_is_favorite(endpoint): favorite_label = 'favorites.heading.remove'
     else:                                   favorite_label = 'favorites.heading.add'

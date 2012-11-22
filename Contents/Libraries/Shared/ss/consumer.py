@@ -40,17 +40,19 @@ class Consumer(object):
         import mechanize
 
         super(Consumer, self).__init__()
+        ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/534.51.22 (KHTML, like Gecko) Version/5.1.1 Safari/534.51.22'
         br = mechanize.Browser()
         br.set_handle_robots(False)
 
         br.addheaders = [
-            ('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/534.51.22 (KHTML, like Gecko) Version/5.1.1 Safari/534.51.22'),
+            ('User-agent', ua),
             ('Accept', '*/*'),
             ('Accept-Encoding', 'gzip,deflate,identity'),
             ('Accept-Charset', 'ISO-8859-1,utf-8;q=0.7,*;q=0.7'),
             ('Accept-Language', 'en-us,en;q=0.5'),
         ]
 
+        self.ua          = ua
         self.url         = url
         self.agent       = br
         self.final       = None

@@ -65,9 +65,10 @@ def video(consumer):
 
     referer = consumer.url
     cookies = consumer.agent_cookie_string()
+    agent   = consumer.ua
 
-    container = ObjectContainer()
-    container.http_headers = { 'Referer': referer, 'Cookies': cookies }
+    container = ObjectContainer(user_agent = agent, http_cookies = cookies)
+    container.http_headers = { 'Referer': referer }
     naitive = VideoClipObject(
         items = [ MediaObject(
             parts = [ PartObject(key = consumer.asset_url()) ],
