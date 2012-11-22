@@ -2,7 +2,6 @@ import string
 from ss import Downloader
 from ss import util
 from ss import DownloadStatus
-
 #util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
 
 PLUGIN_PREFIX = '/video/ssp'
@@ -16,28 +15,77 @@ def Start():
     Plugin.AddViewGroup("List",     viewMode = "List",      mediaType = "items")
 
     # Setup the default attributes for the ObjectContainer
-    ObjectContainer.title1     = PLUGIN_TITLE
+    #ObjectContainer.title1     = PLUGIN_TITLE
     ObjectContainer.view_group = 'List'
-    ObjectContainer.art        = R(PLUGIN_ART)
+    #ObjectContainer.art        = R(PLUGIN_ART)
 
     # Setup the default attributes for the other objects
-    DirectoryObject.thumb = R(PLUGIN_ICON)
-    DirectoryObject.art   = R(PLUGIN_ART)
-    VideoClipObject.thumb = R(PLUGIN_ICON)
-    VideoClipObject.art   = R(PLUGIN_ART)
+    #DirectoryObject.thumb = R(PLUGIN_ICON)
+    #DirectoryObject.art   = R(PLUGIN_ART)
+    #VideoClipObject.thumb = R(PLUGIN_ICON)
+    #VideoClipObject.art   = R(PLUGIN_ART)
 
 @handler(PLUGIN_PREFIX, PLUGIN_TITLE)
 def MainMenu():
     container   = render_listings('/')
-    search_item = plobj(InputDirectoryObject, 'Search', SearchResults)
+    search_item = plobj(InputDirectoryObject, 'Search',    SearchResults)
     search_item.prompt = 'Search for ...'
 
-    container.add(plobj(DirectoryObject, 'Favorites', FavoritesIndex))
+    container.add(plobj(DirectoryObject, 'Favorites',      FavoritesIndex))
     container.add(search_item)
     container.add(plobj(DirectoryObject, 'Saved Searches', SearchIndex))
-    container.add(plobj(DirectoryObject, 'Downloads', DownloadsIndex))
+    container.add(plobj(DirectoryObject, 'Downloads',      DownloadsIndex))
+    container.add(plobj(DirectoryObject, 'System',         SystemIndex))
 
     return container
+
+##########
+# System #
+##########
+
+@route('%s/system' % PLUGIN_PREFIX)
+def SystemIndex():
+    container = ObjectContainer(title1 = 'System')
+
+    container.add(plobj(DirectoryObject, 'Fix Downloads', DownloadsDispatchForce))
+    container.add(confirm('Reset Favorites',              SystemConfirmResetFavorites))
+    container.add(confirm('Reset Saved Searches',         SystemConfirmResetSearches))
+    container.add(confirm('Reset Download History',       SystemConfirmResetDownloads))
+    container.add(confirm('Factory Reset',                SystemConfirmResetFactory))
+
+    return container
+
+@route('%s/system/confirm/reset-favorites' % PLUGIN_PREFIX)
+def SystemConfirmResetFavorites(): return warning('Are you sure?', 'Yes', SystemResetFavorites)
+
+@route('%s/system/confirm/reset-searches' % PLUGIN_PREFIX)
+def SystemConfirmResetSearches(): return warning('Are you sure?', 'Yes', SystemResetSearches)
+
+@route('%s/system/confirm/reset-downloads' % PLUGIN_PREFIX)
+def SystemConfirmResetDownloads(): return warning('Are you sure?', 'Yes', SystemResetDownloads)
+
+@route('%s/system/confirm/reset-factory' % PLUGIN_PREFIX)
+def SystemConfirmResetFactory(): return warning('Are you sure?', 'Yes', SystemResetFactory)
+
+@route('%s/system/reset/favorites' % PLUGIN_PREFIX)
+def SystemResetFavorites():
+    User.clear_favorites()
+    return dialog('System', 'Your favorites have been reset.')
+
+@route('%s/system/reset/searches' % PLUGIN_PREFIX)
+def SystemResetSearches():
+    User.clear_searches()
+    return dialog('System', 'Your saved searches have been reset.')
+
+@route('%s/system/reset/downloads' % PLUGIN_PREFIX)
+def SystemResetDownloads():
+    User.clear_download_history()
+    return dialog('System', 'Your download history has been reset.')
+
+@route('%s/system/reset/factory' % PLUGIN_PREFIX)
+def SystemResetFactory():
+    Dict.Reset()
+    return dialog('System', 'Everything has been reset.')
 
 #############
 # Searching #
@@ -47,7 +95,7 @@ def MainMenu():
 def SearchIndex():
     container = ObjectContainer()
 
-    for query in sorted(PluginHelpers.dict_searches()):
+    for query in sorted(User.searches()):
         container.add(plobj(DirectoryObject, query, SearchResults, query = query))
 
     return container
@@ -60,7 +108,7 @@ def SearchResults(query):
 
 @route('%s/search/save' % PLUGIN_PREFIX)
 def SearchSave(query):
-    saved_searches = PluginHelpers.dict_searches()
+    saved_searches = User.searches()
 
     if query not in saved_searches:
         saved_searches.append(query)
@@ -74,7 +122,7 @@ def SearchSave(query):
 
 @route('%s/favorites' % PLUGIN_PREFIX)
 def FavoritesIndex():
-    favorites = PluginHelpers.dict_favorites()
+    favorites = User.favorites()
     container = ObjectContainer(
         title1 = 'Favorites'
     )
@@ -82,32 +130,23 @@ def FavoritesIndex():
     for endpoint, title in sorted(favorites.iteritems(), key = lambda x:x[1]):
         container.add(plobj(DirectoryObject, title, ListTVShow, endpoint = endpoint, show_title = title))
 
-    container.add(plobj(DirectoryObject, 'Clear Favorites', FavoritesClear))
-
     return container
 
 @route('%s/favorites/toggle' % PLUGIN_PREFIX)
 def FavoritesToggle(endpoint, show_title):
     message = None
 
-    if PluginHelpers.show_is_favorite(endpoint):
+    if User.endpoint_is_favorite(endpoint):
         del Dict['favorites'][endpoint]
         message = '%s was removed from your favorites.'
     else:
-        favorites             = PluginHelpers.dict_favorites()
-        favorites[endpoint]   = show_title
-        message               = '%s was added to your favorites.'
+        favorites           = User.favorites()
+        favorites[endpoint] = show_title
+        message             = '%s was added to your favorites.'
 
     Dict.Save()
 
     return dialog('Favorites', message % show_title)
-
-@route('%s/favorites/clear' % PLUGIN_PREFIX)
-def FavoritesClear():
-    del Dict['favorites']
-    Dict.Save()
-
-    return ObjectContainer(header = 'Favorites', message = 'Your favorites have been cleared.')
 
 ###############
 # Downloading #
@@ -117,24 +156,24 @@ def FavoritesClear():
 def DownloadsIndex():
     container = ObjectContainer(title1 = 'Downloads')
 
-    if PluginHelpers.currently_downloading():
+    if User.currently_downloading():
         current       = Dict['download_current']
         endpoint      = current['endpoint']
         status        = DownloadStatus(Downloader.status_file_for(endpoint))
 
-        container.add(plobj(DirectoryObject, current['title'], DownloadsShow, endpoint = 'current'))
+        container.add(plobj(PopupDirectoryObject, current['title'], DownloadsShow, endpoint = 'current'))
 
         for ln in status.report():
-            container.add(plobj(DirectoryObject, ln, DownloadsShow, endpoint = 'current'))
+            container.add(plobj(PopupDirectoryObject, ln, DownloadsShow, endpoint = 'current'))
 
-    for download in PluginHelpers.dict_downloads():
-        container.add(plobj(DirectoryObject, download['title'], DownloadsShow, endpoint = download['endpoint']))
+    for download in User.download_queue():
+        container.add(plobj(PopupDirectoryObject, download['title'], DownloadsShow, endpoint = download['endpoint']))
 
     return container
 
 @route('%s/downloads/show' % PLUGIN_PREFIX)
 def DownloadsShow(endpoint):
-    download = PluginHelpers.download_for_endpoint(endpoint)
+    download = User.download_for_endpoint(endpoint)
 
     if download:
         container = ObjectContainer(title1 = download['title'])
@@ -151,42 +190,42 @@ def DownloadsShow(endpoint):
 
 @route('%s/downloads/queue' % PLUGIN_PREFIX)
 def DownloadsQueue(endpoint, media_hint, title):
-    if PluginHelpers.has_downloaded(endpoint):
+    if User.has_downloaded(endpoint):
         message = '%s is already in your library.'
     else:
         message = '%s will be downloaded shortly.'
-        PluginHelpers.dict_downloads().append({
+        User.download_queue().append({
             'title':      title,
             'endpoint':   endpoint,
             'media_hint': media_hint
         })
 
-        PluginHelpers.download_history().append(endpoint)
+        #User.download_history().append(endpoint)
 
         Dict.Save()
 
-    PluginHelpers.dispatch_download()
+    User.dispatch_download()
     return dialog('Downloads', message % title)
 
 @route('%s/downloads/dispatch' % PLUGIN_PREFIX)
 def DownloadsDispatch():
-    PluginHelpers.dispatch_download()
+    User.dispatch_download()
 
 @route('%s/downloads/dispatch/force' % PLUGIN_PREFIX)
 def DownloadsDispatchForce():
-    PluginHelpers.clear_current_download()
-    PluginHelpers.dispatch_download()
+    User.clear_current_download()
+    User.dispatch_download()
 
 @route('%s/downloads/cancel' % PLUGIN_PREFIX)
 def DownloadsCancel(endpoint):
-    download = PluginHelpers.download_for_endpoint(endpoint)
+    download = User.download_for_endpoint(endpoint)
 
     if download:
         if 'current' == endpoint:
-            PluginHelpers.signal_download('cancel')
+            User.signal_download('cancel')
         else:
             try:
-                PluginHelpers.dict_downloads().remove(download)
+                User.download_queue().remove(download)
                 Dict.Save()
             except: pass
 
@@ -196,7 +235,7 @@ def DownloadsCancel(endpoint):
 
 @route('%s/downloads/next' % PLUGIN_PREFIX)
 def DownloadsNext():
-    PluginHelpers.signal_download('next')
+    User.signal_download('next')
 
 #########################
 # Development Endpoints #
@@ -205,11 +244,6 @@ def DownloadsNext():
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
     return ObjectContainer(header = 'Test', message = 'hello')
-
-@route('%s/reset' % PLUGIN_PREFIX)
-def FactoryReset():
-    Dict.Reset()
-    #Dict.Save()
 
 ###################
 # Listing Methods #
@@ -229,7 +263,7 @@ def WatchOptions(endpoint, title, media_hint):
     sources_endpoint = util.sources_endpoint(endpoint, True)
     sources_item     = plobj(DirectoryObject, 'View all Sources', RenderListings, endpoint = sources_endpoint, default_title = title)
 
-    if PluginHelpers.has_downloaded(endpoint):
+    if User.has_downloaded(endpoint):
         download_item = plobj(DirectoryObject, 'Already in library.', DownloadsShow, endpoint = endpoint)
     else:
         download_item = plobj(DirectoryObject, 'Watch Later', DownloadsQueue,
@@ -246,12 +280,14 @@ def WatchOptions(endpoint, title, media_hint):
 
 @route('%s/series/{refresh}' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
+    refresh   = int(refresh)
     container = render_listings(endpoint, show_title)
+
     if 0 < refresh:
         container.replace_parent = True
 
-    if PluginHelpers.show_is_favorite(endpoint): favorite_label = '- Remove from Favorites'
-    else:                                        favorite_label = '+ Add to Favorites'
+    if User.endpoint_is_favorite(endpoint): favorite_label = '- Remove from Favorites'
+    else:                                   favorite_label = '+ Add to Favorites'
 
     container.objects.insert(0, plobj(DirectoryObject, favorite_label, FavoritesToggle,
         endpoint   = endpoint,
@@ -348,15 +384,15 @@ class SSPlexEnvironment:
 # Plugin Helpers #
 ##################
 
-class PluginHelpers(object):
+class User(object):
     @classmethod
-    def dict_favorites(cls): return cls.initialize_dict('favorites', {})
+    def favorites(cls): return cls.initialize_dict('favorites', {})
 
     @classmethod
-    def dict_downloads(cls): return cls.initialize_dict('downloads', [])
+    def searches(cls): return cls.initialize_dict('searches',  [])
 
     @classmethod
-    def dict_searches(cls):  return cls.initialize_dict('searches',  [])
+    def download_queue(cls): return cls.initialize_dict('downloads', [])
 
     @classmethod
     def download_history(cls): return cls.initialize_dict('download_history', [])
@@ -368,12 +404,25 @@ class PluginHelpers(object):
     def has_downloaded(cls, endpoint): return endpoint in cls.download_history()
 
     @classmethod
-    def show_is_favorite(cls, endpoint): return endpoint in cls.dict_favorites().keys()
+    def endpoint_is_favorite(cls, endpoint): return endpoint in cls.favorites().keys()
 
     @classmethod
-    def clear_current_download(cls):
-        if cls.currently_downloading(): del Dict['download_current']
-        Dict.Save()
+    def clear_favorites(cls): cls.attempt_clear('favorites')
+
+    @classmethod
+    def clear_searches(cls): cls.attempt_clear('searches')
+
+    @classmethod
+    def clear_download_history(cls): cls.attempt_clear('download_history')
+
+    @classmethod
+    def clear_current_download(cls): cls.attempt_clear('download_current')
+
+    @classmethod
+    def attempt_clear(cls, key):
+        if key in Dict:
+            del Dict[key]
+            Dict.Save()
 
     @classmethod
     def initialize_dict(cls, key, default = None):
@@ -396,7 +445,7 @@ class PluginHelpers(object):
             if cls.currently_downloading():
                 return Dict['download_current']
         else:
-            found = filter(lambda h: h['endpoint'] == endpoint, cls.dict_downloads())
+            found = filter(lambda h: h['endpoint'] == endpoint, cls.download_queue())
 
             if found:
                 return found[0]
@@ -430,7 +479,7 @@ class PluginHelpers(object):
             import thread
 
             try:
-                download = cls.dict_downloads().pop(0)
+                download = cls.download_queue().pop(0)
             except IndexError, e:
                 return
 
@@ -454,16 +503,20 @@ class PluginHelpers(object):
                 cls.clear_current_download()
                 cls.dispatch_download(False)
 
-            def remove_endpoint_from_history(dl):
-                cls.download_history().remove(dl.endpoint)
-                Dict.Save()
+            #def remove_endpoint_from_history(dl):
+                #cls.download_history().remove(dl.endpoint)
+                #Dict.Save()
+
+            def store_download_endpoint(dl):
+                cls.download_history().append(dl.endpoint)
 
             downloader.on_start(store_curl_pid)
 
             downloader.on_success(update_library)
+            downloader.on_success(store_download_endpoint)
             downloader.on_success(clear_download_and_dispatch)
 
-            downloader.on_error(remove_endpoint_from_history)
+            #downloader.on_error(remove_endpoint_from_history)
             downloader.on_error(clear_download_and_dispatch)
 
             #thread.start_new_thread(downloader.download, ())
@@ -475,6 +528,12 @@ class PluginHelpers(object):
 
 def plobj(obj, otitle, cb, **kwargs): return obj(title = otitle, key = Callback(cb, **kwargs))
 def dialog(title, message):           return ObjectContainer(header = title, message = message)
+def confirm(otitle, ocb, **kwargs):   return plobj(PopupDirectoryObject, otitle, ocb, **kwargs)
+def warning(otitle, ohandle, ocb, **kwargs):
+    container = ObjectContainer(title1 = otitle)
+    container.add(plobj(DirectoryObject, ohandle, ocb, **kwargs))
+
+    return container
 
 def plex_refresh_section(section):
     base    = 'http://127.0.0.1:32400/library/sections'
