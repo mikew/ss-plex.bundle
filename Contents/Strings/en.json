@@ -1,33 +1,53 @@
 {
   'title'    : 'SS-Plex',
-  'icefilms' : 'IceFilms',
-  'wso'      : 'Watch Series',
 
-  // Possible Main Sections
-  'tv'              : 'TV Shows',
-  'movies'          : 'Movies',
-  'latest_releases' : 'Latest Releases',
+  'heading.favorites': 'Favorites',
+  'heading.search': 'Search',
+  'heading.download': 'Downloads',
+  'heading.system': 'System',
+  'heading.refresh': 'Refresh',
+  'heading.error': 'Whoops',
 
-  // Filters
-  'by_letter'     : 'A-Z List',
-  'by_popularity' : 'Sorted by Popularity',
-  'by_rating'     : 'Sorted by Rating',
-  'by_release'    : 'Sorted by Release',
-  'search'        : 'Search',
+  'search.heading.save':  'Save this search',
+  'search.heading.saved': 'Saved Searches',
+  'search.prompt': 'Search for ...',
+  'search.response.added': 'Your search has been saved.',
 
-  // ObjectContainer Titles (TV)
-  'tv_by_letter'  : 'TV (%s)',
-  'tv_by_popular' : 'TV by Popularity',
-  'tv_by_rating'  : 'TV by Rating',
-  'tv_by_release' : 'TV by Release',
+  'system.heading.dispatch-force': 'Fix Downloads',
+  'system.heading.reset-favorites': 'Reset Favorites',
+  'system.heading.reset-search': 'Reset Saved Searches',
+  'system.heading.reset-download-history': 'Reset Download History',
+  'system.heading.reset-factory': 'Factory Reset',
 
-  // ObjectContainer Titles (Movies)
-  'movies_by_letter'  : 'Movies (%s)',
-  'movies_by_popular' : 'Movies by Popularity',
-  'movies_by_rating'  : 'Movies by Rating',
-  'movies_by_release' : 'Movies by Release',
+  'system.warning.reset-favorites': 'Are you sure?',
+  'system.warning.reset-search': 'Are you sure?',
+  'system.warning.reset-download-history': 'Are you sure?',
+  'system.warning.reset-factory': 'Are you sure?',
 
-  // Other
-  'pick_letter' : 'Pick a letter',
-  'watch_later' : 'Watch later'
+  'system.response.reset-favorites': 'Your favorites have been reset.',
+  'system.response.reset-search': 'Your saved searches have been reset.',
+  'system.response.reset-download-history': 'Your download history has been reset.',
+  'system.response.reset-factory': 'Everything has been reset.',
+
+  'media.watch-now': 'Watch Now',
+  'media.watch-later': 'Watch Later',
+  'media.all-sources': 'View All Sources',
+  'media.persisted': 'Already in library',
+
+  'favorites.heading.remove': '- Remove from Favorites',
+  'favorites.heading.add': '+ Add to Favorites',
+  'favorites.response.added': '%s was added to your favorites.',
+  'favorites.response.removed': '%s was removed from your favorites.',
+
+  'download.heading.next': 'Try next source',
+  'download.heading.cancel': 'Cancel download',
+  'download.response.added': '%s will be downloaded shortly.',
+  'download.response.exists': '%s is already in your library.',
+  'download.response.cancel': '%s will not be downloaded.',
+  'download.response.not-found': 'Download for %s could not be found.',
+
+  'confirm.yes': 'Yes',
+  'confirm.no':  'No',
+  'confirm.ok':  'Okay',
+  'confirm.cancel': 'Cancel'
 }

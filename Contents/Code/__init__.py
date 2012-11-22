@@ -28,14 +28,14 @@ def Start():
 @handler(PLUGIN_PREFIX, PLUGIN_TITLE)
 def MainMenu():
     container   = render_listings('/')
-    search_item = plobj(InputDirectoryObject, 'Search',    SearchResults)
-    search_item.prompt = 'Search for ...'
+    search_item = plobj(InputDirectoryObject, L('heading.search'),    SearchResults)
+    search_item.prompt = L('search.prompt')
 
-    container.add(plobj(DirectoryObject, 'Favorites',      FavoritesIndex))
+    container.add(plobj(DirectoryObject, L('heading.favorites'),      FavoritesIndex))
     container.add(search_item)
-    container.add(plobj(DirectoryObject, 'Saved Searches', SearchIndex))
-    container.add(plobj(DirectoryObject, 'Downloads',      DownloadsIndex))
-    container.add(plobj(DirectoryObject, 'System',         SystemIndex))
+    container.add(plobj(DirectoryObject, L('search.heading.saved'), SearchIndex))
+    container.add(plobj(DirectoryObject, L('heading.download'),     DownloadsIndex))
+    container.add(plobj(DirectoryObject, L('heading.system'),       SystemIndex))
 
     return container
 
@@ -45,47 +45,47 @@ def MainMenu():
 
 @route('%s/system' % PLUGIN_PREFIX)
 def SystemIndex():
-    container = ObjectContainer(title1 = 'System')
+    container = ObjectContainer(title1 = L('heading.system'))
 
-    container.add(plobj(DirectoryObject, 'Fix Downloads', DownloadsDispatchForce))
-    container.add(confirm('Reset Favorites',              SystemConfirmResetFavorites))
-    container.add(confirm('Reset Saved Searches',         SystemConfirmResetSearches))
-    container.add(confirm('Reset Download History',       SystemConfirmResetDownloads))
-    container.add(confirm('Factory Reset',                SystemConfirmResetFactory))
+    container.add(confirm(L('system.heading.reset-favorites'),               SystemConfirmResetFavorites))
+    container.add(confirm(L('system.heading.reset-search'),                  SystemConfirmResetSearches))
+    container.add(confirm(L('system.heading.reset-download-history'),        SystemConfirmResetDownloads))
+    container.add(confirm(L('system.heading.reset-factory'),                 SystemConfirmResetFactory))
+    container.add(plobj(DirectoryObject, L('system.heading.dispatch-force'), DownloadsDispatchForce))
 
     return container
 
 @route('%s/system/confirm/reset-favorites' % PLUGIN_PREFIX)
-def SystemConfirmResetFavorites(): return warning('Are you sure?', 'Yes', SystemResetFavorites)
+def SystemConfirmResetFavorites(): return warning(L('system.warning.reset-favorites'), L('confirm.yes'), SystemResetFavorites)
 
 @route('%s/system/confirm/reset-searches' % PLUGIN_PREFIX)
-def SystemConfirmResetSearches(): return warning('Are you sure?', 'Yes', SystemResetSearches)
+def SystemConfirmResetSearches(): return warning(L('system.warning.reset-search'), L('confirm.yes'), SystemResetSearches)
 
 @route('%s/system/confirm/reset-downloads' % PLUGIN_PREFIX)
-def SystemConfirmResetDownloads(): return warning('Are you sure?', 'Yes', SystemResetDownloads)
+def SystemConfirmResetDownloads(): return warning(L('system.warning.reset-download-history'), L('confirm.yes'), SystemResetDownloads)
 
 @route('%s/system/confirm/reset-factory' % PLUGIN_PREFIX)
-def SystemConfirmResetFactory(): return warning('Are you sure?', 'Yes', SystemResetFactory)
+def SystemConfirmResetFactory(): return warning(L('system.warning.reset-factory'), L('confirm.yes'), SystemResetFactory)
 
 @route('%s/system/reset/favorites' % PLUGIN_PREFIX)
 def SystemResetFavorites():
     User.clear_favorites()
-    return dialog('System', 'Your favorites have been reset.')
+    return dialog(L('heading.system'), L('system.response.reset-favorites'))
 
 @route('%s/system/reset/searches' % PLUGIN_PREFIX)
 def SystemResetSearches():
     User.clear_searches()
-    return dialog('System', 'Your saved searches have been reset.')
+    return dialog(L('heading.system'), L('system.response.reset-search'))
 
 @route('%s/system/reset/downloads' % PLUGIN_PREFIX)
 def SystemResetDownloads():
     User.clear_download_history()
-    return dialog('System', 'Your download history has been reset.')
+    return dialog(L('heading.system'), L('system.response.reset-download-history'))
 
 @route('%s/system/reset/factory' % PLUGIN_PREFIX)
 def SystemResetFactory():
     Dict.Reset()
-    return dialog('System', 'Everything has been reset.')
+    return dialog(L('heading.system'), L('system.response.reset-factory'))
 
 #############
 # Searching #
@@ -103,7 +103,7 @@ def SearchIndex():
 @route('%s/search/results/{query}' % PLUGIN_PREFIX)
 def SearchResults(query):
     container = render_listings('/search/%s' % util.q(query))
-    container.add(plobj(DirectoryObject, 'Save this search', SearchSave, query = query))
+    container.add(plobj(DirectoryObject, L('search.heading.save'), SearchSave, query = query))
     return container
 
 @route('%s/search/save' % PLUGIN_PREFIX)
@@ -114,7 +114,7 @@ def SearchSave(query):
         saved_searches.append(query)
         Dict.Save()
 
-    return dialog('Saved', 'Your search has been saved.')
+    return dialog(L('heading.search'), L('search.response.added'))
 
 #############
 # Favorites #
@@ -139,14 +139,16 @@ def FavoritesToggle(endpoint, show_title):
     if User.endpoint_is_favorite(endpoint):
         del Dict['favorites'][endpoint]
         message = '%s was removed from your favorites.'
+        message = 'favorites.response.removed'
     else:
         favorites           = User.favorites()
         favorites[endpoint] = show_title
         message             = '%s was added to your favorites.'
+        message = 'favorites.response.added'
 
     Dict.Save()
 
-    return dialog('Favorites', message % show_title)
+    return dialog(L('heading.favorites'), F(message, show_title))
 
 ###############
 # Downloading #
@@ -154,17 +156,17 @@ def FavoritesToggle(endpoint, show_title):
 
 @route('%s/downloads' % PLUGIN_PREFIX)
 def DownloadsIndex():
-    container = ObjectContainer(title1 = 'Downloads')
+    container = ObjectContainer(title1 = L('heading.download'))
 
     if User.currently_downloading():
         current       = Dict['download_current']
         endpoint      = current['endpoint']
         status        = DownloadStatus(Downloader.status_file_for(endpoint))
 
-        container.add(plobj(PopupDirectoryObject, current['title'], DownloadsShow, endpoint = 'current'))
+        container.add(plobj(PopupDirectoryObject, current['title'], DownloadsShow, endpoint = endpoint))
 
         for ln in status.report():
-            container.add(plobj(PopupDirectoryObject, ln, DownloadsShow, endpoint = 'current'))
+            container.add(plobj(PopupDirectoryObject, ln, DownloadsShow, endpoint = endpoint))
 
     for download in User.download_queue():
         container.add(plobj(PopupDirectoryObject, download['title'], DownloadsShow, endpoint = download['endpoint']))
@@ -178,22 +180,21 @@ def DownloadsShow(endpoint):
     if download:
         container = ObjectContainer(title1 = download['title'])
 
-        if 'current' == endpoint:
-            container.add(plobj(DirectoryObject, 'Try Next', DownloadsNext))
-            container.add(plobj(DirectoryObject, 'Cancel',   DownloadsCancel, endpoint = 'current'))
-        else:
-            container.add(plobj(DirectoryObject, 'Cancel', DownloadsCancel, endpoint = endpoint))
+        if User.endpoint_is_downloading(endpoint):
+            container.add(plobj(DirectoryObject, L('download.heading.next'), DownloadsNext))
+
+        container.add(plobj(DirectoryObject, L('download.heading.cancel'), DownloadsCancel, endpoint = endpoint))
 
         return container
     else:
-        return dialog('Whoops', 'No download found for %s.' % endpoint)
+        return dialog(L('heading.error'), F('download.response.not-found', endpoint))
 
 @route('%s/downloads/queue' % PLUGIN_PREFIX)
 def DownloadsQueue(endpoint, media_hint, title):
     if User.has_downloaded(endpoint):
-        message = '%s is already in your library.'
+        message = 'download.response.exists'
     else:
-        message = '%s will be downloaded shortly.'
+        message = 'download.response.added'
         User.download_queue().append({
             'title':      title,
             'endpoint':   endpoint,
@@ -205,7 +206,7 @@ def DownloadsQueue(endpoint, media_hint, title):
         Dict.Save()
 
     User.dispatch_download()
-    return dialog('Downloads', message % title)
+    return dialog(L('heading.download'), F(message, title))
 
 @route('%s/downloads/dispatch' % PLUGIN_PREFIX)
 def DownloadsDispatch():
@@ -221,7 +222,9 @@ def DownloadsCancel(endpoint):
     download = User.download_for_endpoint(endpoint)
 
     if download:
-        if 'current' == endpoint:
+        #if 'current' == endpoint:
+        #if download.get('current', False):
+        if User.endpoint_is_downloading(endpoint):
             User.signal_download('cancel')
         else:
             try:
@@ -229,9 +232,9 @@ def DownloadsCancel(endpoint):
                 Dict.Save()
             except: pass
 
-        return dialog('Downloads', '%s has been cancelled.' % download['title'])
+        return dialog(('heading.download'), F('download.response.cancel', download['title']))
     else:
-        return dialog('Whoops', 'No download found for %s.' % endpoint)
+        return dialog(L('heading.error'), F('download.response.not-found', endpoint))
 
 @route('%s/downloads/next' % PLUGIN_PREFIX)
 def DownloadsNext():
@@ -258,15 +261,15 @@ def WatchOptions(endpoint, title, media_hint):
     container        = render_listings(endpoint, default_title = title)
 
     wizard_url       = '//ss/wizard?endpoint=%s' % endpoint
-    wizard_item      = VideoClipObject(title = 'Watch Now', url = wizard_url)
+    wizard_item      = VideoClipObject(title = L('media.watch-now'), url = wizard_url)
 
     sources_endpoint = util.sources_endpoint(endpoint, True)
-    sources_item     = plobj(DirectoryObject, 'View all Sources', RenderListings, endpoint = sources_endpoint, default_title = title)
+    sources_item     = plobj(DirectoryObject, L('media.all-sources'), RenderListings, endpoint = sources_endpoint, default_title = title)
 
     if User.has_downloaded(endpoint):
-        download_item = plobj(DirectoryObject, 'Already in library.', DownloadsShow, endpoint = endpoint)
+        download_item = plobj(DirectoryObject, L('media.persisted'), DownloadsShow, endpoint = endpoint)
     else:
-        download_item = plobj(DirectoryObject, 'Watch Later', DownloadsQueue,
+        download_item = plobj(DirectoryObject, L('media.watch-later'), DownloadsQueue,
             endpoint   = endpoint,
             media_hint = media_hint,
             title      = title
@@ -286,15 +289,18 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     if 0 < refresh:
         container.replace_parent = True
 
-    if User.endpoint_is_favorite(endpoint): favorite_label = '- Remove from Favorites'
-    else:                                   favorite_label = '+ Add to Favorites'
+    #if User.endpoint_is_favorite(endpoint): favorite_label = '- Remove from Favorites'
+    #else:                                   favorite_label = '+ Add to Favorites'
 
-    container.objects.insert(0, plobj(DirectoryObject, favorite_label, FavoritesToggle,
+    if User.endpoint_is_favorite(endpoint): favorite_label = 'favorites.heading.remove'
+    else:                                   favorite_label = 'favorites.heading.add'
+
+    container.objects.insert(0, plobj(DirectoryObject, L(favorite_label), FavoritesToggle,
         endpoint   = endpoint,
         show_title = show_title
     ))
 
-    container.add(plobj(DirectoryObject, 'Refresh', ListTVShow,
+    container.add(plobj(DirectoryObject, L('headings.refresh'), ListTVShow,
         endpoint   = endpoint,
         show_title = show_title,
         refresh    = refresh + 1
@@ -401,9 +407,6 @@ class User(object):
     def currently_downloading(cls): return 'download_current' in Dict
 
     @classmethod
-    def has_downloaded(cls, endpoint): return endpoint in cls.download_history()
-
-    @classmethod
     def endpoint_is_favorite(cls, endpoint): return endpoint in cls.favorites().keys()
 
     @classmethod
@@ -440,10 +443,20 @@ class User(object):
         return location
 
     @classmethod
+    def endpoint_is_downloading(cls, endpoint):
+        return cls.currently_downloading() and endpoint == Dict['download_current']['endpoint']
+
+    @classmethod
+    def has_downloaded(cls, endpoint):
+        found = cls.download_for_endpoint(endpoint)
+
+        if found: return True
+        else:     return endpoint in cls.download_history()
+
+    @classmethod
     def download_for_endpoint(cls, endpoint):
-        if 'current' == endpoint:
-            if cls.currently_downloading():
-                return Dict['download_current']
+        if cls.endpoint_is_downloading(endpoint):
+            return Dict['download_current']
         else:
             found = filter(lambda h: h['endpoint'] == endpoint, cls.download_queue())
 
@@ -530,7 +543,7 @@ def plobj(obj, otitle, cb, **kwargs): return obj(title = otitle, key = Callback(
 def dialog(title, message):           return ObjectContainer(header = title, message = message)
 def confirm(otitle, ocb, **kwargs):   return plobj(PopupDirectoryObject, otitle, ocb, **kwargs)
 def warning(otitle, ohandle, ocb, **kwargs):
-    container = ObjectContainer(title1 = otitle)
+    container = ObjectContainer(header = otitle)
     container.add(plobj(DirectoryObject, ohandle, ocb, **kwargs))
 
     return container
