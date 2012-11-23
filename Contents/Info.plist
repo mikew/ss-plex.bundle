@@ -6,7 +6,26 @@
   <string>com.plexapp.plugins.wso</string>
 
   <key>PlexClientPlatforms</key>
-  <string>*</string>
+  <string>Android,MacOSX,Windows,iOS</string>
+
+  <key>PlexMediaContainer</key>
+  <array>
+    <string>MP4</string>
+    <string>MKV</string>
+    <string>MOV</string>
+    <string>AVI</string>
+  </array>
+
+  <key>PlexAudioCodec</key>
+  <array>
+    <string>AAC</string>
+    <string>MP3</string>
+  </array>
+
+  <key>PlexVideoCodec</key>
+  <array>
+    <string>H.264</string>
+  </array>
 
   <key>PlexFrameworkVersion</key>
   <string>2</string>
