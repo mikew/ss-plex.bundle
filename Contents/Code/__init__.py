@@ -138,13 +138,11 @@ def FavoritesToggle(endpoint, show_title):
 
     if User.endpoint_is_favorite(endpoint):
         del Dict['favorites'][endpoint]
-        message = '%s was removed from your favorites.'
         message = 'favorites.response.removed'
     else:
         favorites           = User.favorites()
         favorites[endpoint] = show_title
-        message             = '%s was added to your favorites.'
-        message = 'favorites.response.added'
+        message             = 'favorites.response.added'
 
     Dict.Save()
 
@@ -163,27 +161,32 @@ def DownloadsIndex():
         endpoint      = current['endpoint']
         status        = DownloadStatus(Downloader.status_file_for(endpoint))
 
-        container.add(plobj(PopupDirectoryObject, current['title'], DownloadsShow, endpoint = endpoint))
+        container.add(plobj(PopupDirectoryObject, current['title'], DownloadsOptions, endpoint = endpoint))
 
         for ln in status.report():
-            container.add(plobj(PopupDirectoryObject, ln, DownloadsShow, endpoint = endpoint))
+            container.add(plobj(PopupDirectoryObject, ln, DownloadsOptions, endpoint = endpoint))
 
     for download in User.download_queue():
-        container.add(plobj(PopupDirectoryObject, download['title'], DownloadsShow, endpoint = download['endpoint']))
+        container.add(plobj(PopupDirectoryObject, download['title'], DownloadsOptions, endpoint = download['endpoint']))
 
     return container
 
 @route('%s/downloads/show' % PLUGIN_PREFIX)
-def DownloadsShow(endpoint):
+def DownloadsOptions(endpoint):
     download = User.download_for_endpoint(endpoint)
 
     if download:
-        container = ObjectContainer(title1 = download['title'])
+        container  = ObjectContainer(title1 = download['title'])
+        obj_cancel = plobj(DirectoryObject, L('download.heading.cancel'), DownloadsCancel, endpoint = endpoint)
 
         if User.endpoint_is_downloading(endpoint):
-            container.add(plobj(DirectoryObject, L('download.heading.next'), DownloadsNext))
-
-        container.add(plobj(DirectoryObject, L('download.heading.cancel'), DownloadsCancel, endpoint = endpoint))
+            if not User.pid_running(Dict['download_current']['pid']):
+                container.add(plobj(DirectoryObject, L('download.heading.repair'), DownloadsDispatchForce))
+            else:
+                container.add(plobj(DirectoryObject, L('download.heading.next'), DownloadsNext))
+                container.add(obj_cancel)
+        else:
+            container.add(obj_cancel)
 
         return container
     else:
@@ -220,8 +223,6 @@ def DownloadsCancel(endpoint):
     download = User.download_for_endpoint(endpoint)
 
     if download:
-        #if 'current' == endpoint:
-        #if download.get('current', False):
         if User.endpoint_is_downloading(endpoint):
             User.signal_download('cancel')
         else:
@@ -230,7 +231,7 @@ def DownloadsCancel(endpoint):
                 Dict.Save()
             except: pass
 
-        return dialog(('heading.download'), F('download.response.cancel', download['title']))
+        return dialog(L('heading.download'), F('download.response.cancel', download['title']))
     else:
         return dialog(L('heading.error'), F('download.response.not-found', endpoint))
 
@@ -265,7 +266,7 @@ def WatchOptions(endpoint, title, media_hint):
     sources_item     = plobj(DirectoryObject, L('media.all-sources'), RenderListings, endpoint = sources_endpoint, default_title = title)
 
     if User.has_downloaded(endpoint):
-        download_item = plobj(DirectoryObject, L('media.persisted'), DownloadsShow, endpoint = endpoint)
+        download_item = plobj(DirectoryObject, L('media.persisted'), DownloadsOptions, endpoint = endpoint)
     else:
         download_item = plobj(DirectoryObject, L('media.watch-later'), DownloadsQueue,
             endpoint   = endpoint,
@@ -295,7 +296,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
         show_title = show_title
     ))
 
-    container.add(plobj(DirectoryObject, L('headings.refresh'), ListTVShow,
+    container.add(plobj(DirectoryObject, L('heading.refresh'), ListTVShow,
         endpoint   = endpoint,
         show_title = show_title,
         refresh    = refresh + 1
@@ -417,6 +418,67 @@ class User(object):
     def clear_current_download(cls): cls.attempt_clear('download_current')
 
     @classmethod
+    def running_windows(cls):
+        import os
+        return 'nt' == os.name
+
+    @classmethod
+    def pid_running(cls, pid):
+        if cls.running_windows():
+            return cls.pid_running_windows(pid)
+        else:
+            return cls.signal_process_unix(pid)
+
+    @classmethod
+    def signal_process(cls, pid, to_send = 0):
+        if cls.running_windows():
+            return cls.signal_process_windows(pid, to_send)
+        else:
+            return cls.signal_process_unix(pid, to_send)
+
+    @classmethod
+    def signal_process_unix(cls, pid, to_send = 0):
+        try:
+            import os
+            os.kill(pid, to_send)
+            return True
+        except:
+            return False
+
+    @classmethod
+    def signal_process_windows(cls, pid, to_send = 0):
+        try:
+            import ctypes
+            # 1 == PROCESS_TERMINATE
+            handle = ctypes.windll.kernel32.OpenProcess(1, False, pid)
+            ctypes.windll.kernel32.TerminateProcess(handle, to_send * -1)
+            ctypes.windll.kernel32.CloseHandle(handle)
+            return True
+        except:
+            return False
+
+    @classmethod
+    def pid_running_windows(cls, pid):
+        import ctypes, ctypes.wintypes, ctypes.windll.kernel32 as kernel32
+        # GetExitCodeProcess uses a special exit code to indicate that the process is
+        # still running.
+        still_active = 259
+        handle       = kernel32.OpenProcess(1, 0, pid)
+
+        if handle == 0:
+            return False
+
+        # If the process exited recently, a pid may still exist for the handle.
+        # So, check if we can get the exit code.
+        exit_code  = ctypes.wintypes.DWORD()
+        is_running = ( kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)) == 0 )
+        kernel32.CloseHandle(handle)
+
+        # See if we couldn't get the exit code or the exit code indicates that the
+        # process is still running.
+        return is_running or exit_code.value == still_active
+
+    @classmethod
     def attempt_clear(cls, key):
         if key in Dict:
             del Dict[key]
@@ -469,17 +531,7 @@ class User(object):
             pid     = Dict['download_current'].get('pid')
 
             if pid:
-                try:
-                    if 'nt' == os.name:
-                        import ctypes
-                        # 1 == PROCESS_TERMINATE
-                        handle = ctypes.windll.kernel32.OpenProcess(1, False, pid)
-                        ctypes.windll.kernel32.TerminateProcess(handle, to_send * -1)
-                        ctypes.windll.kernel32.CloseHandle(handle)
-                    else:
-                        os.kill(pid, to_send)
-                except Exception, e:
-                    pass
+                return cls.signal_process(pid, to_send)
 
     @classmethod
     def dispatch_download(cls, should_thread = True):
@@ -511,10 +563,6 @@ class User(object):
                 cls.clear_current_download()
                 cls.dispatch_download(False)
 
-            #def remove_endpoint_from_history(dl):
-                #cls.download_history().remove(dl.endpoint)
-                #Dict.Save()
-
             def store_download_endpoint(dl):
                 cls.download_history().append(dl.endpoint)
 
@@ -524,10 +572,7 @@ class User(object):
             downloader.on_success(store_download_endpoint)
             downloader.on_success(clear_download_and_dispatch)
 
-            #downloader.on_error(remove_endpoint_from_history)
             downloader.on_error(clear_download_and_dispatch)
-
-            #thread.start_new_thread(downloader.download, ())
 
             if should_thread:
                 thread.start_new_thread(downloader.download, ())
