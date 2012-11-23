@@ -101,6 +101,13 @@ class Consumer(object):
     def request_page(self, url):
         self.replace_page( self.agent.open(url) )
 
+    def post_request(self, params):
+        import urllib
+        url = params['__url']
+        del params['__url']
+
+        self.agent.open(url, urllib.urlencode(params))
+
     def replace_page(self, response):
         self.page = self.ungzipResponse(response).read()
 
@@ -142,6 +149,10 @@ class Consumer(object):
 
         if type(resp) is dict:
             self.proc.insert(0, resp)
+        elif type(resp) is list:
+            resp.reverse()
+            for c in resp:
+                self.proc.insert(0, c)
 
         return resp
 
@@ -167,6 +178,8 @@ class Consumer(object):
                 result = element.getparent.get('href')
             elif 'embed' == tag:
                 result = element.get('src')
+            elif 'param' == tag:
+                result = element.get('value')
         else:
             result = element.get(attribute)
 
