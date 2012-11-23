@@ -34,7 +34,7 @@ def MainMenu():
     container.add(plobj(DirectoryObject, L('heading.favorites'),      FavoritesIndex))
     container.add(search_item)
     container.add(plobj(DirectoryObject, L('search.heading.saved'), SearchIndex))
-    container.add(plobj(DirectoryObject, L('heading.download'),     DownloadsIndex))
+    container.add(plobj(DirectoryObject, L('heading.download'),     DownloadsIndex, refresh = 0))
     container.add(plobj(DirectoryObject, L('heading.system'),       SystemIndex))
 
     return container
@@ -100,7 +100,7 @@ def SearchIndex():
 
     return container
 
-@route('%s/search/results/{query}' % PLUGIN_PREFIX)
+@route('%s/search/results' % PLUGIN_PREFIX)
 def SearchResults(query):
     container = render_listings('/search/%s' % util.q(query))
     container.add(plobj(DirectoryObject, L('search.heading.save'), SearchSave, query = query))
@@ -128,7 +128,7 @@ def FavoritesIndex():
     )
 
     for endpoint, title in sorted(favorites.iteritems(), key = lambda x:x[1]):
-        container.add(plobj(DirectoryObject, title, ListTVShow, endpoint = endpoint, show_title = title))
+        container.add(plobj(DirectoryObject, title, ListTVShow, refresh = 0, endpoint = endpoint, show_title = title))
 
     return container
 
@@ -152,8 +152,8 @@ def FavoritesToggle(endpoint, show_title):
 # Downloading #
 ###############
 
-@route('%s/downloads' % PLUGIN_PREFIX)
-def DownloadsIndex():
+@route('%s/downloads/{refresh}' % PLUGIN_PREFIX)
+def DownloadsIndex(refresh = 0):
     container = ObjectContainer(title1 = L('heading.download'))
 
     if User.currently_downloading():
@@ -169,6 +169,7 @@ def DownloadsIndex():
     for download in User.download_queue():
         container.add(plobj(PopupDirectoryObject, download['title'], DownloadsOptions, endpoint = download['endpoint']))
 
+    add_refresh_to(container, refresh, DownloadsIndex)
     return container
 
 @route('%s/downloads/show' % PLUGIN_PREFIX)
@@ -282,11 +283,7 @@ def WatchOptions(endpoint, title, media_hint):
 
 @route('%s/series/{refresh}' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
-    refresh   = int(refresh)
     container = render_listings(endpoint, show_title)
-
-    if 0 < refresh:
-        container.replace_parent = True
 
     if User.endpoint_is_favorite(endpoint): favorite_label = 'favorites.heading.remove'
     else:                                   favorite_label = 'favorites.heading.add'
@@ -296,11 +293,10 @@ def ListTVShow(endpoint, show_title, refresh = 0):
         show_title = show_title
     ))
 
-    container.add(plobj(DirectoryObject, L('heading.refresh'), ListTVShow,
+    add_refresh_to(container, refresh, ListTVShow,
         endpoint   = endpoint,
         show_title = show_title,
-        refresh    = refresh + 1
-    ))
+    )
 
     return container
 
@@ -331,7 +327,7 @@ def render_listings(endpoint, default_title = None):
                 rating_key = permalink,
                 title      = display_title,
                 summary    = element.get( 'desc' ),
-                key        = Callback(ListTVShow, endpoint = permalink, show_title = display_title)
+                key        = Callback(ListTVShow, refresh = 0, endpoint = permalink, show_title = display_title)
             )
         elif 'movie' == element['_type'] or 'episode' == element['_type']:
             media_hint = element['_type']
@@ -597,3 +593,14 @@ def plex_refresh_section(section):
     url     = base + '/%s/refresh' % key
 
     HTTP.Request(url, immediate = True)
+
+def add_refresh_to(container, refresh, ocb, **kwargs):
+    refresh           = int(refresh)
+    kwargs['refresh'] = refresh + 1
+
+    if 0 < refresh:
+        container.replace_parent = True
+
+    container.add(plobj(DirectoryObject, L('heading.refresh'), ocb, **kwargs))
+
+    return container
