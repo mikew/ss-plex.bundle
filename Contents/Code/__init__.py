@@ -459,10 +459,11 @@ class User(object):
 
     @classmethod
     def pid_running_windows(cls, pid):
-        import ctypes, ctypes.wintypes, ctypes.windll.kernel32 as kernel32
+        import ctypes, ctypes.wintypes
         # GetExitCodeProcess uses a special exit code to indicate that the process is
         # still running.
         still_active = 259
+        kernel32     = ctypes.windll.kernel32
         handle       = kernel32.OpenProcess(1, 0, pid)
 
         if handle == 0:
