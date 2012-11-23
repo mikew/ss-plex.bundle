@@ -152,7 +152,7 @@ def FavoritesToggle(endpoint, show_title):
 # Downloading #
 ###############
 
-@route('%s/downloads/{refresh}' % PLUGIN_PREFIX)
+@route('%s/downloads/i{refresh}' % PLUGIN_PREFIX)
 def DownloadsIndex(refresh = 0):
     container = ObjectContainer(title1 = L('heading.download'))
 
@@ -281,7 +281,7 @@ def WatchOptions(endpoint, title, media_hint):
 
     return container
 
-@route('%s/series/{refresh}' % PLUGIN_PREFIX)
+@route('%s/series/i{refresh}' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
     container = render_listings(endpoint, show_title)
 
