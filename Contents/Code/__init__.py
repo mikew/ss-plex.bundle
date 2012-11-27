@@ -103,18 +103,27 @@ def SearchIndex():
 @route('%s/search/results' % PLUGIN_PREFIX)
 def SearchResults(query):
     container = render_listings('/search/%s' % util.q(query))
-    container.add(plobj(DirectoryObject, L('search.heading.save'), SearchSave, query = query))
+
+    if User.has_saved_search(query): save_label = 'search.heading.remove'
+    else:                            save_label = 'search.heading.add'
+
+    container.objects.insert(0, plobj(DirectoryObject, L(save_label), SearchToggle, query = query))
+
     return container
 
-@route('%s/search/save' % PLUGIN_PREFIX)
-def SearchSave(query):
+@route('%s/search/toggle' % PLUGIN_PREFIX)
+def SearchToggle(query):
     saved_searches = User.searches()
 
-    if query not in saved_searches:
+    if User.has_saved_search(query):
+        message = 'search.response.removed'
+        saved_searches.remove(query)
+    else:
+        message = 'search.response.added'
         saved_searches.append(query)
-        Dict.Save()
 
-    return dialog(L('heading.search'), L('search.response.added'))
+    Dict.Save()
+    return dialog(L('heading.search'), L(message))
 
 #############
 # Favorites #
@@ -400,6 +409,9 @@ class User(object):
 
     @classmethod
     def endpoint_is_favorite(cls, endpoint): return endpoint in cls.favorites().keys()
+
+    @classmethod
+    def has_saved_search(cls, query): return query in cls.searches()
 
     @classmethod
     def clear_favorites(cls): cls.attempt_clear('favorites')

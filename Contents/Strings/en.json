@@ -8,10 +8,12 @@
   'heading.refresh':    'Refresh',
   'heading.error':      'Whoops',
 
-  'search.heading.save':    'Save this search',
-  'search.heading.saved':   'Saved Searches',
-  'search.prompt':          'Search for ...',
-  'search.response.added':  'Your search has been saved.',
+  'search.heading.add':      'Save this search',
+  'search.heading.remove':   'Remove this search',
+  'search.heading.saved':    'Saved Searches',
+  'search.prompt':           'Search for ...',
+  'search.response.added':   'Your search has been saved.',
+  'search.response.removed': 'Your search has been removed.',
 
   'system.heading.dispatch-force':          'Repair Downloads',
   'system.heading.reset-favorites':         'Reset Favorites',
