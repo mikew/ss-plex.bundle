@@ -1,9 +1,18 @@
+from urlparse import urlparse
+import cgi
+
+# Some clients request a certain endpoint
+# that doesn't add Contents/Libraries/Shared
+# to sys.path. this fixes that.
+
+import inspect, os, sys
+d = os.path.dirname( os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../Libraries/Shared/ss' ) ) # script directory
+if not d in sys.path:
+    sys.path.insert(0, d)
+
 from ss import Consumer
 from ss import Wizard
 from ss import util
-
-from urlparse import urlparse
-import cgi
 
 def NormalizeURL(url):
     return url
@@ -34,7 +43,7 @@ def MediaObjectsForURL(url):
     return [ obj ]
 
 found = None
-@indirect
+#@indirect
 def PlayWizard(endpoint):
     wizard   = Wizard(endpoint, environment = SSPlexEnvironment())
 
@@ -48,12 +57,12 @@ def PlayWizard(endpoint):
     if found: return video(found)
     else: raise Exception('no sources found.')
 
-@indirect
+#@indirect
 def PlayConsumer(url):
     consumer = Consumer(url, environment = SSPlexEnvironment())
     return video(consumer)
 
-@indirect
+#@indirect
 def PlayForeign(original, foreign):
     response = JSON.ObjectFromURL( util.translate_endpoint(original, foreign) )
     url      = util.translated_from(response)
@@ -63,21 +72,27 @@ def PlayForeign(original, foreign):
 
 def video(consumer):
     consumer.consume()
+    return Redirect(consumer.asset_url())
 
-    referer = consumer.url
-    cookies = consumer.agent_cookie_string()
-    agent   = consumer.ua
+    # Some clients only work with Redirect
+    # others (Desktop / aTV2) can use this
+    # more advanced way, which properly
+    # sets cookies and whatnot
+    #referer = consumer.url
+    #cookies = consumer.agent_cookie_string()
+    #agent   = consumer.ua
+    #url     = consumer.asset_url()
 
-    container = ObjectContainer(user_agent = agent, http_cookies = cookies)
-    container.http_headers = { 'Referer': referer }
-    naitive = VideoClipObject(
-        items = [ MediaObject(
-            parts = [ PartObject(key = consumer.asset_url()) ],
-        ) ]
-    )
-    container.add(naitive)
+    #container = ObjectContainer(user_agent = agent, http_cookies = cookies)
+    #container.http_headers = { 'Referer': referer }
+    #naitive = VideoClipObject(
+        #items = [ MediaObject(
+            #parts = [ PartObject(key = url) ],
+        #) ]
+    #)
+    #container.add(naitive)
 
-    return container
+    #return container
 
 def mo(cb, **kwargs):
     return MediaObject(
