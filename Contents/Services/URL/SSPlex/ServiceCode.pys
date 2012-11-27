@@ -43,9 +43,9 @@ def MediaObjectsForURL(url):
     return [ obj ]
 
 found = None
-#@indirect
+@indirect
 def PlayWizard(endpoint):
-    wizard   = Wizard(endpoint, environment = SSPlexEnvironment())
+    wizard = Wizard(endpoint, environment = SSPlexEnvironment())
 
     def first_working(consumer):
         global found
@@ -55,14 +55,14 @@ def PlayWizard(endpoint):
     wizard.sources(first_working)
 
     if found: return video(found)
-    else: raise Exception('no sources found.')
+    else: raise Ex.MediaNotAvailable
 
-#@indirect
+@indirect
 def PlayConsumer(url):
     consumer = Consumer(url, environment = SSPlexEnvironment())
     return video(consumer)
 
-#@indirect
+@indirect
 def PlayForeign(original, foreign):
     response = JSON.ObjectFromURL( util.translate_endpoint(original, foreign) )
     url      = util.translated_from(response)
@@ -72,7 +72,8 @@ def PlayForeign(original, foreign):
 
 def video(consumer):
     consumer.consume()
-    return Redirect(consumer.asset_url())
+    Log(consumer.asset_url())
+    return IndirectResponse(VideoClipObject, key = consumer.asset_url())
 
     # Some clients only work with Redirect
     # others (Desktop / aTV2) can use this
