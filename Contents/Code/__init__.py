@@ -106,7 +106,7 @@ def SearchResults(query):
     if User.has_saved_search(query): save_label = 'search.heading.remove'
     else:                            save_label = 'search.heading.add'
 
-    container.objects.insert(0, button(L(save_label), SearchToggle, query = query))
+    container.objects.insert(0, button(save_label, SearchToggle, query = query))
 
     return container
 
@@ -296,7 +296,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     if User.endpoint_is_favorite(endpoint): favorite_label = 'favorites.heading.remove'
     else:                                   favorite_label = 'favorites.heading.add'
 
-    container.objects.insert(0, button(L(favorite_label), FavoritesToggle,
+    container.objects.insert(0, button(favorite_label, FavoritesToggle,
         endpoint   = endpoint,
         show_title = show_title
     ))
