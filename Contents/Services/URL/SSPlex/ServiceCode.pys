@@ -56,7 +56,7 @@ def PlayWizard(endpoint):
     wizard.sources(first_working)
 
     if found: return video(found)
-    else: raise Ex.MediaNotAvailable
+    else:     raise  Ex.MediaNotAvailable
 
 @indirect
 def PlayConsumer(url):
@@ -75,7 +75,7 @@ def video(consumer):
     consumer.consume()
 
     return IndirectResponse(VideoClipObject,
-        key          = consumer.asset_url(),
+        key = consumer.asset_url(),
         #user_agent   = consumer.ua,
         #http_cookies = consumer.agent_cookie_string(),
         #http_headers = { 'Referer': consumer.url }

@@ -50,3 +50,9 @@ def print_exception(e):
 def translated_from(response):
     if response:
         return response[0]
+
+class version:
+    major  = 0
+    minor  = 1
+    patch  = 0
+    string = '%s.%s.%s' % (major, minor, patch)

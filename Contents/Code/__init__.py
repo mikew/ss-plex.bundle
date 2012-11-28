@@ -52,6 +52,7 @@ def SystemIndex():
     container.add(confirm(L('system.heading.reset-download-history'),        SystemConfirmResetDownloads))
     container.add(confirm(L('system.heading.reset-factory'),                 SystemConfirmResetFactory))
     container.add(plobj(DirectoryObject, L('system.heading.dispatch-force'), DownloadsDispatchForce))
+    container.add(plobj(DirectoryObject, F('system.heading.version', util.version.string), SystemIndex))
 
     return container
 
