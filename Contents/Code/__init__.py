@@ -331,6 +331,7 @@ def render_listings(endpoint, default_title = None):
                 summary = element.get( 'desc' ),
                 key     = generic_callback
             )
+
         elif 'show' == element['_type']:
             naitive = TVShowObject(
                 rating_key = permalink,
@@ -338,6 +339,7 @@ def render_listings(endpoint, default_title = None):
                 summary    = element.get( 'desc' ),
                 key        = Callback(ListTVShow, refresh = 0, endpoint = permalink, show_title = display_title)
             )
+
         elif 'movie' == element['_type'] or 'episode' == element['_type']:
             media_hint = element['_type']
             if 'episode' == media_hint:
@@ -347,12 +349,20 @@ def render_listings(endpoint, default_title = None):
                 title = display_title,
                 key   = Callback(WatchOptions, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
+
         elif 'foreign' == element['_type']:
-            foreign_url = '//ss%s' % util.translate_endpoint(element['original_url'], element['foreign_url'], True)
-            naitive = VideoClipObject(title = element['domain'], url = foreign_url)
-        elif 'final' == element['_type']:
-            ss_url = '//ss/procedure?url=%s&title=%s' % (util.q(element['url']), util.q('FILE HINT HERE'))
-            naitive = VideoClipObject(url = ss_url, title = display_title)
+            final_url = element.get('final_url')
+
+            if final_url:
+                service_url = '//ss/procedure?url=%s' % util.q(final_url)
+            else:
+                service_url = '//ss%s' % util.translate_endpoint(element['original_url'], element['foreign_url'], True)
+
+            naitive = VideoClipObject(title = element['domain'], url = service_url)
+
+        #elif 'final' == element['_type']:
+            #ss_url = '//ss/procedure?url=%s&title=%s' % (util.q(element['url']), util.q('FILE HINT HERE'))
+            #naitive = VideoClipObject(url = ss_url, title = display_title)
 
         #elif 'movie' == element['_type']:
             #naitive = MovieObject(

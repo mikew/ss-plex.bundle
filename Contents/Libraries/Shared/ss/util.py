@@ -48,7 +48,5 @@ def print_exception(e):
     traceback.print_tb(sys.exc_info()[2])
 
 def translated_from(response):
-    results = response.get('items', [])
-
-    if results:
-        return results[0]['url']
+    if response:
+        return response[0]

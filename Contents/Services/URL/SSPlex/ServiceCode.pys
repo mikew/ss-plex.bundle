@@ -6,7 +6,8 @@ import cgi
 # to sys.path. this fixes that.
 
 import inspect, os, sys
-d = os.path.dirname( os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../Libraries/Shared/ss' ) ) # script directory
+d = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../Libraries/Shared' ) # script directory
+
 if not d in sys.path:
     sys.path.insert(0, d)
 
