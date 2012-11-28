@@ -1,5 +1,7 @@
-com.plexapp.plugins.wso.log
 *.pyc
 .c9revisions
 curl-status-file
 out
+media-server.log
+plex-system.log
+plugin-log
