@@ -73,8 +73,12 @@ def PlayForeign(original, foreign):
 
 def video(consumer):
     consumer.consume()
-    Log(consumer.asset_url())
-    return IndirectResponse(VideoClipObject, key = consumer.asset_url())
+    referer = consumer.url
+    cookies = consumer.agent_cookie_string()
+    agent   = consumer.ua
+    url     = consumer.asset_url()
+
+    return IndirectResponse(VideoClipObject, key = consumer.asset_url(), user_agent = agent, http_cookies = cookies, http_headers = { 'Referer': referer })
 
     # Some clients only work with Redirect
     # others (Desktop / aTV2) can use this
