@@ -28,14 +28,12 @@ def Start():
 @handler(PLUGIN_PREFIX, PLUGIN_TITLE)
 def MainMenu():
     container   = render_listings('/')
-    search_item = plobj(InputDirectoryObject, L('heading.search'),    SearchResults)
-    search_item.prompt = L('search.prompt')
 
-    container.add(plobj(DirectoryObject, L('heading.favorites'),      FavoritesIndex))
-    container.add(search_item)
-    container.add(plobj(DirectoryObject, L('search.heading.saved'), SearchIndex))
-    container.add(plobj(DirectoryObject, L('heading.download'),     DownloadsIndex, refresh = 0))
-    container.add(plobj(DirectoryObject, L('heading.system'),       SystemIndex))
+    container.add(button('heading.favorites',    FavoritesIndex))
+    container.add(input_button('heading.search', 'search.prompt', SearchResults))
+    container.add(button('search.heading.saved', SearchIndex))
+    container.add(button('heading.download',     DownloadsIndex, refresh = 0))
+    container.add(button('heading.system',       SystemIndex))
 
     return container
 
@@ -47,46 +45,46 @@ def MainMenu():
 def SystemIndex():
     container = ObjectContainer(title1 = L('heading.system'))
 
-    container.add(confirm(L('system.heading.reset-favorites'),               SystemConfirmResetFavorites))
-    container.add(confirm(L('system.heading.reset-search'),                  SystemConfirmResetSearches))
-    container.add(confirm(L('system.heading.reset-download-history'),        SystemConfirmResetDownloads))
-    container.add(confirm(L('system.heading.reset-factory'),                 SystemConfirmResetFactory))
-    container.add(plobj(DirectoryObject, L('system.heading.dispatch-force'), DownloadsDispatchForce))
-    container.add(plobj(DirectoryObject, F('system.heading.version', util.version.string), SystemIndex))
+    container.add(confirm('system.heading.reset-favorites',             SystemConfirmResetFavorites))
+    container.add(confirm('system.heading.reset-search',                SystemConfirmResetSearches))
+    container.add(confirm('system.heading.reset-download-history',      SystemConfirmResetDownloads))
+    container.add(confirm('system.heading.reset-factory',               SystemConfirmResetFactory))
+    container.add(button('system.heading.dispatch-force',               DownloadsDispatchForce))
+    container.add(button(F('system.heading.version', util.version.string), SystemIndex))
 
     return container
 
 @route('%s/system/confirm/reset-favorites' % PLUGIN_PREFIX)
-def SystemConfirmResetFavorites(): return warning(L('system.warning.reset-favorites'), L('confirm.yes'), SystemResetFavorites)
+def SystemConfirmResetFavorites(): return warning('system.warning.reset-favorites', 'confirm.yes', SystemResetFavorites)
 
 @route('%s/system/confirm/reset-searches' % PLUGIN_PREFIX)
-def SystemConfirmResetSearches(): return warning(L('system.warning.reset-search'), L('confirm.yes'), SystemResetSearches)
+def SystemConfirmResetSearches(): return warning('system.warning.reset-search', 'confirm.yes', SystemResetSearches)
 
 @route('%s/system/confirm/reset-downloads' % PLUGIN_PREFIX)
-def SystemConfirmResetDownloads(): return warning(L('system.warning.reset-download-history'), L('confirm.yes'), SystemResetDownloads)
+def SystemConfirmResetDownloads(): return warning('system.warning.reset-download-history', 'confirm.yes', SystemResetDownloads)
 
 @route('%s/system/confirm/reset-factory' % PLUGIN_PREFIX)
-def SystemConfirmResetFactory(): return warning(L('system.warning.reset-factory'), L('confirm.yes'), SystemResetFactory)
+def SystemConfirmResetFactory(): return warning('system.warning.reset-factory', 'confirm.yes', SystemResetFactory)
 
 @route('%s/system/reset/favorites' % PLUGIN_PREFIX)
 def SystemResetFavorites():
     User.clear_favorites()
-    return dialog(L('heading.system'), L('system.response.reset-favorites'))
+    return dialog('heading.system', 'system.response.reset-favorites')
 
 @route('%s/system/reset/searches' % PLUGIN_PREFIX)
 def SystemResetSearches():
     User.clear_searches()
-    return dialog(L('heading.system'), L('system.response.reset-search'))
+    return dialog('heading.system', 'system.response.reset-search')
 
 @route('%s/system/reset/downloads' % PLUGIN_PREFIX)
 def SystemResetDownloads():
     User.clear_download_history()
-    return dialog(L('heading.system'), L('system.response.reset-download-history'))
+    return dialog('heading.system', 'system.response.reset-download-history')
 
 @route('%s/system/reset/factory' % PLUGIN_PREFIX)
 def SystemResetFactory():
     Dict.Reset()
-    return dialog(L('heading.system'), L('system.response.reset-factory'))
+    return dialog('heading.system', 'system.response.reset-factory')
 
 #############
 # Searching #
@@ -97,7 +95,7 @@ def SearchIndex():
     container = ObjectContainer()
 
     for query in sorted(User.searches()):
-        container.add(plobj(DirectoryObject, query, SearchResults, query = query))
+        container.add(button(query, SearchResults, query = query))
 
     return container
 
@@ -108,7 +106,7 @@ def SearchResults(query):
     if User.has_saved_search(query): save_label = 'search.heading.remove'
     else:                            save_label = 'search.heading.add'
 
-    container.objects.insert(0, plobj(DirectoryObject, L(save_label), SearchToggle, query = query))
+    container.objects.insert(0, button(L(save_label), SearchToggle, query = query))
 
     return container
 
@@ -124,7 +122,7 @@ def SearchToggle(query):
         saved_searches.append(query)
 
     Dict.Save()
-    return dialog(L('heading.search'), L(message))
+    return dialog('heading.search', message)
 
 #############
 # Favorites #
@@ -138,7 +136,7 @@ def FavoritesIndex():
     )
 
     for endpoint, title in sorted(favorites.iteritems(), key = lambda x:x[1]):
-        container.add(plobj(DirectoryObject, title, ListTVShow, refresh = 0, endpoint = endpoint, show_title = title))
+        container.add(button(title, ListTVShow, refresh = 0, endpoint = endpoint, show_title = title))
 
     return container
 
@@ -156,7 +154,7 @@ def FavoritesToggle(endpoint, show_title):
 
     Dict.Save()
 
-    return dialog(L('heading.favorites'), F(message, show_title))
+    return dialog('heading.favorites', F(message, show_title))
 
 ###############
 # Downloading #
@@ -171,13 +169,13 @@ def DownloadsIndex(refresh = 0):
         endpoint      = current['endpoint']
         status        = DownloadStatus(Downloader.status_file_for(endpoint))
 
-        container.add(plobj(PopupDirectoryObject, current['title'], DownloadsOptions, endpoint = endpoint))
+        container.add(popup_button(current['title'], DownloadsOptions, endpoint = endpoint))
 
         for ln in status.report():
-            container.add(plobj(PopupDirectoryObject, ln, DownloadsOptions, endpoint = endpoint))
+            container.add(popup_button(ln, DownloadsOptions, endpoint = endpoint))
 
     for download in User.download_queue():
-        container.add(plobj(PopupDirectoryObject, download['title'], DownloadsOptions, endpoint = download['endpoint']))
+        container.add(popup_button(download['title'], DownloadsOptions, endpoint = download['endpoint']))
 
     add_refresh_to(container, refresh, DownloadsIndex)
     return container
@@ -188,20 +186,20 @@ def DownloadsOptions(endpoint):
 
     if download:
         container  = ObjectContainer(title1 = download['title'])
-        obj_cancel = plobj(DirectoryObject, L('download.heading.cancel'), DownloadsCancel, endpoint = endpoint)
+        obj_cancel = button('download.heading.cancel', DownloadsCancel, endpoint = endpoint)
 
         if User.endpoint_is_downloading(endpoint):
             if not User.pid_running(Dict['download_current']['pid']):
-                container.add(plobj(DirectoryObject, L('download.heading.repair'), DownloadsDispatchForce))
+                container.add(button('download.heading.repair', DownloadsDispatchForce))
             else:
-                container.add(plobj(DirectoryObject, L('download.heading.next'), DownloadsNext))
+                container.add(button('download.heading.next', DownloadsNext))
                 container.add(obj_cancel)
         else:
             container.add(obj_cancel)
 
         return container
     else:
-        return dialog(L('heading.error'), F('download.response.not-found', endpoint))
+        return dialog('heading.error', F('download.response.not-found', endpoint))
 
 @route('%s/downloads/queue' % PLUGIN_PREFIX)
 def DownloadsQueue(endpoint, media_hint, title):
@@ -218,7 +216,7 @@ def DownloadsQueue(endpoint, media_hint, title):
         Dict.Save()
 
     User.dispatch_download()
-    return dialog(L('heading.download'), F(message, title))
+    return dialog('heading.download', F(message, title))
 
 @route('%s/downloads/dispatch' % PLUGIN_PREFIX)
 def DownloadsDispatch():
@@ -242,9 +240,9 @@ def DownloadsCancel(endpoint):
                 Dict.Save()
             except: pass
 
-        return dialog(L('heading.download'), F('download.response.cancel', download['title']))
+        return dialog('heading.download', F('download.response.cancel', download['title']))
     else:
-        return dialog(L('heading.error'), F('download.response.not-found', endpoint))
+        return dialog('heading.error', F('download.response.not-found', endpoint))
 
 @route('%s/downloads/next' % PLUGIN_PREFIX)
 def DownloadsNext():
@@ -274,12 +272,12 @@ def WatchOptions(endpoint, title, media_hint):
     wizard_item      = VideoClipObject(title = L('media.watch-now'), url = wizard_url)
 
     sources_endpoint = util.sources_endpoint(endpoint, True)
-    sources_item     = plobj(DirectoryObject, L('media.all-sources'), RenderListings, endpoint = sources_endpoint, default_title = title)
+    sources_item     = button('media.all-sources', RenderListings, endpoint = sources_endpoint, default_title = title)
 
     if User.has_downloaded(endpoint):
-        download_item = plobj(DirectoryObject, L('media.persisted'), DownloadsOptions, endpoint = endpoint)
+        download_item = button('media.persisted', DownloadsOptions, endpoint = endpoint)
     else:
-        download_item = plobj(DirectoryObject, L('media.watch-later'), DownloadsQueue,
+        download_item = button('media.watch-later', DownloadsQueue,
             endpoint   = endpoint,
             media_hint = media_hint,
             title      = title
@@ -298,7 +296,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     if User.endpoint_is_favorite(endpoint): favorite_label = 'favorites.heading.remove'
     else:                                   favorite_label = 'favorites.heading.add'
 
-    container.objects.insert(0, plobj(DirectoryObject, L(favorite_label), FavoritesToggle,
+    container.objects.insert(0, button(L(favorite_label), FavoritesToggle,
         endpoint   = endpoint,
         show_title = show_title
     ))
@@ -600,13 +598,19 @@ class User(object):
                 downloader.download()
 
 def plobj(obj, otitle, cb, **kwargs): return obj(title = otitle, key = Callback(cb, **kwargs))
-def dialog(title, message):           return ObjectContainer(header = title, message = message)
-def confirm(otitle, ocb, **kwargs):   return plobj(PopupDirectoryObject, otitle, ocb, **kwargs)
+def dialog(title, message):           return ObjectContainer(header = L(title), message = L(message))
+def confirm(otitle, ocb, **kwargs):   return popup_button(L(otitle), ocb, **kwargs)
 def warning(otitle, ohandle, ocb, **kwargs):
-    container = ObjectContainer(header = otitle)
-    container.add(plobj(DirectoryObject, ohandle, ocb, **kwargs))
+    container = ObjectContainer(header = L(otitle))
+    container.add(button(L(ohandle), ocb, **kwargs))
 
     return container
+
+def button(otitle, ocb, **kwargs):       return plobj(DirectoryObject,      L(otitle), ocb, **kwargs)
+def popup_button(otitle, ocb, **kwargs): return plobj(PopupDirectoryObject, L(otitle), ocb, **kwargs)
+def input_button(otitle, prompt, ocb, **kwargs):
+    kwargs['prompt'] = L(prompt)
+    return plobj(InputDirectoryObject, L(otitle), ocb, **kwargs)
 
 def plex_refresh_section(section):
     base    = 'http://127.0.0.1:32400/library/sections'
@@ -624,6 +628,6 @@ def add_refresh_to(container, refresh, ocb, **kwargs):
     if 0 < refresh:
         container.replace_parent = True
 
-    container.add(plobj(DirectoryObject, L('heading.refresh'), ocb, **kwargs))
+    container.add(button('heading.refresh', ocb, **kwargs))
 
     return container
