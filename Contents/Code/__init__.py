@@ -45,11 +45,11 @@ def MainMenu():
 def SystemIndex():
     container = ObjectContainer(title1 = L('heading.system'))
 
-    container.add(confirm('system.heading.reset-favorites',             SystemConfirmResetFavorites))
-    container.add(confirm('system.heading.reset-search',                SystemConfirmResetSearches))
-    container.add(confirm('system.heading.reset-download-history',      SystemConfirmResetDownloads))
-    container.add(confirm('system.heading.reset-factory',               SystemConfirmResetFactory))
-    container.add(button('system.heading.dispatch-force',               DownloadsDispatchForce))
+    container.add(confirm('system.heading.reset-favorites',        SystemConfirmResetFavorites))
+    container.add(confirm('system.heading.reset-search',           SystemConfirmResetSearches))
+    container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
+    container.add(confirm('system.heading.reset-factory',          SystemConfirmResetFactory))
+    container.add(button('system.heading.dispatch-force',          DownloadsDispatchForce))
     container.add(button(F('system.heading.version', util.version.string), SystemIndex))
 
     return container
@@ -313,34 +313,35 @@ def render_listings(endpoint, default_title = None):
 
     response  = JSON.ObjectFromURL(endpoint)
     container = ObjectContainer(
-        title1 = response.get( 'title' ) or default_title,
-        title2 = response.get( 'desc' )
+        title1 = response.get('title') or default_title,
+        title2 = response.get('desc')
     )
 
     for element in response.get( 'items', [] ):
         naitive          = None
         permalink        = element.get('endpoint')
         display_title    = element.get('display_title') or element.get('title')
+        element_type     = element.get('type')
         generic_callback = Callback(RenderListings, endpoint = permalink, default_title = display_title)
 
-        if 'endpoint' == element['_type']:
+        if 'endpoint' == element_type:
             naitive = DirectoryObject(
                 title   = display_title,
-                tagline = element.get( 'tagline' ),
-                summary = element.get( 'desc' ),
+                tagline = element.get('tagline'),
+                summary = element.get('desc'),
                 key     = generic_callback
             )
 
-        elif 'show' == element['_type']:
+        elif 'show' == element_type:
             naitive = TVShowObject(
                 rating_key = permalink,
                 title      = display_title,
-                summary    = element.get( 'desc' ),
+                summary    = element.get('desc'),
                 key        = Callback(ListTVShow, refresh = 0, endpoint = permalink, show_title = display_title)
             )
 
-        elif 'movie' == element['_type'] or 'episode' == element['_type']:
-            media_hint = element['_type']
+        elif 'movie' == element_type or 'episode' == element_type:
+            media_hint = element_type
             if 'episode' == media_hint:
                 media_hint = 'show'
 
@@ -349,7 +350,7 @@ def render_listings(endpoint, default_title = None):
                 key   = Callback(WatchOptions, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
 
-        elif 'foreign' == element['_type']:
+        elif 'foreign' == element_type:
             final_url = element.get('final_url')
 
             if final_url:
@@ -359,11 +360,11 @@ def render_listings(endpoint, default_title = None):
 
             naitive = VideoClipObject(title = element['domain'], url = service_url)
 
-        #elif 'final' == element['_type']:
+        #elif 'final' == element_type:
             #ss_url = '//ss/procedure?url=%s&title=%s' % (util.q(element['url']), util.q('FILE HINT HERE'))
             #naitive = VideoClipObject(url = ss_url, title = display_title)
 
-        #elif 'movie' == element['_type']:
+        #elif 'movie' == element_type:
             #naitive = MovieObject(
                 #rating_key = permalink,
                 #title      = display_title,
@@ -371,7 +372,7 @@ def render_listings(endpoint, default_title = None):
                 #summary    = element.get( 'desc' ),
                 #key        = sources_callback
             #)
-        #elif 'episode' == element['_type']:
+        #elif 'episode' == element_type:
             #naitive = EpisodeObject(
                 #rating_key     = permalink,
                 #title          = display_title,
