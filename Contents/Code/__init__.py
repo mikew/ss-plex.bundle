@@ -27,13 +27,13 @@ def Start():
 
 @handler(PLUGIN_PREFIX, PLUGIN_TITLE)
 def MainMenu():
-    container   = render_listings('/')
+    container = render_listings('/')
 
-    container.add(button('heading.favorites',    FavoritesIndex))
-    container.add(input_button('heading.search', 'search.prompt', SearchResults))
-    container.add(button('search.heading.saved', SearchIndex))
-    container.add(button('heading.download',     DownloadsIndex, refresh = 0))
-    container.add(button('heading.system',       SystemIndex))
+    container.add(button('heading.favorites',    FavoritesIndex, icon = 'icon-favorites.png'))
+    container.add(input_button('heading.search', 'search.prompt', SearchResults, icon = 'icon-search.png'))
+    container.add(button('search.heading.saved', SearchIndex, icon = 'icon-saved-search.png'))
+    container.add(button('heading.download',     DownloadsIndex, refresh = 0, icon = 'icon-downloads.png'))
+    container.add(button('heading.system',       SystemIndex, icon = 'icon-system.png'))
 
     return container
 
@@ -50,7 +50,7 @@ def SystemIndex():
     container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
     container.add(confirm('system.heading.reset-factory',          SystemConfirmResetFactory))
     container.add(button('system.heading.dispatch-force',          DownloadsDispatchForce))
-    container.add(button(F('system.heading.version', util.version.string), SystemIndex))
+    container.add(button(util.version.string, SystemIndex))
 
     return container
 
@@ -309,9 +309,9 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     return container
 
 def render_listings(endpoint, default_title = None):
-    endpoint = util.listings_endpoint(endpoint)
+    listings_endpoint = util.listings_endpoint(endpoint)
 
-    response  = JSON.ObjectFromURL(endpoint)
+    response  = JSON.ObjectFromURL(listings_endpoint)
     container = ObjectContainer(
         title1 = response.get('title') or default_title,
         title2 = response.get('desc')
@@ -321,7 +321,7 @@ def render_listings(endpoint, default_title = None):
         naitive          = None
         permalink        = element.get('endpoint')
         display_title    = element.get('display_title') or element.get('title')
-        element_type     = element.get('type')
+        element_type     = element.get('_type')
         generic_callback = Callback(RenderListings, endpoint = permalink, default_title = display_title)
 
         if 'endpoint' == element_type:
@@ -331,6 +331,12 @@ def render_listings(endpoint, default_title = None):
                 summary = element.get('desc'),
                 key     = generic_callback
             )
+
+            if '/' == endpoint:
+                if 'tv' in display_title.lower():
+                    naitive.thumb = R('icon-tv.png')
+                elif 'movie' in display_title.lower():
+                    naitive.thumb = R('icon-movies.png')
 
         elif 'show' == element_type:
             naitive = TVShowObject(
@@ -598,7 +604,6 @@ class User(object):
             else:
                 downloader.download()
 
-def plobj(obj, otitle, cb, **kwargs): return obj(title = otitle, key = Callback(cb, **kwargs))
 def dialog(title, message):           return ObjectContainer(header = L(title), message = L(message))
 def confirm(otitle, ocb, **kwargs):   return popup_button(L(otitle), ocb, **kwargs)
 def warning(otitle, ohandle, ocb, **kwargs):
@@ -607,11 +612,25 @@ def warning(otitle, ohandle, ocb, **kwargs):
 
     return container
 
+def plobj(obj, otitle, cb, **kwargs):
+    icon = None
+
+    if 'icon' in kwargs:
+        icon = R(kwargs['icon'])
+        del kwargs['icon']
+
+    item = obj(title = otitle, key = Callback(cb, **kwargs))
+    if icon:
+        item.thumb = icon
+
+    return item
+
 def button(otitle, ocb, **kwargs):       return plobj(DirectoryObject,      L(otitle), ocb, **kwargs)
 def popup_button(otitle, ocb, **kwargs): return plobj(PopupDirectoryObject, L(otitle), ocb, **kwargs)
 def input_button(otitle, prompt, ocb, **kwargs):
-    kwargs['prompt'] = L(prompt)
-    return plobj(InputDirectoryObject, L(otitle), ocb, **kwargs)
+    item        = plobj(InputDirectoryObject, L(otitle), ocb, **kwargs)
+    item.prompt = L(prompt)
+    return item
 
 def plex_refresh_section(section):
     base    = 'http://127.0.0.1:32400/library/sections'
