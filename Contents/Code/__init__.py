@@ -587,6 +587,10 @@ class User(object):
                 Dict['download_current']['pid']   = dl.pid
                 Dict.Save()
 
+            def next_if_flv(dl):
+                if Prefs['avoid_flv'] and '.flv' in dl.file_name():
+                    raise Exception('skipping .flv file.')
+
             def update_library(dl):
                 plex_refresh_section(download['media_hint'])
 
@@ -597,6 +601,7 @@ class User(object):
             def store_download_endpoint(dl):
                 cls.download_history().append(dl.endpoint)
 
+            downloader.on_start(next_if_flv)
             downloader.on_start(store_curl_pid)
 
             downloader.on_success(update_library)
