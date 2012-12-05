@@ -169,13 +169,13 @@ def DownloadsIndex(refresh = 0):
         endpoint      = current['endpoint']
         status        = DownloadStatus(Downloader.status_file_for(endpoint))
 
-        container.add(popup_button(current['title'], DownloadsOptions, endpoint = endpoint))
+        container.add(popup_button(current['title'], DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
 
         for ln in status.report():
-            container.add(popup_button(ln, DownloadsOptions, endpoint = endpoint))
+            container.add(popup_button(ln, DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
 
     for download in User.download_queue():
-        container.add(popup_button(download['title'], DownloadsOptions, endpoint = download['endpoint']))
+        container.add(popup_button(download['title'], DownloadsOptions, endpoint = download['endpoint'], icon = 'icon-downloads-queue.png'))
 
     add_refresh_to(container, refresh, DownloadsIndex)
     return container
@@ -298,6 +298,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 
     container.objects.insert(0, button(favorite_label, FavoritesToggle,
         endpoint   = endpoint,
+        icon       = 'icon-favorites.png',
         show_title = show_title
     ))
 
@@ -328,8 +329,9 @@ def render_listings(endpoint, default_title = None):
             naitive = DirectoryObject(
                 title   = display_title,
                 tagline = element.get('tagline'),
-                summary = element.get('desc'),
-                key     = generic_callback
+                summary = element.get('overview'),
+                key     = generic_callback,
+                thumb   = element.get('artwork')
             )
 
             if '/' == endpoint:
@@ -342,7 +344,8 @@ def render_listings(endpoint, default_title = None):
             naitive = TVShowObject(
                 rating_key = permalink,
                 title      = display_title,
-                summary    = element.get('desc'),
+                summary    = element.get('overview'),
+                thumb      = element.get('artwork'),
                 key        = Callback(ListTVShow, refresh = 0, endpoint = permalink, show_title = display_title)
             )
 
@@ -352,8 +355,10 @@ def render_listings(endpoint, default_title = None):
                 media_hint = 'show'
 
             naitive = PopupDirectoryObject(
-                title = display_title,
-                key   = Callback(WatchOptions, endpoint = permalink, title = display_title, media_hint = media_hint)
+                title   = display_title,
+                thumb   = element.get('artwork'),
+                summary = element.get('overview'),
+                key     = Callback(WatchOptions, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
 
         elif 'foreign' == element_type:
@@ -645,6 +650,7 @@ def plex_refresh_section(section):
 def add_refresh_to(container, refresh, ocb, **kwargs):
     refresh           = int(refresh)
     kwargs['refresh'] = refresh + 1
+    kwargs['icon']    = 'icon-refresh.png'
 
     if 0 < refresh:
         container.replace_parent = True
