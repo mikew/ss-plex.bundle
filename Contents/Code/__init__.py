@@ -45,6 +45,7 @@ def MainMenu():
 def SystemIndex():
     container = ObjectContainer(title1 = L('heading.system'))
 
+    container.add(PrefsObject(title = L('system.heading.preferences')))
     container.add(confirm('system.heading.reset-favorites',        SystemConfirmResetFavorites))
     container.add(confirm('system.heading.reset-search',           SystemConfirmResetSearches))
     container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
