@@ -5,11 +5,12 @@ import util
 #util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
 
 class Downloader(object):
-    def __init__(self, endpoint, environment = None, destination = None):
+    def __init__(self, endpoint, environment = None, destination = None, limit = 0):
         super(Downloader, self).__init__()
         self.endpoint    = endpoint
         self.destination = destination
         self.success     = False
+        self.limit       = limit
         self.environment = environment
         if not self.environment: self.environment = DefaultEnvironment()
         self.wizard      = Wizard(self.endpoint, environment = self.environment)
@@ -106,6 +107,10 @@ class Downloader(object):
             '--stderr',     self.status_file(),
             '--output',     self.local_partfile()
         ]
+
+        if int(self.limit) > 0:
+            options.append('--limit-rate')
+            options.append('%sK' % self.limit)
 
         options.append(self.asset_url())
 

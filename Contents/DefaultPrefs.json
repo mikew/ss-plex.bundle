@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id":       "avoid_flv",
+    "label":    "Avoid .flv files",
+    "type":     "bool",
+    "default":  "false"
+  },
+  {
+    "id":       "download_limit",
+    "label":    "Limit download speed (KB/s)",
+    "type":     "enum",
+    "values":   [ "0", "100", "200", "300", "500", "800", "1300", "2100" ],
+    "default":  "0"
+  }
+]

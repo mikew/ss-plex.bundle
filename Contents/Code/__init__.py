@@ -573,7 +573,8 @@ class User(object):
 
             downloader = Downloader(download['endpoint'],
                 environment = SSPlexEnvironment(),
-                destination = cls.plex_section_destination(download['media_hint'])
+                destination = cls.plex_section_destination(download['media_hint']),
+                limit       = Prefs['download_limit']
             )
 
             def store_curl_pid(dl):
