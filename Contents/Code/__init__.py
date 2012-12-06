@@ -11,17 +11,17 @@ PLUGIN_ICON   = 'icon-default.png'
 
 def Start():
     # Initialize the plug-in
-    Plugin.AddViewGroup("Details",  viewMode = "InfoList",  mediaType = "items")
-    Plugin.AddViewGroup("List",     viewMode = "List",      mediaType = "items")
+    Plugin.AddViewGroup('Details',  viewMode = 'InfoList',  mediaType = 'items')
+    Plugin.AddViewGroup('List',     viewMode = 'List',      mediaType = 'items')
 
     # Setup the default attributes for the ObjectContainer
     #ObjectContainer.title1     = PLUGIN_TITLE
     ObjectContainer.view_group = 'List'
-    #ObjectContainer.art        = R(PLUGIN_ART)
+    ObjectContainer.art        = R(PLUGIN_ART)
 
     # Setup the default attributes for the other objects
     #DirectoryObject.thumb = R(PLUGIN_ICON)
-    #DirectoryObject.art   = R(PLUGIN_ART)
+    DirectoryObject.art   = R(PLUGIN_ART)
     #VideoClipObject.thumb = R(PLUGIN_ICON)
     #VideoClipObject.art   = R(PLUGIN_ART)
 
@@ -323,6 +323,7 @@ def render_listings(endpoint, default_title = None):
         naitive          = None
         permalink        = element.get('endpoint')
         display_title    = element.get('display_title') or element.get('title')
+        overview         = element.get('display_overview')
         element_type     = element.get('_type')
         generic_callback = Callback(RenderListings, endpoint = permalink, default_title = display_title)
 
@@ -330,7 +331,7 @@ def render_listings(endpoint, default_title = None):
             naitive = DirectoryObject(
                 title   = display_title,
                 tagline = element.get('tagline'),
-                summary = element.get('overview'),
+                summary = overview,
                 key     = generic_callback,
                 thumb   = element.get('artwork')
             )
@@ -345,7 +346,7 @@ def render_listings(endpoint, default_title = None):
             naitive = TVShowObject(
                 rating_key = permalink,
                 title      = display_title,
-                summary    = element.get('overview'),
+                summary    = overview,
                 thumb      = element.get('artwork'),
                 key        = Callback(ListTVShow, refresh = 0, endpoint = permalink, show_title = display_title)
             )
@@ -358,7 +359,7 @@ def render_listings(endpoint, default_title = None):
             naitive = PopupDirectoryObject(
                 title   = display_title,
                 thumb   = element.get('artwork'),
-                summary = element.get('overview'),
+                summary = overview,
                 key     = Callback(WatchOptions, endpoint = permalink, title = display_title, media_hint = media_hint)
             )
 
