@@ -1,7 +1,13 @@
 [
   {
-    "id":       "avoid_flv",
-    "label":    "Avoid .flv files",
+    "id":       "avoid_flv_streaming",
+    "label":    "Avoid .flv files when streaming",
+    "type":     "bool",
+    "default":  "false"
+  },
+  {
+    "id":       "avoid_flv_downloading",
+    "label":    "Avoid .flv files when downloading",
     "type":     "bool",
     "default":  "false"
   },

@@ -11,6 +11,7 @@ PLUGIN_ICON   = 'icon-default.png'
 
 def Start():
     # Initialize the plug-in
+    Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, PLUGIN_TITLE, PLUGIN_ICON, PLUGIN_ART)
     Plugin.AddViewGroup('Details',  viewMode = 'InfoList',  mediaType = 'items')
     Plugin.AddViewGroup('List',     viewMode = 'List',      mediaType = 'items')
 
@@ -25,7 +26,9 @@ def Start():
     #VideoClipObject.thumb = R(PLUGIN_ICON)
     #VideoClipObject.art   = R(PLUGIN_ART)
 
-@handler(PLUGIN_PREFIX, PLUGIN_TITLE)
+def ValidatePrefs(): pass
+
+#@handler(PLUGIN_PREFIX, PLUGIN_TITLE)
 def MainMenu():
     container = render_listings('/')
 
@@ -269,7 +272,7 @@ def RenderListings(endpoint, default_title = None):
 def WatchOptions(endpoint, title, media_hint):
     container        = render_listings(endpoint, default_title = title)
 
-    wizard_url       = '//ss/wizard?endpoint=%s' % endpoint
+    wizard_url       = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(Prefs['avoid_flv_streaming']))
     wizard_item      = VideoClipObject(title = L('media.watch-now'), url = wizard_url)
 
     sources_endpoint = util.sources_endpoint(endpoint, True)
@@ -590,7 +593,7 @@ class User(object):
                 Dict.Save()
 
             def next_if_flv(dl):
-                if Prefs['avoid_flv'] and '.flv' in dl.file_name():
+                if Prefs['avoid_flv_downloading'] and '.flv' in dl.file_name():
                     raise Exception('skipping .flv file.')
 
             def update_library(dl):
@@ -617,11 +620,11 @@ class User(object):
             else:
                 downloader.download()
 
-def dialog(title, message):           return ObjectContainer(header = L(title), message = L(message))
-def confirm(otitle, ocb, **kwargs):   return popup_button(L(otitle), ocb, **kwargs)
+def dialog(title, message):           return ObjectContainer(header = L(str(title)), message = L(str(message)))
+def confirm(otitle, ocb, **kwargs):   return popup_button(L(str(otitle)), ocb, **kwargs)
 def warning(otitle, ohandle, ocb, **kwargs):
-    container = ObjectContainer(header = L(otitle))
-    container.add(button(L(ohandle), ocb, **kwargs))
+    container = ObjectContainer(header = L(str(otitle)))
+    container.add(button(L(str(ohandle)), ocb, **kwargs))
 
     return container
 
@@ -638,11 +641,11 @@ def plobj(obj, otitle, cb, **kwargs):
 
     return item
 
-def button(otitle, ocb, **kwargs):       return plobj(DirectoryObject,      L(otitle), ocb, **kwargs)
-def popup_button(otitle, ocb, **kwargs): return plobj(PopupDirectoryObject, L(otitle), ocb, **kwargs)
+def button(otitle, ocb, **kwargs):       return plobj(DirectoryObject,      L(str(otitle)), ocb, **kwargs)
+def popup_button(otitle, ocb, **kwargs): return plobj(PopupDirectoryObject, L(str(otitle)), ocb, **kwargs)
 def input_button(otitle, prompt, ocb, **kwargs):
-    item        = plobj(InputDirectoryObject, L(otitle), ocb, **kwargs)
-    item.prompt = L(prompt)
+    item        = plobj(InputDirectoryObject, L(str(otitle)), ocb, **kwargs)
+    item.prompt = L(str(prompt))
     return item
 
 def plex_refresh_section(section):

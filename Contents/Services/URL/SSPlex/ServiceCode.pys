@@ -38,21 +38,21 @@ def MediaObjectsForURL(url):
     params   = cgi.parse_qs(query)
 
     if   '/procedure' == path: obj = mo(PlayConsumer, url      = params['url'][0])
-    elif '/wizard'    == path: obj = mo(PlayWizard,   endpoint = params['endpoint'][0])
-    elif '/translate' == path: obj = mo(PlayForeign,  original = params['original'][0], foreign = params['foreign'][0])
+    elif '/wizard'    == path: obj = mo(PlayWizard,   endpoint = params['endpoint'][0], avoid_flv = params['avoid_flv'][0])
+    elif '/translate' == path: obj = mo(PlayForeign,  original = params['original'][0], foreign   = params['foreign'][0])
 
     return [ obj ]
 
 found = None
 @indirect
-def PlayWizard(endpoint):
+def PlayWizard(endpoint, avoid_flv = 0):
     wizard = Wizard(endpoint, environment = SSPlexEnvironment())
 
     def first_working(consumer):
         global found
         consumer.consume()
 
-        if Prefs['avoid_flv'] and '.flv' in consumer.file_name():
+        if bool(int(avoid_flv)) and '.flv' in consumer.file_name():
             raise Exception('skipping .flv file')
 
         found = consumer

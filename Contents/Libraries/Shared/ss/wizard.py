@@ -53,6 +53,7 @@ class Wizard(object):
                 cb(consumer)
                 break
             except Exception, e:
+                self.environment.log(e)
                 continue
 
 if __name__ == '__main__':
