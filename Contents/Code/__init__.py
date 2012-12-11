@@ -261,7 +261,7 @@ def DownloadsNext():
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
-    return ObjectContainer(header = 'Test', message = 'hello')
+    return ObjectContainer(header = 'Test', message = User.plex_section_destination('movie'))
 
 ###################
 # Listing Methods #
@@ -531,11 +531,11 @@ class User(object):
 
     @classmethod
     def plex_section_destination(cls, section):
-        query     = '//Directory[@type="%s"]/Location' % section
-        locations = XML.ElementFromURL('http://127.0.0.1:32400/library/sections').xpath(query)
-        location  = locations[0].get('path')
-
-        return location
+        query = '//Directory[@type="%s"]' % section
+        dirs  = XML.ElementFromURL('http://127.0.0.1:32400/library/sections').xpath(query)
+        for d in dirs:
+            if '.none' not in d.get('agent'):
+                return d.xpath('./Location')[0].get('path')
 
     @classmethod
     def endpoint_is_downloading(cls, endpoint):
