@@ -51,6 +51,63 @@ def translated_from(response):
     if response:
         return response[0]
 
+# From components/networking.py
+def random_ua():
+    os_versions = ['10_4_10', '10_4_11', '10_5_0', '10_5_1', '10_5_2', '10_5_3', '10_5_4', '10_5_5', '10_5_6', '10_5_7']
+    languages   = ['en-gb', 'it-it', 'ja-jp', 'nb-no', 'en-us', 'fr-fr', 'pl-pl', 'es-es', 'de-de']
+
+    safari_versions = [
+      ['528.16',    '4.0',    '528.16'],
+      ['528.10+',   '4.0',    '528.1'],
+      ['525.27.1',  '3.2.1',  '525.27.1'],
+      ['528.8+',    '3.2.1',  '525.27.1'],
+      ['530.1+',    '3.2.1',  '525.27.1'],
+      ['528.5+',    '3.2.1',  '525.27.1'],
+      ['528.16',    '3.2.1',  '525.27.1'],
+      ['525.26.2',  '3.2',    '525.26.12'],
+      ['528.7+',    '3.1.2',  '525.20.1'],
+      ['525.18.1',  '3.1.2',  '525.20.1'],
+      ['525.18',    '3.1.2',  '525.20.1'],
+      ['525.7+',    '3.1.2',  '525.20.1'],
+      ['528.1',     '3.1.2',  '525.20.1'],
+      ['527+',      '3.1.1',  '525.20'],
+      ['525.18',    '3.1.1',  '525.20'],
+      ['525.13',    '3.1',    '525.13']
+    ]
+
+    firefox_versions = [
+      ['1.9.2.8',  '20100805',  '3.6.8'],
+      ['1.9.2.4',  '20100611',  '3.6.4'],
+      ['1.9.2.3',  '20100401',  '3.6.3'],
+      ['1.9.2.2',  '20100316',  '3.6.2'],
+      ['1.9.2',    '20100115',  '3.6'],
+      ['1.9.1.6',  '20091201',  '3.5.6'],
+      ['1.9.1.3',  '20090824',  '3.5.3'],
+      ['1.9.1.1',  '20090715',  '3.5.1'],
+    ]
+
+    firefox_ua_string = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X %s; %s; rv:%s) Gecko/%s Firefox/%s"
+    safari_ua_string  = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X %s; %s) AppleWebKit/%s (KHTML, like Gecko) Version/%s Safari/%s"
+
+    builder    = random_from(['firefox', 'safari'])
+    os_version = random_from(os_versions)
+    language   = random_from(languages)
+    agent      = ''
+
+    if 'firefox' == builder:
+      v1, v2, v3 = random_from(firefox_versions)
+      agent      = firefox_ua_string % (os_version, language, v1, v2, v3)
+
+    else:
+      v1, v2, v3 = random_from(safari_versions)
+      agent      = safari_ua_string % (os_version, language, v1, v2, v3)
+
+    return agent
+
+def random_from(lst):
+    import random
+    return lst[random.randint(0, len(lst) - 1)]
+
 class version:
     major  = 0
     minor  = 1
