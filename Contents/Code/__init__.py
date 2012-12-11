@@ -54,7 +54,7 @@ def SystemIndex():
     container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
     container.add(confirm('system.heading.reset-factory',          SystemConfirmResetFactory))
     container.add(button('system.heading.dispatch-force',          DownloadsDispatchForce))
-    container.add(button(util.version.string, SystemIndex))
+    container.add(button('version %s' % util.version.string, SystemIndex))
 
     return container
 
@@ -219,17 +219,20 @@ def DownloadsQueue(endpoint, media_hint, title):
 
         Dict.Save()
 
-    User.dispatch_download()
+    #User.dispatch_download()
+    dispatch_download_threaded()
     return dialog('heading.download', F(message, title))
 
 @route('%s/downloads/dispatch' % PLUGIN_PREFIX)
 def DownloadsDispatch():
-    User.dispatch_download()
+    #User.dispatch_download()
+    dispatch_download_threaded()
 
 @route('%s/downloads/dispatch/force' % PLUGIN_PREFIX)
 def DownloadsDispatchForce():
     User.clear_current_download()
-    User.dispatch_download()
+    #User.dispatch_download()
+    dispatch_download_threaded()
 
 @route('%s/downloads/cancel' % PLUGIN_PREFIX)
 def DownloadsCancel(endpoint):
@@ -615,10 +618,12 @@ class User(object):
 
             downloader.on_error(clear_download_and_dispatch)
 
-            if should_thread:
-                thread.start_new_thread(downloader.download, ())
-            else:
-                downloader.download()
+            #if should_thread:
+                #thread.start_new_thread(downloader.download, ())
+            #else:
+                #downloader.download()
+
+            downloader.download()
 
 def dialog(title, message):           return ObjectContainer(header = L(str(title)), message = L(str(message)))
 def confirm(otitle, ocb, **kwargs):   return popup_button(L(str(otitle)), ocb, **kwargs)
@@ -656,6 +661,10 @@ def plex_refresh_section(section):
     url     = base + '/%s/refresh' % key
 
     HTTP.Request(url, immediate = True)
+
+@thread
+def dispatch_download_threaded():
+    User.dispatch_download()
 
 def add_refresh_to(container, refresh, ocb, **kwargs):
     refresh           = int(refresh)
