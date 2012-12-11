@@ -44,7 +44,7 @@ class DownloadStatus(object):
             for i, value in enumerate(values):
                 setattr(self, keys[i], value)
         except:
-            values = [ 0, '?', 0, 0, 0, 0, 0, 0, u'∞', 0, u'∞', 0 ]
+            values = [ 0, '?', 0, 0, 0, 0, 0, 0, '?', 0, '?', 0 ]
             for i, value in enumerate(values):
                 setattr(self, keys[i], value)
 
