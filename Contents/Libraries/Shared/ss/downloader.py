@@ -101,6 +101,7 @@ class Downloader(object):
     def curl_options(self):
         options = [
             'curl',
+            '--location',
             '--referer',    self.consumer.url,
             '--cookie',     self.consumer.agent_cookie_string(),
             '--user-agent', self.consumer.ua,
