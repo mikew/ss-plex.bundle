@@ -8,7 +8,7 @@ from urllib import quote_plus as q
 # )
 
 def listings_endpoint(path):
-    #base_url = 'http://localhost:8080'
+    #base_url = 'http://localhost:9292'
     base_url = 'http://h.709scene.com/listings'
     return base_url + path
 
@@ -111,5 +111,5 @@ def random_from(lst):
 class version:
     major  = 0
     minor  = 1
-    patch  = 0
+    patch  = 1
     string = '%s.%s.%s' % (major, minor, patch)
