@@ -27,8 +27,16 @@ class Downloader(object):
     def file_name(self):
         original = self.consumer.file_name().encode()
         ext      = original.split('.')[-1]
+        with_ext = '%s.%s' % (self.file_hint(), ext)
 
-        return '%s.%s' % (self.file_hint(), ext)
+        return self.sanitize_file(with_ext)
+
+    def sanitize_file(self, file_name):
+        import re
+        encoded  = file_name.encode()
+        replaced = re.sub('[\[\]\'"?!,;:]', '', encoded)
+
+        return replaced
 
     def file_hint(self):
         return self.wizard.file_hint
