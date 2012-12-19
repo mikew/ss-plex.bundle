@@ -584,46 +584,42 @@ class User(object):
             Dict['download_current'] = download
             Dict.Save()
 
-            downloader = Downloader(download['endpoint'],
-                environment = SSPlexEnvironment(),
-                destination = cls.plex_section_destination(download['media_hint']),
-                limit       = Prefs['download_limit']
-            )
+            def perform_download():
+                downloader = Downloader(download['endpoint'],
+                    environment = SSPlexEnvironment(),
+                    destination = cls.plex_section_destination(download['media_hint']),
+                    limit       = Prefs['download_limit']
+                )
+                downloader.wizard.avoid_flv = Prefs['avoid_flv_downloading']
 
-            def store_curl_pid(dl):
-                Dict['download_current']['title'] = dl.file_name()
-                Dict['download_current']['pid']   = dl.pid
-                Dict.Save()
+                def store_curl_pid(dl):
+                    Dict['download_current']['title'] = dl.file_name()
+                    Dict['download_current']['pid']   = dl.pid
+                    Dict.Save()
 
-            def next_if_flv(dl):
-                if Prefs['avoid_flv_downloading'] and '.flv' in dl.file_name():
-                    raise Exception('skipping .flv file.')
+                def update_library(dl):
+                    plex_refresh_section(download['media_hint'])
 
-            def update_library(dl):
-                plex_refresh_section(download['media_hint'])
+                def clear_download_and_dispatch(dl):
+                    cls.clear_current_download()
+                    cls.dispatch_download(False)
 
-            def clear_download_and_dispatch(dl):
-                cls.clear_current_download()
-                cls.dispatch_download(False)
+                def store_download_endpoint(dl):
+                    cls.download_history().append(dl.endpoint)
 
-            def store_download_endpoint(dl):
-                cls.download_history().append(dl.endpoint)
+                downloader.on_start(store_curl_pid)
 
-            downloader.on_start(next_if_flv)
-            downloader.on_start(store_curl_pid)
+                downloader.on_success(update_library)
+                downloader.on_success(store_download_endpoint)
+                downloader.on_success(clear_download_and_dispatch)
 
-            downloader.on_success(update_library)
-            downloader.on_success(store_download_endpoint)
-            downloader.on_success(clear_download_and_dispatch)
+                downloader.on_error(clear_download_and_dispatch)
+                downloader.download()
 
-            downloader.on_error(clear_download_and_dispatch)
-
-            #if should_thread:
-                #thread.start_new_thread(downloader.download, ())
-            #else:
-                #downloader.download()
-
-            downloader.download()
+            if should_thread:
+                thread.start_new_thread(perform_download, ())
+            else:
+                perform_download()
 
 def dialog(title, message):           return ObjectContainer(header = L(str(title)), message = L(str(message)))
 def confirm(otitle, ocb, **kwargs):   return popup_button(L(str(otitle)), ocb, **kwargs)
@@ -662,7 +658,6 @@ def plex_refresh_section(section):
 
     HTTP.Request(url, immediate = True)
 
-@thread
 def dispatch_download_threaded():
     User.dispatch_download()
 
