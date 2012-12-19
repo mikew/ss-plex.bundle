@@ -46,15 +46,10 @@ def MediaObjectsForURL(url):
 found = None
 @indirect
 def PlayWizard(endpoint, avoid_flv = 0):
-    wizard = Wizard(endpoint, environment = SSPlexEnvironment())
+    wizard = Wizard(endpoint, environment = SSPlexEnvironment(), avoid_flv = bool(int(avoid_flv)))
 
     def first_working(consumer):
         global found
-        consumer.consume()
-
-        if bool(int(avoid_flv)) and '.flv' in consumer.file_name():
-            raise Exception('skipping .flv file')
-
         found = consumer
 
     wizard.sources(first_working)

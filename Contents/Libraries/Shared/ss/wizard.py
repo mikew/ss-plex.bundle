@@ -2,10 +2,11 @@ from consumer import Consumer, DefaultEnvironment
 import util
 
 class Wizard(object):
-    def __init__(self, endpoint, environment = None):
+    def __init__(self, endpoint, environment = None, avoid_flv = False):
         super(Wizard, self).__init__()
         self.endpoint    = endpoint
         self.file_hint   = None
+        self.avoid_flv   = avoid_flv
         self.environment = environment
         if not self.environment: self.environment = DefaultEnvironment()
 
@@ -50,6 +51,10 @@ class Wizard(object):
         for foreign in self.filtered_sources():
             try:
                 consumer = Consumer(self.translate(foreign), environment = self.environment)
+
+                if self.avoid_flv and '.flv' in consumer.asset_url():
+                    raise Exception('Avoiding .flv')
+
                 cb(consumer)
                 break
             except Exception, e:
