@@ -33,7 +33,7 @@ def MainMenu():
     container = render_listings('/')
 
     container.add(button('heading.favorites',    FavoritesIndex, icon = 'icon-favorites.png'))
-    container.add(input_button('heading.search', 'search.prompt', SearchResults, icon = 'icon-search.png'))
+    container.add(input_button('heading.search', 'search.prompt', SearchResults, icon = 'icon-search.png', foo = 1))
     container.add(button('search.heading.saved', SearchIndex, icon = 'icon-saved-search.png'))
     container.add(button('heading.download',     DownloadsIndex, refresh = 0, icon = 'icon-downloads.png'))
     container.add(button('heading.system',       SystemIndex, icon = 'icon-system.png'))
@@ -103,8 +103,8 @@ def SearchIndex():
 
     return container
 
-@route('%s/search/results' % PLUGIN_PREFIX)
-def SearchResults(query):
+#@route('%s/search/results' % PLUGIN_PREFIX)
+def SearchResults(query, foo):
     container = render_listings('/search/%s' % util.q(query))
 
     if User.has_saved_search(query): save_label = 'search.heading.remove'
