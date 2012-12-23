@@ -103,7 +103,7 @@ def SearchIndex():
 
     return container
 
-#@route('%s/search/results' % PLUGIN_PREFIX)
+@route('%s/search/results/{query}' % PLUGIN_PREFIX)
 def SearchResults(query, foo):
     container = render_listings('/search/%s' % util.q(query))
 
@@ -134,31 +134,68 @@ def SearchToggle(query):
 
 @route('%s/favorites' % PLUGIN_PREFIX)
 def FavoritesIndex():
-    favorites = User.favorites()
     container = ObjectContainer(
         title1 = 'Favorites'
     )
 
-    for endpoint, title in sorted(favorites.iteritems(), key = lambda x:x[1]):
-        container.add(button(title, ListTVShow, refresh = 0, endpoint = endpoint, show_title = title))
+    if 'favorites' in Dict and not 'favorites2' in Dict:
+        container.add(button('favorites.heading.migrate', FavoritesMigrate1to2))
+    else:
+        favorites = User.favorites()
+        def sort_title(title):
+            import re
+
+            haystack = str(title).lower()
+            return re.sub(r'^the ', '', haystack)
+
+        for endpoint, fav in sorted(favorites.iteritems(), key = lambda x: sort_title(x[1]['title'])):
+            title  = fav['title']
+            native = TVShowObject(
+                rating_key = endpoint,
+                title      = title,
+                thumb      = fav['artwork'],
+                key        = Callback(ListTVShow, refresh = 0, endpoint = endpoint, show_title = title)
+            )
+
+            container.add(native)
 
     return container
 
 @route('%s/favorites/toggle' % PLUGIN_PREFIX)
-def FavoritesToggle(endpoint, show_title):
+def FavoritesToggle(endpoint, show_title, artwork):
     message = None
 
     if User.endpoint_is_favorite(endpoint):
-        del Dict['favorites'][endpoint]
+        del Dict['favorites2'][endpoint]
         message = 'favorites.response.removed'
     else:
         favorites           = User.favorites()
-        favorites[endpoint] = show_title
+        favorites[endpoint] = dict(title = show_title, artwork = artwork)
         message             = 'favorites.response.added'
 
     Dict.Save()
 
     return dialog('heading.favorites', F(message, show_title))
+
+def FavoritesMigrate1to2():
+    @thread
+    def migrate():
+        if 'favorites' in Dict:
+            old_favorites = Dict['favorites']
+            new_favorites = User.favorites()
+
+            for endpoint, title in old_favorites.iteritems():
+                if endpoint not in new_favorites:
+                    try:
+                        response = JSON.ObjectFromURL(util.listings_endpoint(endpoint))
+                        new_favorites[endpoint] = dict(title = response['display_title'], artwork = response['artwork'])
+                    except: pass
+
+            del Dict['favorites']
+            Dict.Save()
+
+    migrate()
+    return dialog('Favorites', 'Your Favorites are being updated. Return shortly.')
 
 ###############
 # Downloading #
@@ -261,6 +298,13 @@ def DownloadsNext():
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
+    Dict['favorites'] = {
+            '/shows/51': 'tonight show',
+            '/shows/7':  'x factor',
+            '/shows/38': 'chelsea lately',
+            '/shows/4':  'sunny'
+    }
+    Dict.Save()
     return ObjectContainer(header = 'Test', message = User.plex_section_destination('movie'))
 
 ###################
@@ -298,7 +342,7 @@ def WatchOptions(endpoint, title, media_hint):
 
 @route('%s/series/i{refresh}' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
-    container = render_listings(endpoint, show_title)
+    container, response = render_listings(endpoint + '/episodes', show_title, True)
 
     if User.endpoint_is_favorite(endpoint): favorite_label = 'favorites.heading.remove'
     else:                                   favorite_label = 'favorites.heading.add'
@@ -306,7 +350,8 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     container.objects.insert(0, button(favorite_label, FavoritesToggle,
         endpoint   = endpoint,
         icon       = 'icon-favorites.png',
-        show_title = show_title
+        show_title = show_title,
+        artwork    = response['resource']['artwork']
     ))
 
     add_refresh_to(container, refresh, ListTVShow,
@@ -316,7 +361,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 
     return container
 
-def render_listings(endpoint, default_title = None):
+def render_listings(endpoint, default_title = None, return_response = False):
     listings_endpoint = util.listings_endpoint(endpoint)
 
     response  = JSON.ObjectFromURL(listings_endpoint)
@@ -328,15 +373,16 @@ def render_listings(endpoint, default_title = None):
     for element in response.get( 'items', [] ):
         naitive          = None
         permalink        = element.get('endpoint')
-        display_title    = element.get('display_title') or element.get('title')
-        overview         = element.get('display_overview')
+        display_title    = element.get('display_title')    or element.get('title')
+        overview         = element.get('display_overview') or element.get('overview')
+        tagline          = element.get('display_tagline')  or element.get('tagline')
         element_type     = element.get('_type')
         generic_callback = Callback(RenderListings, endpoint = permalink, default_title = display_title)
 
         if 'endpoint' == element_type:
             naitive = DirectoryObject(
                 title   = display_title,
-                tagline = element.get('tagline'),
+                tagline = tagline,
                 summary = overview,
                 key     = generic_callback,
                 thumb   = element.get('artwork')
@@ -364,6 +410,7 @@ def render_listings(endpoint, default_title = None):
 
             naitive = PopupDirectoryObject(
                 title   = display_title,
+                tagline = tagline,
                 thumb   = element.get('artwork'),
                 summary = overview,
                 key     = Callback(WatchOptions, endpoint = permalink, title = display_title, media_hint = media_hint)
@@ -404,7 +451,10 @@ def render_listings(endpoint, default_title = None):
         if None != naitive:
             container.add( naitive )
 
-    return container
+    if return_response:
+        return [ container, response ]
+    else:
+        return container
 
 #######################
 # SS Plex Environment #
@@ -422,7 +472,7 @@ class SSPlexEnvironment:
 
 class User(object):
     @classmethod
-    def favorites(cls): return cls.initialize_dict('favorites', {})
+    def favorites(cls): return cls.initialize_dict('favorites2', {})
 
     @classmethod
     def searches(cls): return cls.initialize_dict('searches',  [])
@@ -443,7 +493,7 @@ class User(object):
     def has_saved_search(cls, query): return query in cls.searches()
 
     @classmethod
-    def clear_favorites(cls): cls.attempt_clear('favorites')
+    def clear_favorites(cls): cls.attempt_clear('favorites2')
 
     @classmethod
     def clear_searches(cls): cls.attempt_clear('searches')
@@ -529,13 +579,27 @@ class User(object):
 
         return Dict[key]
 
+
     @classmethod
-    def plex_section_destination(cls, section):
+    def plex_section(cls, section):
         query = '//Directory[@type="%s"]' % section
         dirs  = XML.ElementFromURL('http://127.0.0.1:32400/library/sections').xpath(query)
         for d in dirs:
             if '.none' not in d.get('agent'):
-                return d.xpath('./Location')[0].get('path')
+                return d
+
+    @classmethod
+    def plex_section_refresh(cls, section):
+        element = cls.plex_section(section)
+        key     = element.get('key')
+        url     = 'http://127.0.0.1:32400/library/sections/%s/refresh' % key
+
+        HTTP.Request(url, immediate = True)
+
+    @classmethod
+    def plex_section_destination(cls, section):
+        element = cls.plex_section(section)
+        return element.xpath('./Location')[0].get('path')
 
     @classmethod
     def endpoint_is_downloading(cls, endpoint):
@@ -598,7 +662,7 @@ class User(object):
                     Dict.Save()
 
                 def update_library(dl):
-                    plex_refresh_section(download['media_hint'])
+                    User.plex_section_refresh(download['media_hint'])
 
                 def clear_download_and_dispatch(dl):
                     cls.clear_current_download()
@@ -648,15 +712,6 @@ def input_button(otitle, prompt, ocb, **kwargs):
     item        = plobj(InputDirectoryObject, L(str(otitle)), ocb, **kwargs)
     item.prompt = L(str(prompt))
     return item
-
-def plex_refresh_section(section):
-    base    = 'http://127.0.0.1:32400/library/sections'
-    query   = '//Directory[@type="%s"]' % section
-    element = XML.ElementFromURL(base).xpath(query)[0]
-    key     = element.get('key')
-    url     = base + '/%s/refresh' % key
-
-    HTTP.Request(url, immediate = True)
 
 def dispatch_download_threaded():
     User.dispatch_download()
