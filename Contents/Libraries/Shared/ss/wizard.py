@@ -12,7 +12,7 @@ class Wizard(object):
 
         try:
             self.payload   = self.environment.json(util.sources_endpoint(self.endpoint))
-            self.file_hint = self.payload['title']
+            self.file_hint = self.payload['resource']['display_title']
         except: pass
 
     def filtered_sources(self):

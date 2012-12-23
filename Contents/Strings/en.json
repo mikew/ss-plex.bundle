@@ -40,6 +40,7 @@
 
   'favorites.heading.remove':    '- Remove from Favorites',
   'favorites.heading.add':       '+ Add to Favorites',
+  'favorites.heading.migrate':   'Update Favorites',
   'favorites.response.added':    '%s was added to your favorites.',
   'favorites.response.removed':  '%s was removed from your favorites.',
 
