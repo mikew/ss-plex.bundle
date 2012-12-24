@@ -110,6 +110,6 @@ def random_from(lst):
 
 class version:
     major  = 0
-    minor  = 1
-    patch  = 3
+    minor  = 2
+    patch  = 0
     string = '%s.%s.%s' % (major, minor, patch)
