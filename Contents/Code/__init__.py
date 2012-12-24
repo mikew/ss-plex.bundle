@@ -11,24 +11,16 @@ PLUGIN_ICON   = 'icon-default.png'
 
 def Start():
     # Initialize the plug-in
-    Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, PLUGIN_TITLE, PLUGIN_ICON, PLUGIN_ART)
     Plugin.AddViewGroup('Details',  viewMode = 'InfoList',  mediaType = 'items')
     Plugin.AddViewGroup('List',     viewMode = 'List',      mediaType = 'items')
 
-    # Setup the default attributes for the ObjectContainer
-    #ObjectContainer.title1     = PLUGIN_TITLE
     ObjectContainer.view_group = 'List'
     ObjectContainer.art        = R(PLUGIN_ART)
-
-    # Setup the default attributes for the other objects
-    #DirectoryObject.thumb = R(PLUGIN_ICON)
-    DirectoryObject.art   = R(PLUGIN_ART)
-    #VideoClipObject.thumb = R(PLUGIN_ICON)
-    #VideoClipObject.art   = R(PLUGIN_ART)
+    DirectoryObject.art        = R(PLUGIN_ART)
 
 def ValidatePrefs(): pass
 
-#@handler(PLUGIN_PREFIX, PLUGIN_TITLE)
+@handler(PLUGIN_PREFIX, PLUGIN_TITLE, thumb = PLUGIN_ICON, art = PLUGIN_ART)
 def MainMenu():
     container = render_listings('/')
 
@@ -99,11 +91,11 @@ def SearchIndex():
     container = ObjectContainer()
 
     for query in sorted(User.searches()):
-        container.add(button(query, SearchResults, query = query))
+        container.add(button(query, SearchResults, query = query, foo = 1))
 
     return container
 
-@route('%s/search/results/{query}' % PLUGIN_PREFIX)
+#@route('%s/search/results/{query}' % PLUGIN_PREFIX)
 def SearchResults(query, foo):
     container = render_listings('/search/%s' % util.q(query))
 
@@ -138,7 +130,7 @@ def FavoritesIndex():
         title1 = 'Favorites'
     )
 
-    if 'favorites' in Dict and not 'favorites2' in Dict:
+    if 'favorites' in Dict:
         container.add(button('favorites.heading.migrate', FavoritesMigrate1to2))
     else:
         favorites = User.favorites()
@@ -195,7 +187,7 @@ def FavoritesMigrate1to2():
             Dict.Save()
 
     migrate()
-    return dialog('Favorites', 'Your Favorites are being updated. Return shortly.')
+    return dialog('Favorites', 'Your favorites are being updated. Return shortly.')
 
 ###############
 # Downloading #
@@ -300,6 +292,7 @@ def DownloadsNext():
 def QuickTest():
     Dict['favorites'] = {
             '/shows/51': 'tonight show',
+            '/shows/-1': 'not found',
             '/shows/7':  'x factor',
             '/shows/38': 'chelsea lately',
             '/shows/4':  'sunny'
