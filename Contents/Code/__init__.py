@@ -290,14 +290,6 @@ def DownloadsNext():
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
-    Dict['favorites'] = {
-            '/shows/51': 'tonight show',
-            '/shows/-1': 'not found',
-            '/shows/7':  'x factor',
-            '/shows/38': 'chelsea lately',
-            '/shows/4':  'sunny'
-    }
-    Dict.Save()
     return ObjectContainer(header = 'Test', message = User.plex_section_destination('movie'))
 
 ###################
@@ -591,8 +583,21 @@ class User(object):
 
     @classmethod
     def plex_section_destination(cls, section):
-        element = cls.plex_section(section)
-        return element.xpath('./Location')[0].get('path')
+        import os
+
+        element   = cls.plex_section(section)
+        locations = element.xpath('./Location')
+        hinted    = locations[0].get('path')
+        fragment  = os.sep + 'ssp'
+
+        for element in locations:
+            path = element.get('path')
+
+            if path.endswith(fragment) or path.endswith(fragment + '/'):
+                hinted = path
+                break
+
+        return hinted
 
     @classmethod
     def endpoint_is_downloading(cls, endpoint):
