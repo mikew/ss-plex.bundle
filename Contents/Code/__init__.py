@@ -583,12 +583,10 @@ class User(object):
 
     @classmethod
     def plex_section_destination(cls, section):
-        import os
-
         element   = cls.plex_section(section)
         locations = element.xpath('./Location')
         hinted    = locations[0].get('path')
-        fragment  = os.sep + 'ssp'
+        fragment  = '/ssp'
 
         for element in locations:
             path = element.get('path')
