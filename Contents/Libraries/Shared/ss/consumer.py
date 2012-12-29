@@ -1,12 +1,51 @@
 import util
 
-procedures = {}
-def store_procedures(cached = None):
-    global procedures
-    if cached:
-        procedures = cached
-    else:
-        procedures = DefaultEnvironment().json(util.procedures_endpoint())
+class ProcedureCacher(object):
+    def __init__(self, environment):
+        super(ProcedureCacher, self).__init__()
+        self.environment = environment
+        if not self.environment: self.environment = DefaultEnvironment()
+
+    def local_file(self):
+        import inspect, os
+        return os.path.abspath(inspect.getfile(inspect.currentframe()) + '/../tmp/procedures.json')
+
+    def expired(self):
+        import datetime, time, os
+        try:
+            now      = time.mktime(datetime.datetime.now().timetuple())
+            modified = os.path.getmtime(self.local_file())
+            delta    = now - modified
+
+            return 900 < delta
+        except:
+            return False
+
+    def read(self):
+        f   = open(self.local_file())
+        obj = self.environment.str_to_json(f.read())
+        f.close()
+
+        return obj
+
+    def store(self):
+        import io, gzip, urllib2
+        request  = urllib2.Request(util.procedures_endpoint(), headers = {'Accept-Encoding': 'gzip'})
+        remote   = urllib2.urlopen(request)
+        stream   = io.BytesIO(remote.read())
+        gzf      = gzip.GzipFile(fileobj = stream, mode = 'rb')
+        data     = gzf.read()
+        local    = open(self.local_file(), 'w')
+
+        local.write(data)
+        gzf.close()
+        local.close()
+
+    def fetch(self):
+        if self.expired():
+            self.store()
+
+        return self.read()
 
 class DefaultEnvironment(object):
     def __init__(self):
@@ -46,6 +85,11 @@ class DefaultEnvironment(object):
     def to_json(self, obj):
         import json
         return json.dumps(obj, separators=(',',':'))
+
+    def str_to_json(self, string):
+        import json
+        return json.loads(string)
+
 
 class Consumer(object):
     def __init__(self, url, environment = None):
@@ -101,7 +145,9 @@ class Consumer(object):
     def find_procedure(self):
         import urlparse
         nil, domain, nil, nil, nil, nil = urlparse.urlparse(self.url)
-        found = None
+        found      = None
+        procedures = ProcedureCacher(environment = self.environment).fetch()
+
         for proc_domain in procedures.iterkeys():
             if proc_domain in domain:
                 found = proc_domain

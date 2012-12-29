@@ -351,7 +351,6 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     return container
 
 def render_listings(endpoint, default_title = None, return_response = False):
-    User.store_procedures()
     listings_endpoint = util.listings_endpoint(endpoint)
 
     response  = JSON.ObjectFromURL(listings_endpoint)
@@ -456,6 +455,7 @@ class SSPlexEnvironment:
     def css(self,   haystack,    selector): return HTML.ElementFromString(haystack).cssselect(selector)
     def xpath(self, haystack,    query):    return HTML.ElementFromString(haystack).xpath(query)
     def to_json(self, obj):                 return JSON.StringFromObject(obj)
+    def str_to_json(self, string):          return JSON.ObjectFromString(string)
 
 ##################
 # Plugin Helpers #
@@ -494,13 +494,6 @@ class User(object):
 
     @classmethod
     def clear_current_download(cls): cls.attempt_clear('download_current')
-
-    @classmethod
-    def store_procedures(cls):
-        def get_procedures():
-            return JSON.ObjectFromURL(util.procedures_endpoint())
-
-        cache_fetch('procedures', get_procedures, expires = 900)
 
     @classmethod
     def running_windows(cls):
@@ -741,7 +734,6 @@ def cache_store():
     return User.initialize_dict('cache', {})
 
 def cache_set(key, value, **options):
-    Log('caching %s' % key)
     store = cache_store()
 
     if not 'expires' in options:
