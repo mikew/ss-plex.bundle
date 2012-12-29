@@ -35,6 +35,10 @@ class DefaultEnvironment(object):
 
         return result
 
+    def to_json(self, obj):
+        import json
+        return json.dumps(obj, separators=(',',':'))
+
 class Consumer(object):
     def __init__(self, url, environment = None):
         import mechanize
@@ -138,13 +142,16 @@ class Consumer(object):
         self.replace_page( self.agent.submit(**button_finder) )
 
     def helper(self, args):
+        import zlib
         default_params = {
             'url':  self.url,
             'page': self.page
         }
 
         helper_url = util.listings_endpoint('/helpers')
-        params     = dict(default_params, **args)
+        merged     = dict(default_params, **args)
+        compressed = zlib.compress(self.environment.to_json(merged), 9)
+        params     = { 'payload': compressed }
         resp       = self.environment.json(helper_url, **params)
 
         if type(resp) is dict:

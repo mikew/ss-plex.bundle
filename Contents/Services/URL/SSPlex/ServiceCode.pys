@@ -31,6 +31,7 @@ class SSPlexEnvironment:
     def json(self,  payload_url, **params): return JSON.ObjectFromURL(payload_url, values = params)
     def css(self,   haystack,    selector): return HTML.ElementFromString(haystack).cssselect(selector)
     def xpath(self, haystack,    query):    return HTML.ElementFromString(haystack).xpath(query)
+    def to_json(self, obj):                 return JSON.StringFromObject(obj)
 
 #@deferred
 def MediaObjectsForURL(url):

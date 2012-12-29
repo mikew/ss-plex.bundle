@@ -75,7 +75,15 @@ if __name__ == '__main__':
             global found
             found = c.asset_url()
 
-        w.sources(print_url)
-        print found
+        def print_every_url(c):
+            print c.url
+            print c.asset_url()
+            print c.file_name()
+
+            raise Exception('moving on.')
+
+        #w.sources(print_url)
+        #print found
+        w.sources(print_every_url)
 
     test()

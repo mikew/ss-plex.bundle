@@ -349,6 +349,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 def render_listings(endpoint, default_title = None, return_response = False):
     listings_endpoint = util.listings_endpoint(endpoint)
 
+    #response  = JSON.ObjectFromURL(listings_endpoint, headers = { 'Accept-Encoding': 'gzip,deflate,identity' })
     response  = JSON.ObjectFromURL(listings_endpoint)
     container = ObjectContainer(
         title1 = response.get('title') or default_title,
@@ -450,6 +451,7 @@ class SSPlexEnvironment:
     def json(self,  payload_url, **params): return JSON.ObjectFromURL(payload_url, values = params)
     def css(self,   haystack,    selector): return HTML.ElementFromString(haystack).cssselect(selector)
     def xpath(self, haystack,    query):    return HTML.ElementFromString(haystack).xpath(query)
+    def to_json(self, obj):                 return JSON.StringFromObject(obj)
 
 ##################
 # Plugin Helpers #

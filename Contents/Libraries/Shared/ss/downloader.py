@@ -1,5 +1,6 @@
-from consumer import Consumer, DefaultEnvironment
-from wizard   import Wizard
+from consumer       import Consumer, DefaultEnvironment
+from wizard         import Wizard
+from downloadstatus import DownloadStatus
 import util
 
 #util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
@@ -128,6 +129,7 @@ class Downloader(object):
     def really_download(self):
         from signal import SIGTERM
         import subprocess
+        import re
 
         piped    = subprocess.Popen(self.curl_options())
         self.pid = piped.pid
@@ -136,6 +138,13 @@ class Downloader(object):
         piped.wait()
 
         returned = abs(piped.returncode)
+        status   = DownloadStatus(self.status_file())
+        status.parse_status_file()
+
+        print status.total_size
+        if re.search(r'\d$', status.total_size):
+            returned = 99
+
         if 0 == returned:
             return True
         elif SIGTERM == returned:
@@ -143,7 +152,7 @@ class Downloader(object):
             return False
         else:
             self.cleanup()
-            raise
+            raise Exception('cURL returned %s, trying next source.' % returned)
 
     def cleanup_status_file(self):
         self.attempt_remove(self.status_file())
