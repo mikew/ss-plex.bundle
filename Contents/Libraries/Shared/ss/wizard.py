@@ -1,4 +1,4 @@
-from consumer import Consumer, DefaultEnvironment
+from consumer import Consumer, DefaultEnvironment, store_procedures
 import util
 
 class Wizard(object):
@@ -68,6 +68,7 @@ if __name__ == '__main__':
 
     found = None
     def test():
+        store_procedures()
         w = Wizard(test_url)
         print w.file_hint
 

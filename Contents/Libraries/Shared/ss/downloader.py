@@ -1,4 +1,4 @@
-from consumer       import Consumer, DefaultEnvironment
+from consumer       import Consumer, DefaultEnvironment, store_procedures
 from wizard         import Wizard
 from downloadstatus import DownloadStatus
 import util
@@ -141,7 +141,6 @@ class Downloader(object):
         status   = DownloadStatus(self.status_file())
         status.parse_status_file()
 
-        print status.total_size
         if re.search(r'\d$', status.total_size):
             returned = 99
 
@@ -176,6 +175,7 @@ if __name__ == '__main__':
     def success(dl): print 'success'
     def error(dl):   print 'error'
 
+    store_procedures()
     dl = Downloader(test_url, destination = os.getcwd())
 
     dl.on_start(start)

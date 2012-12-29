@@ -17,6 +17,7 @@ def Start():
     ObjectContainer.view_group = 'List'
     ObjectContainer.art        = R(PLUGIN_ART)
     DirectoryObject.art        = R(PLUGIN_ART)
+    Log('"Starting" SS-Plex')
 
 def ValidatePrefs(): pass
 
@@ -290,7 +291,10 @@ def DownloadsNext():
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
-    return ObjectContainer(header = 'Test', message = User.plex_section_destination('movie'))
+    def test_cache():
+        return 'foo'
+
+    return ObjectContainer(header = 'Test', message = cache_fetch('test', test_cache))
 
 ###################
 # Listing Methods #
@@ -347,9 +351,9 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     return container
 
 def render_listings(endpoint, default_title = None, return_response = False):
+    User.store_procedures()
     listings_endpoint = util.listings_endpoint(endpoint)
 
-    #response  = JSON.ObjectFromURL(listings_endpoint, headers = { 'Accept-Encoding': 'gzip,deflate,identity' })
     response  = JSON.ObjectFromURL(listings_endpoint)
     container = ObjectContainer(
         title1 = response.get('title') or default_title,
@@ -490,6 +494,13 @@ class User(object):
 
     @classmethod
     def clear_current_download(cls): cls.attempt_clear('download_current')
+
+    @classmethod
+    def store_procedures(cls):
+        def get_procedures():
+            return JSON.ObjectFromURL(util.procedures_endpoint())
+
+        cache_fetch('procedures', get_procedures, expires = 900)
 
     @classmethod
     def running_windows(cls):
@@ -725,3 +736,33 @@ def add_refresh_to(container, refresh, ocb, **kwargs):
     container.add(button('heading.refresh', ocb, **kwargs))
 
     return container
+
+def cache_store():
+    return User.initialize_dict('cache', {})
+
+def cache_set(key, value, **options):
+    Log('caching %s' % key)
+    store = cache_store()
+
+    if not 'expires' in options:
+        options['expires'] = 10
+
+    store[key]            = {}
+    store[key]['expires'] = Datetime.TimestampFromDatetime(Datetime.Now()) + options['expires']
+    store[key]['value']   = value
+    Dict.Save()
+
+def cache_get(key):
+    return cache_store()[key]['value']
+
+def cache_exists(key):
+    return key in cache_store()
+
+def cache_expired(key):
+    return int(cache_store()[key]['expires']) < Datetime.TimestampFromDatetime(Datetime.Now())
+
+def cache_fetch(key, cb, **kwargs):
+    if not cache_exists(key) or cache_expired(key):
+        cache_set(key, cb(), **kwargs)
+
+    return cache_get(key)

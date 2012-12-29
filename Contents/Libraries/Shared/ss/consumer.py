@@ -1,5 +1,13 @@
 import util
 
+procedures = {}
+def store_procedures(cached = None):
+    global procedures
+    if cached:
+        procedures = cached
+    else:
+        procedures = DefaultEnvironment().json(util.procedures_endpoint())
+
 class DefaultEnvironment(object):
     def __init__(self):
         super(DefaultEnvironment, self).__init__()
@@ -81,12 +89,28 @@ class Consumer(object):
         if self.consumed:
             return
 
-        self.proc = self.environment.json( util.listings_endpoint('/procedure?url=%s' % self.url) )
+        #self.proc = self.environment.json( util.listings_endpoint('/procedure?url=%s' % self.url) )
+        self.proc = self.find_procedure()
 
+        self.request_page(self.url)
         while not self.finished():
             self.run_step(self.proc.pop(0))
 
         self.consumed = True
+
+    def find_procedure(self):
+        import urlparse
+        nil, domain, nil, nil, nil, nil = urlparse.urlparse(self.url)
+        found = None
+        for proc_domain in procedures.iterkeys():
+            if proc_domain in domain:
+                found = proc_domain
+                break
+
+        if found:
+            proc = procedures[found]
+            del proc[0]
+            return proc
 
     def asset_url(self):
         self.consume()

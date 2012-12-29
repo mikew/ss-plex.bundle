@@ -28,6 +28,9 @@ def translate_endpoint(original, foreign, only_path = False):
     else:
         return listings_endpoint(path)
 
+def procedures_endpoint():
+    return listings_endpoint('/procedure/all')
+
 def normalize_url(url):
     import re
     return re.sub(r'\W+', '-', url).lower().encode()
