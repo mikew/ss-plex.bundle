@@ -9,8 +9,8 @@ from urllib import quote_plus as q
 
 def listings_endpoint(path):
     #base_url = 'http://localhost:9292'
-    base_url = 'http://10.0.1.120:9292'
-    #base_url = 'http://ls.cdn.cancergoaltender.ca'
+    #base_url = 'http://10.0.1.120:9292'
+    base_url = 'http://ls.cdn.cancergoaltender.ca'
     return base_url + path
 
 def sources_endpoint(base, only_path = False):
@@ -115,5 +115,5 @@ def random_from(lst):
 class version:
     major  = 0
     minor  = 2
-    patch  = 2
+    patch  = 3
     string = '%s.%s.%s' % (major, minor, patch)
