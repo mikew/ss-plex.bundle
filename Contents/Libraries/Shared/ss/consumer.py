@@ -19,7 +19,7 @@ class ProcedureCacher(object):
 
             return 900 < delta
         except:
-            return False
+            return True
 
     def read(self):
         f   = open(self.local_file())
@@ -32,13 +32,19 @@ class ProcedureCacher(object):
         import io, gzip, urllib2
         request  = urllib2.Request(util.procedures_endpoint(), headers = {'Accept-Encoding': 'gzip'})
         remote   = urllib2.urlopen(request)
-        stream   = io.BytesIO(remote.read())
-        gzf      = gzip.GzipFile(fileobj = stream, mode = 'rb')
-        data     = gzf.read()
-        local    = open(self.local_file(), 'w')
+        headers  = remote.info()
+        encoding = headers.get('Content-Encoding', None)
 
+        if encoding == 'gzip':
+            stream = io.BytesIO(remote.read())
+            gzf    = gzip.GzipFile(fileobj = stream, mode = 'rb')
+            data   = gzf.read()
+            gzf.close()
+        else:
+            data = remote.read()
+
+        local = open(self.local_file(), 'w')
         local.write(data)
-        gzf.close()
         local.close()
 
     def fetch(self):

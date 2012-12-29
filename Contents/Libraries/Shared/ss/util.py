@@ -9,7 +9,7 @@ from urllib import quote_plus as q
 
 def listings_endpoint(path):
     #base_url = 'http://localhost:9292'
-    base_url = 'http://10.0.1.110:9292'
+    base_url = 'http://10.0.1.120:9292'
     #base_url = 'http://ls.cdn.cancergoaltender.ca'
     return base_url + path
 
