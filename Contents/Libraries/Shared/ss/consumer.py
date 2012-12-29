@@ -139,7 +139,6 @@ class Consumer(object):
         if self.consumed:
             return
 
-        #self.proc = self.environment.json( util.listings_endpoint('/procedure?url=%s' % self.url) )
         self.proc = self.find_procedure()
 
         self.request_page(self.url)
