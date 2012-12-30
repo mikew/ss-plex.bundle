@@ -52,6 +52,7 @@ def PlayWizard(endpoint, avoid_flv = 0):
 
     def first_working(consumer):
         global found
+        consumer.consume()
         found = consumer
 
     wizard.sources(first_working)
