@@ -29,19 +29,23 @@ class ProcedureCacher(object):
         return obj
 
     def store(self):
-        import io, gzip, urllib2
+        import gzip, urllib2
         request  = urllib2.Request(util.procedures_endpoint(), headers = {'Accept-Encoding': 'gzip'})
         remote   = urllib2.urlopen(request)
         headers  = remote.info()
         encoding = headers.get('Content-Encoding', None)
+        data     = remote.read()
 
         if encoding == 'gzip':
-            stream = io.BytesIO(remote.read())
-            gzf    = gzip.GzipFile(fileobj = stream, mode = 'rb')
-            data   = gzf.read()
+            import os, tempfile
+
+            tmp = tempfile.NamedTemporaryFile()
+            tmp.write(data)
+            tmp.seek(0)
+            gzf  = gzip.GzipFile(fileobj = tmp, mode = 'rb')
+            data = gzf.read()
             gzf.close()
-        else:
-            data = remote.read()
+            tmp.close()
 
         local = open(self.local_file(), 'w')
         local.write(data)
