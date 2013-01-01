@@ -1,10 +1,10 @@
 import util
+import environment
 
 class ProcedureCacher(object):
-    def __init__(self, environment):
+    def __init__(self, environment = environment.default):
         super(ProcedureCacher, self).__init__()
         self.environment = environment
-        if not self.environment: self.environment = DefaultEnvironment()
 
     def local_file(self):
         import inspect, os
@@ -57,52 +57,8 @@ class ProcedureCacher(object):
 
         return self.read()
 
-class DefaultEnvironment(object):
-    def __init__(self):
-        super(DefaultEnvironment, self).__init__()
-
-    def log(self, message):
-        print message
-
-    def css(self, haystack, selector):
-        from lxml import etree
-        from lxml.cssselect import CSSSelector
-        sel  = CSSSelector(selector)
-        html = etree.HTML(haystack)
-
-        return sel(html)
-
-    def xpath(self, haystack, query):
-        from lxml import etree
-        return etree.HTML(haystack).xpath(query)
-
-    def json(self, payload_url, **params):
-        import json
-        import urllib
-        import urllib2
-
-        if params:
-            params = urllib.urlencode(params)
-        else:
-            params = None
-
-        req    = urllib2.Request(payload_url, params)
-        resp   = urllib2.urlopen(req)
-        result = json.loads(resp.read())
-
-        return result
-
-    def to_json(self, obj):
-        import json
-        return json.dumps(obj, separators=(',',':'))
-
-    def str_to_json(self, string):
-        import json
-        return json.loads(string)
-
-
 class Consumer(object):
-    def __init__(self, url, environment = None):
+    def __init__(self, url, environment = environment.default):
         import mechanize
 
         super(Consumer, self).__init__()
@@ -125,7 +81,6 @@ class Consumer(object):
         self.fname       = None
         self.consumed    = False
         self.environment = environment
-        if not self.environment: self.environment = DefaultEnvironment()
 
     def agent_cookies(self):
         return self.agent._ua_handlers['_cookies'].cookiejar

@@ -112,6 +112,15 @@ def random_from(lst):
     import random
     return lst[random.randint(0, len(lst) - 1)]
 
+def sort_title(title):
+    import re
+
+    haystack = str(title).lower()
+    return re.sub(r'^the ', '', haystack)
+
+def sorted_by_title(collection, getter = lambda x: x):
+    return sorted(collection, key = lambda x: sort_title(getter(x)))
+
 class version:
     major  = 0
     minor  = 2

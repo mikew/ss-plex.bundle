@@ -52,7 +52,7 @@
   'download.response.cancel':     '%s will not be downloaded.',
   'download.response.not-found':  'Download for %s could not be found.',
 
-  'confirm.yes':     'Yes',
+  'confirm.yes':     'Confirm',
   'confirm.no':      'No',
   'confirm.ok':      'Okay',
   'confirm.cancel':  'Cancel'

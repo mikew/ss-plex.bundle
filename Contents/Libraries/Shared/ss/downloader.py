@@ -1,19 +1,20 @@
-from consumer       import Consumer, DefaultEnvironment
+from consumer       import Consumer
 from wizard         import Wizard
 from downloadstatus import DownloadStatus
+
 import util
+import environment
 
 #util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
 
 class Downloader(object):
-    def __init__(self, endpoint, environment = None, destination = None, limit = 0):
+    def __init__(self, endpoint, environment = environment.default, destination = None, limit = 0):
         super(Downloader, self).__init__()
         self.endpoint    = endpoint
         self.destination = destination
         self.success     = False
         self.limit       = limit
         self.environment = environment
-        if not self.environment: self.environment = DefaultEnvironment()
         self.wizard      = Wizard(self.endpoint, environment = self.environment)
 
         self.init_callbacks()

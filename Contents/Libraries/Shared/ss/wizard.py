@@ -1,19 +1,20 @@
-from consumer import Consumer, DefaultEnvironment
+from consumer import Consumer
 import util
+import environment
 
 class Wizard(object):
-    def __init__(self, endpoint, environment = None, avoid_flv = False):
+    def __init__(self, endpoint, environment = environment.default, avoid_flv = False):
         super(Wizard, self).__init__()
         self.endpoint    = endpoint
         self.file_hint   = None
         self.avoid_flv   = avoid_flv
         self.environment = environment
-        if not self.environment: self.environment = DefaultEnvironment()
 
         try:
             self.payload   = self.environment.json(util.sources_endpoint(self.endpoint))
             self.file_hint = self.payload['resource']['display_title']
-        except: pass
+        except:
+            pass
 
     def filtered_sources(self):
         filtered = []
@@ -57,7 +58,8 @@ class Wizard(object):
 
                 cb(consumer)
                 break
-            except:
+            except Exception, e:
+                #util.print_exception(e)
                 continue
 
 if __name__ == '__main__':

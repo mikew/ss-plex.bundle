@@ -1,6 +1,3 @@
-from urlparse import urlparse
-import cgi
-
 # Some clients request a certain endpoint
 # that doesn't add Contents/Libraries/Shared
 # to sys.path. this fixes that.
@@ -11,9 +8,11 @@ d = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../Lib
 if not d in sys.path:
     sys.path.insert(0, d)
 
-from ss import Consumer
-from ss import Wizard
-from ss import util
+from ss import Consumer, Wizard, util
+from bridge import environment
+
+from urlparse import urlparse
+import cgi
 
 def NormalizeURL(url):
     return url
@@ -25,14 +24,6 @@ def MetadataObjectForURL(url):
     )
 
     return co
-
-class SSPlexEnvironment:
-    def log(self,   message):               Log(message)
-    def json(self,  payload_url, **params): return JSON.ObjectFromURL(payload_url, values = params)
-    def css(self,   haystack,    selector): return HTML.ElementFromString(haystack).cssselect(selector)
-    def xpath(self, haystack,    query):    return HTML.ElementFromString(haystack).xpath(query)
-    def to_json(self, obj):                 return JSON.StringFromObject(obj)
-    def str_to_json(self, string):          return JSON.ObjectFromString(string)
 
 #@deferred
 def MediaObjectsForURL(url):
@@ -48,7 +39,7 @@ def MediaObjectsForURL(url):
 found = None
 @indirect
 def PlayWizard(endpoint, avoid_flv = 0):
-    wizard = Wizard(endpoint, environment = SSPlexEnvironment(), avoid_flv = bool(int(avoid_flv)))
+    wizard = Wizard(endpoint, environment = environment.plex, avoid_flv = bool(int(avoid_flv)))
 
     def first_working(consumer):
         global found
@@ -62,14 +53,14 @@ def PlayWizard(endpoint, avoid_flv = 0):
 
 @indirect
 def PlayConsumer(url):
-    consumer = Consumer(url, environment = SSPlexEnvironment())
+    consumer = Consumer(url, environment = environment.plex)
     return video(consumer)
 
 @indirect
 def PlayForeign(original, foreign):
     response = JSON.ObjectFromURL( util.translate_endpoint(original, foreign) )
     url      = util.translated_from(response)
-    consumer = Consumer(url, environment = SSPlexEnvironment())
+    consumer = Consumer(url, environment = environment.plex)
 
     return video(consumer)
 
