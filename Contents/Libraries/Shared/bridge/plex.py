@@ -1,8 +1,14 @@
 config = dict
+config = dict()
 
 def init(**kwargs):
     global config
-    config = kwargs
+    existing = config.keys()
+
+    for key, val in kwargs.iteritems():
+        if not key in existing:
+            config[key] = val
+
 
 def user_dict():  return config['Dict']
 def user_prefs(): return config['Prefs']

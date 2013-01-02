@@ -9,7 +9,10 @@ if not d in sys.path:
     sys.path.insert(0, d)
 
 from ss import Consumer, Wizard, util
-from bridge import environment
+import bridge
+
+to_export = dict(Log = Log, XML = XML, HTML = HTML, JSON = JSON)
+bridge.plex.init(**to_export)
 
 from urlparse import urlparse
 import cgi
@@ -39,7 +42,7 @@ def MediaObjectsForURL(url):
 found = None
 @indirect
 def PlayWizard(endpoint, avoid_flv = 0):
-    wizard = Wizard(endpoint, environment = environment.plex, avoid_flv = bool(int(avoid_flv)))
+    wizard = Wizard(endpoint, environment = bridge.environment.plex, avoid_flv = bool(int(avoid_flv)))
 
     def first_working(consumer):
         global found
@@ -53,14 +56,14 @@ def PlayWizard(endpoint, avoid_flv = 0):
 
 @indirect
 def PlayConsumer(url):
-    consumer = Consumer(url, environment = environment.plex)
+    consumer = Consumer(url, environment = bridge.environment.plex)
     return video(consumer)
 
 @indirect
 def PlayForeign(original, foreign):
     response = JSON.ObjectFromURL( util.translate_endpoint(original, foreign) )
     url      = util.translated_from(response)
-    consumer = Consumer(url, environment = environment.plex)
+    consumer = Consumer(url, environment = bridge.environment.plex)
 
     return video(consumer)
 

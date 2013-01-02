@@ -8,6 +8,9 @@ PLUGIN_TITLE  = L('title')
 PLUGIN_ART    = 'art-default.jpg'
 PLUGIN_ICON   = 'icon-default.png'
 
+to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs)
+bridge.plex.init(**to_export)
+
 def Start():
     # Initialize the plug-in
     Plugin.AddViewGroup('Details',  viewMode = 'InfoList',  mediaType = 'items')
@@ -17,8 +20,6 @@ def Start():
     ObjectContainer.art        = R(PLUGIN_ART)
     DirectoryObject.art        = R(PLUGIN_ART)
     Log('"Starting" SS-Plex')
-    to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs)
-    bridge.plex.init(**to_export)
 
 def ValidatePrefs(): pass
 
