@@ -1,61 +1,6 @@
 import util
 import environment
-
-class ProcedureCacher(object):
-    def __init__(self, environment = environment.default):
-        super(ProcedureCacher, self).__init__()
-        self.environment = environment
-
-    def local_file(self):
-        import inspect, os
-        return os.path.abspath(inspect.getfile(inspect.currentframe()) + '/../tmp/procedures.json')
-
-    def expired(self):
-        import datetime, time, os
-        try:
-            now      = time.mktime(datetime.datetime.now().timetuple())
-            modified = os.path.getmtime(self.local_file())
-            delta    = now - modified
-
-            return 900 < delta
-        except:
-            return True
-
-    def read(self):
-        f   = open(self.local_file())
-        obj = self.environment.str_to_json(f.read())
-        f.close()
-
-        return obj
-
-    def store(self):
-        import gzip, urllib2
-        request  = urllib2.Request(util.procedures_endpoint(), headers = {'Accept-Encoding': 'gzip'})
-        remote   = urllib2.urlopen(request)
-        headers  = remote.info()
-        encoding = headers.get('Content-Encoding', None)
-        data     = remote.read()
-
-        if encoding == 'gzip':
-            import os, tempfile
-
-            tmp = tempfile.NamedTemporaryFile()
-            tmp.write(data)
-            tmp.seek(0)
-            gzf  = gzip.GzipFile(fileobj = tmp, mode = 'rb')
-            data = gzf.read()
-            gzf.close()
-            tmp.close()
-
-        local = open(self.local_file(), 'w')
-        local.write(data)
-        local.close()
-
-    def fetch(self):
-        if self.expired():
-            self.store()
-
-        return self.read()
+import cache
 
 class Consumer(object):
     def __init__(self, url, environment = environment.default):
@@ -95,22 +40,30 @@ class Consumer(object):
         self.final = final
 
     def consume(self):
-        if self.consumed:
+        if self.consumed or not cache.stale('%s-url' % self.url):
             return
 
         self.proc = self.find_procedure()
 
-        self.request_page(self.url)
+        self.initial_request()
         while not self.finished():
             self.run_step(self.proc.pop(0))
 
         self.consumed = True
 
+    def initial_request(self):
+        command = dict(name = 'request_page', args = self.url)
+        self.proc.insert(0, command)
+
     def find_procedure(self):
         import urlparse
+
+        def get_procedures():
+            return util.gzip_request(util.procedures_endpoint())
+
         nil, domain, nil, nil, nil, nil = urlparse.urlparse(self.url)
         found      = None
-        procedures = ProcedureCacher(environment = self.environment).fetch()
+        procedures = self.environment.str_to_json(cache.fetch('procedures.json', get_procedures, expires = cache.TIME_DAY))
 
         for proc_domain in procedures.iterkeys():
             if proc_domain in domain:
@@ -123,13 +76,19 @@ class Consumer(object):
             return proc
 
     def asset_url(self):
-        self.consume()
-        return self.final
+        def get_final():
+            self.consume()
+            return self.final
+
+        return cache.fetch('%s-url' % self.url, get_final, expires = 3 * cache.TIME_HOUR)
 
     def file_name(self):
-        if not self.fname:
+        def get_fname():
             self.consume()
-            self.fname = self.helper({ 'method': 'file_name', 'asset_url': self.asset_url() })
+            return self.helper({ 'method': 'file_name', 'asset_url': self.asset_url() })
+
+        if not self.fname:
+            self.fname = cache.fetch('%s-fname' % self.url, get_fname, expires = cache.TIME_DAY)
 
         return self.fname
 
