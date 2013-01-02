@@ -2,6 +2,9 @@ def log(message):
     print message
 
 def css(haystack, selector):
+    from lxml import etree
+    from lxml.cssselect import CSSSelector
+
     sel  = CSSSelector(selector)
     html = etree.HTML(haystack)
 
