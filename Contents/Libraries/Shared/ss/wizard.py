@@ -1,6 +1,7 @@
 from consumer import Consumer
 import util
 import environment
+import cache
 
 class Wizard(object):
     def __init__(self, endpoint, environment = environment.default, avoid_flv = False):
@@ -11,9 +12,13 @@ class Wizard(object):
         self.environment = environment
 
         try:
-            self.payload   = self.environment.json(util.sources_endpoint(self.endpoint))
+            def get_sources():
+                return util.gzip_request(util.sources_endpoint(self.endpoint))
+
+            self.payload   = self.environment.str_to_json(cache.fetch('%s-sources' % self.endpoint, get_sources, expires = cache.TIME_HOUR / 2))
             self.file_hint = self.payload['resource']['display_title']
-        except:
+        except Exception, e:
+            util.print_exception(e)
             pass
 
     def filtered_sources(self):
@@ -59,7 +64,7 @@ class Wizard(object):
                 cb(consumer)
                 break
             except Exception, e:
-                #util.print_exception(e)
+                util.print_exception(e)
                 continue
 
 if __name__ == '__main__':
