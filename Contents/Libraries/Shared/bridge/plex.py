@@ -1,4 +1,3 @@
-config = dict
 config = dict()
 
 def init(**kwargs):
