@@ -65,9 +65,12 @@ def gzip_request(url):
 
     if encoding == 'gzip':
         import os, tempfile
+
         tmp = tempfile.NamedTemporaryFile()
         tmp.write(data)
+        tmp.seek(0)
         gzf  = gzip.GzipFile(fileobj = tmp, mode = 'rb')
+        data = gzf.read()
         gzf.close()
         tmp.close()
 

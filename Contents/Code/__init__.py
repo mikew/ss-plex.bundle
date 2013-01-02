@@ -1,5 +1,5 @@
 import bridge
-from ss import Downloader, DownloadStatus, util
+from ss import Downloader, DownloadStatus, Wizard, cache, util
 
 #util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
 
@@ -281,13 +281,10 @@ def RenderListings(endpoint, default_title = None):
 
 @route('%s/WatchOptions' % PLUGIN_PREFIX)
 def WatchOptions(endpoint, title, media_hint):
-    container        = render_listings(endpoint, default_title = title)
-
-    wizard_url       = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
-    wizard_item      = VideoClipObject(title = L('media.watch-now'), url = wizard_url)
-
-    sources_endpoint = util.sources_endpoint(endpoint, True)
-    sources_item     = button('media.all-sources', RenderListings, endpoint = sources_endpoint, default_title = title)
+    container    = render_listings(endpoint, default_title = title, cache_time = cache.TIME_DAY)
+    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
+    wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url)
+    sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title)
 
     if bridge.download.in_history(endpoint):
         download_item = button('media.persisted', DownloadsOptions, endpoint = endpoint)
@@ -303,6 +300,11 @@ def WatchOptions(endpoint, title, media_hint):
     container.objects.insert(2, sources_item)
 
     return container
+
+@route('%s/ListSources' % PLUGIN_PREFIX)
+def ListSources(endpoint, title):
+    wizard = Wizard(endpoint, environment = bridge.environment.plex)
+    return render_listings_response(wizard.payload, endpoint)
 
 @route('%s/series/i{refresh}' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
@@ -324,10 +326,18 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 
     return container
 
-def render_listings(endpoint, default_title = None, return_response = False):
+def render_listings(endpoint, default_title = None, return_response = False, cache_time = None):
     listings_endpoint = util.listings_endpoint(endpoint)
 
-    response  = JSON.ObjectFromURL(listings_endpoint)
+    response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time)
+    container = render_listings_response(response, endpoint = endpoint, default_title = default_title)
+
+    if return_response:
+        return [ container, response ]
+    else:
+        return container
+
+def render_listings_response(response, endpoint, default_title = None):
     container = ObjectContainer(
         title1 = response.get('title') or default_title,
         title2 = response.get('desc')
@@ -414,10 +424,7 @@ def render_listings(endpoint, default_title = None, return_response = False):
         if None != native:
             container.add( native )
 
-    if return_response:
-        return [ container, response ]
-    else:
-        return container
+    return container
 
 ##################
 # Plugin Helpers #
