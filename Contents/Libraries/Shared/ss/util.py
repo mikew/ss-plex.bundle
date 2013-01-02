@@ -48,12 +48,30 @@ def redirect_output(of):
 def print_exception(e):
     import sys, traceback
 
-    print e
     traceback.print_tb(sys.exc_info()[2])
+    print e
 
 def translated_from(response):
     if response:
         return response[0]
+
+def gzip_request(url):
+    import gzip, urllib2
+    request  = urllib2.Request(url, headers = {'Accept-Encoding': 'gzip'})
+    remote   = urllib2.urlopen(request)
+    headers  = remote.info()
+    encoding = headers.get('Content-Encoding', None)
+    data     = remote.read()
+
+    if encoding == 'gzip':
+        import os, tempfile
+        tmp = tempfile.NamedTemporaryFile()
+        tmp.write(data)
+        gzf  = gzip.GzipFile(fileobj = tmp, mode = 'rb')
+        gzf.close()
+        tmp.close()
+
+    return data
 
 # From components/networking.py
 def random_ua():
