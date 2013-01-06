@@ -40,7 +40,7 @@ class Consumer(object):
         self.final = final
 
     def consume(self):
-        if self.consumed or not cache.stale('%s-url' % self.url):
+        if self.consumed or not cache.stale('%s-url' % self.url, expires = 3 * cache.TIME_HOUR):
             return
 
         self.proc = self.find_procedure()
