@@ -24,7 +24,7 @@ def refresh_section(section):
     key     = element.get('key')
     url     = 'http://127.0.0.1:32400/library/sections/%s/refresh' % key
 
-    config.HTTP.Request(url, immediate = True)
+    config['HTTP'].Request(url, immediate = True)
 
 def section_destination(section):
     element   = section_element(section)
