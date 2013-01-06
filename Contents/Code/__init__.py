@@ -271,6 +271,12 @@ def QuickTest():
 
     return ObjectContainer(header = 'Test', message = cache_fetch('test', test_cache))
 
+# UAS
+@route('%s/update' % PLUGIN_PREFIX)
+def UASUpdate():
+    import uas
+    return uas.updater.check(id = 'SS Plex', Dict = Dict, ObjectContainer = ObjectContainer)
+
 ###################
 # Listing Methods #
 ###################
