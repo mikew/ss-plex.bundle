@@ -29,5 +29,5 @@ def fetch(key, cb, **kwargs):
 
 def stale(key, **kwargs):
     test = not instance().exists(key, **kwargs) or instance().expired(key, **kwargs)
-    print [ instance().normalize_key(key), test ]
+    #print [ instance().normalize_key(key), test ]
     return test

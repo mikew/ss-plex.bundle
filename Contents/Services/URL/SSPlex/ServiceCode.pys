@@ -17,6 +17,8 @@ bridge.plex.init(**to_export)
 from urlparse import urlparse
 import cgi
 
+#util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
+
 def NormalizeURL(url):
     return url
 
