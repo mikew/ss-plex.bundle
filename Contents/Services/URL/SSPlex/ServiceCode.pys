@@ -41,9 +41,9 @@ def MediaObjectsForURL(url):
 
     return [ obj ]
 
-found = None
 @indirect
 def PlayWizard(endpoint, avoid_flv = 0):
+    found  = None
     wizard = Wizard(endpoint, environment = bridge.environment.plex, avoid_flv = bool(int(avoid_flv)))
 
     def first_working(consumer):
