@@ -125,7 +125,6 @@ class Downloader(object):
 
         options.append(self.asset_url())
 
-        print options
         return options
 
     def really_download(self):

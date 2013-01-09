@@ -1,7 +1,7 @@
 import bridge
 from ss import Downloader, DownloadStatus, Wizard, cache, util
 
-util.redirect_output('/home/mike/ssp-out')
+#util.redirect_output('/home/mike/ssp-out')
 
 PLUGIN_PREFIX = '/video/ssp'
 PLUGIN_TITLE  = L('title')
@@ -249,7 +249,7 @@ def DownloadsCancel(endpoint):
             try:
                 bridge.download.remove(download)
             except Exception, e:
-                util.print_exception(e)
+                #util.print_exception(e)
                 pass
 
         return dialog('heading.download', F('download.response.cancel', download['title']))
