@@ -11,7 +11,7 @@ if not d in sys.path:
 from ss import Consumer, Wizard, util
 import bridge
 
-to_export = dict(Log = Log, XML = XML, HTML = HTML, JSON = JSON)
+to_export = dict(Log = Log, XML = XML, HTML = HTML, JSON = JSON, HTTP = HTTP)
 bridge.plex.init(**to_export)
 
 from urlparse import urlparse
@@ -41,9 +41,9 @@ def MediaObjectsForURL(url):
 
     return [ obj ]
 
+found = None
 @indirect
 def PlayWizard(endpoint, avoid_flv = 0):
-    found  = None
     wizard = Wizard(endpoint, environment = bridge.environment.plex, avoid_flv = bool(int(avoid_flv)))
 
     def first_working(consumer):

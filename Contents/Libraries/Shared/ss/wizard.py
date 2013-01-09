@@ -18,7 +18,7 @@ class Wizard(object):
             self.payload   = self.environment.str_to_json(cache.fetch('%s-sources' % self.endpoint, get_sources, expires = cache.TIME_HOUR / 2))
             self.file_hint = self.payload['resource']['display_title']
         except Exception, e:
-            #util.print_exception(e)
+            util.print_exception(e)
             pass
 
     def filtered_sources(self):
@@ -64,7 +64,7 @@ class Wizard(object):
                 cb(consumer)
                 break
             except Exception, e:
-                #util.print_exception(e)
+                util.print_exception(e)
                 continue
 
 if __name__ == '__main__':

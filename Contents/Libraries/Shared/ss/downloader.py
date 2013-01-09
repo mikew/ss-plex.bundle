@@ -36,7 +36,7 @@ class Downloader(object):
     def sanitize_file(self, file_name):
         import re
         encoded  = file_name.encode()
-        replaced = re.sub('[\[\]\'"?!,;:]', '', encoded)
+        replaced = re.sub(r'[^a-zA-Z0-9. ]', '', encoded)
 
         return replaced
 
@@ -125,6 +125,7 @@ class Downloader(object):
 
         options.append(self.asset_url())
 
+        print options
         return options
 
     def really_download(self):

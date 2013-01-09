@@ -1,14 +1,14 @@
 import bridge
 from ss import Downloader, DownloadStatus, Wizard, cache, util
 
-#util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
+util.redirect_output('/home/mike/ssp-out')
 
 PLUGIN_PREFIX = '/video/ssp'
 PLUGIN_TITLE  = L('title')
 PLUGIN_ART    = 'art-default.jpg'
 PLUGIN_ICON   = 'icon-default.png'
 
-to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs)
+to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs, HTTP = HTTP)
 bridge.plex.init(**to_export)
 
 def Start():
@@ -249,7 +249,7 @@ def DownloadsCancel(endpoint):
             try:
                 bridge.download.remove(download)
             except Exception, e:
-                #util.print_exception(e)
+                util.print_exception(e)
                 pass
 
         return dialog('heading.download', F('download.response.cancel', download['title']))
