@@ -329,7 +329,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 def render_listings(endpoint, default_title = None, return_response = False, cache_time = None):
     listings_endpoint = util.listings_endpoint(endpoint)
 
-    response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time)
+    response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time, timeout = 45)
     container = render_listings_response(response, endpoint = endpoint, default_title = default_title)
 
     if return_response:
@@ -344,7 +344,7 @@ def render_listings_response(response, endpoint, default_title = None):
     )
 
     for element in response.get( 'items', [] ):
-        native          = None
+        native           = None
         permalink        = element.get('endpoint')
         display_title    = element.get('display_title')    or element.get('title')
         overview         = element.get('display_overview') or element.get('overview')
