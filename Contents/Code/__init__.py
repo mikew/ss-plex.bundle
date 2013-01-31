@@ -205,7 +205,7 @@ def DownloadsOptions(endpoint):
         container  = ObjectContainer(title1 = download['title'])
         obj_cancel = button('download.heading.cancel', DownloadsCancel, endpoint = endpoint)
 
-        if bridge.download.assumed_running():
+        if bridge.download.is_current(endpoint):
             if bridge.download.curl_running():
                 container.add(button('download.heading.next', DownloadsNext))
                 container.add(obj_cancel)
