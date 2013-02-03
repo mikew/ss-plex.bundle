@@ -1,11 +1,22 @@
 from urllib import quote_plus as q
-# import logging
-# logging.basicConfig(
-#     filename = r'C:\Users\Mike\Desktop\ss.log',
-#     level    = logging.DEBUG,
-#     format   = '%(asctime)s %(message)s [%(levelname)s]',
-#     datefmt  = '%m/%d/%Y %I:%M:%S %p'
-# )
+
+import logging
+log = logging.getLogger("ss")
+formatter = logging.Formatter("%(asctime)s - %(name)s[%(lineno)s]\t- %(levelname)s\t- %(message)s")
+log.setLevel(logging.DEBUG)
+
+import inspect, os
+log_file = os.path.abspath(inspect.getfile(inspect.currentframe()) + '/../../../../../ss.log')
+fh = logging.FileHandler(log_file)
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+log.addHandler(fh)
+
+def log_to_stderr():
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
 
 def listings_endpoint(path):
     #base_url = 'http://localhost:9292'

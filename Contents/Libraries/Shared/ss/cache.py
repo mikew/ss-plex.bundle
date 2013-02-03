@@ -1,4 +1,8 @@
+import util
 import cache_store
+
+import logging
+log = logging.getLogger('ss.cache')
 
 TIME_MINUTE = 60
 TIME_HOUR   = 60  * TIME_MINUTE
@@ -22,7 +26,9 @@ def fetch(key, cb, **kwargs):
     if not 'expires' in kwargs:
         kwargs['expires'] = 10
 
+    log.info('Fetching cache for %s (expires in %s)' % (key, kwargs['expires']))
     if stale(key, **kwargs):
+        log.info('%s is stale' % key)
         instance().set(key, cb(), **kwargs)
 
     return instance().get(key, **kwargs)

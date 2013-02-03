@@ -2,6 +2,9 @@ import util
 import environment
 import cache
 
+import logging
+log = logging.getLogger('ss.consumer')
+
 class Consumer(object):
     def __init__(self, url, environment = environment.default):
         import mechanize
@@ -80,7 +83,9 @@ class Consumer(object):
             self.consume()
             return self.final
 
-        return cache.fetch('%s-url' % self.url, get_final, expires = 3 * cache.TIME_HOUR)
+        cached = cache.fetch('%s-url' % self.url, get_final, expires = 3 * cache.TIME_HOUR)
+        log.info(cached)
+        return cached
 
     def file_name(self):
         def get_fname():
@@ -96,6 +101,7 @@ class Consumer(object):
         getattr(self, step['name'])(step['args'])
 
     def request_page(self, url):
+        log.info('Requesting %s' % url)
         self.replace_page( self.agent.open(url) )
 
     def post_request(self, params):
@@ -110,10 +116,10 @@ class Consumer(object):
 
     def wait(self, seconds):
         import time
+        log.info('Waiting for %s seconds' % seconds)
         time.sleep(seconds)
 
     def submit_form(self, args):
-
         # TODO: handle more cases
         if args.get('index') is not None:
             self.agent.select_form(nr = args['index'])
@@ -227,6 +233,7 @@ class Consumer(object):
         return r
 
 if __name__ == '__main__':
+    util.log_to_stderr()
     import sys
     args     = sys.argv
     test_url = args[1]

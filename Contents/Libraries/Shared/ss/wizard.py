@@ -1,7 +1,10 @@
-from consumer import Consumer
 import util
+from consumer import Consumer
 import environment
 import cache
+
+import logging
+log = logging.getLogger('ss.wizard')
 
 class Wizard(object):
     def __init__(self, endpoint, environment = environment.default, avoid_flv = False):
@@ -19,6 +22,7 @@ class Wizard(object):
             self.file_hint = self.payload['resource']['display_title']
         except Exception, e:
             #util.print_exception(e)
+            log.exception('Unable to get wizard info')
             pass
 
     def filtered_sources(self):
@@ -59,15 +63,17 @@ class Wizard(object):
                 consumer = Consumer(self.translate(foreign), environment = self.environment)
 
                 if self.avoid_flv and '.flv' in consumer.asset_url():
+                    log.info('Avoiding .flv %s' % consumer.asset_url())
                     raise Exception('Avoiding .flv')
 
                 cb(consumer)
                 break
             except Exception, e:
-                #util.print_exception(e)
+                log.exception('Error on %s' % consumer.url)
                 continue
 
 if __name__ == '__main__':
+    util.log_to_stderr()
     import os, sys
     args     = sys.argv
     test_url = args[1]
@@ -85,7 +91,6 @@ if __name__ == '__main__':
             print c.url
             print c.asset_url()
             print c.file_name()
-
             raise Exception('moving on.')
 
         #w.sources(print_url)

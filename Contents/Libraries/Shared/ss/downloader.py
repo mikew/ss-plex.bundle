@@ -1,9 +1,12 @@
-from consumer       import Consumer
+import util
+#from consumer       import Consumer
 from wizard         import Wizard
 from downloadstatus import DownloadStatus
 
-import util
 import environment
+
+import logging
+log = logging.getLogger('ss.downloader')
 
 #util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
 
@@ -105,6 +108,7 @@ class Downloader(object):
 
         if self.success:
             self.run_success_callbacks()
+            log.info('Finished downloading %s' % self.wizard.file_hint)
         else:
             self.run_error_callbacks()
 
@@ -148,9 +152,11 @@ class Downloader(object):
         if 0 == returned:
             return True
         elif SIGTERM == returned:
+            log.info('SIGTERM received, download will abort')
             self.cleanup()
             return False
         else:
+            log.info('%s received, trying next source' % returned)
             self.cleanup()
             raise Exception('cURL returned %s, trying next source.' % returned)
 
@@ -168,6 +174,7 @@ class Downloader(object):
         except: pass
 
 if __name__ == '__main__':
+    util.log_to_stderr()
     import os, sys
     args     = sys.argv
     test_url = args[1]
