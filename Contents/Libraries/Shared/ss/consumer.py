@@ -74,6 +74,7 @@ class Consumer(object):
                 break
 
         if found:
+            log.info('Found procedure for %s' % domain)
             proc = procedures[found]
             del proc[0]
             return proc
@@ -95,13 +96,14 @@ class Consumer(object):
         if not self.fname:
             self.fname = cache.fetch('%s-fname' % self.url, get_fname, expires = cache.TIME_DAY)
 
+        log.info(self.fname)
         return self.fname
 
     def run_step(self, step):
         getattr(self, step['name'])(step['args'])
 
     def request_page(self, url):
-        log.info('Requesting %s' % url)
+        log.debug('Requesting %s' % url)
         self.replace_page( self.agent.open(url) )
 
     def post_request(self, params):
@@ -116,7 +118,7 @@ class Consumer(object):
 
     def wait(self, seconds):
         import time
-        log.info('Waiting for %s seconds' % seconds)
+        log.debug('Waiting for %s seconds' % seconds)
         time.sleep(seconds)
 
     def submit_form(self, args):

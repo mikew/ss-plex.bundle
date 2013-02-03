@@ -59,14 +59,17 @@ class Downloader(object):
     def on_error(self, cb):    self.add_callback('error',    cb)
 
     def run_start_callbacks(self):
+        log.debug('Running start callbacks')
         self.run_callbacks('_start')
         self.run_callbacks('start')
 
     def run_success_callbacks(self):
+        log.debug('Running success callbacks')
         self.run_callbacks('_success')
         self.run_callbacks('success')
 
     def run_error_callbacks(self):
+        log.debug('Running error callbacks')
         self.run_callbacks('_error')
         self.run_callbacks('error')
 
@@ -136,7 +139,9 @@ class Downloader(object):
         import subprocess
         import re
 
-        piped    = subprocess.Popen(self.curl_options())
+        options = self.curl_options()
+        log.info(options)
+        piped    = subprocess.Popen(options)
         self.pid = piped.pid
 
         self.run_start_callbacks()
@@ -150,6 +155,7 @@ class Downloader(object):
             returned = 99
 
         if 0 == returned:
+            log.info('Download finished in %s, average %s' % (status.time_total, status.average_download))
             return True
         elif SIGTERM == returned:
             log.info('SIGTERM received, download will abort')

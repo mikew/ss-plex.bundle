@@ -26,9 +26,9 @@ def fetch(key, cb, **kwargs):
     if not 'expires' in kwargs:
         kwargs['expires'] = 10
 
-    log.info('Fetching cache for %s (expires in %s)' % (key, kwargs['expires']))
+    log.debug('Fetching cache for %s (expires in %s)' % (key, kwargs['expires']))
     if stale(key, **kwargs):
-        log.info('%s is stale' % key)
+        log.debug('%s is stale' % key)
         instance().set(key, cb(), **kwargs)
 
     return instance().get(key, **kwargs)

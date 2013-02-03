@@ -7,6 +7,9 @@ import signal
 import thread
 from ss import Downloader, util
 
+import logging
+log = logging.getLogger('ss.bridge.download')
+
 def queue():           return user.initialize_dict('downloads',        [])
 def history():         return user.initialize_dict('download_history', [])
 def avoid_flv():       return plex.user_prefs()['avoid_flv_downloading']
@@ -110,11 +113,12 @@ def command(command):
             return signal_process(pid, to_send)
 
 def dispatch(should_thread = True):
+    log.info('Dispatching download')
     if not assumed_running():
         try:
             download = queue().pop(0)
         except IndexError, e:
-            #util.print_exception(e)
+            log.info('Download queue empty')
             return
 
         set_current(download)

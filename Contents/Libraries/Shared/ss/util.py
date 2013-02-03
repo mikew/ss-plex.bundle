@@ -2,12 +2,13 @@ from urllib import quote_plus as q
 
 import logging
 log = logging.getLogger("ss")
-formatter = logging.Formatter("%(asctime)s - %(name)s[%(lineno)s]\t- %(levelname)s\t- %(message)s")
+formatter = logging.Formatter("%(asctime)s - %(name)s\t- %(levelname)s\t%(message)s")
 log.setLevel(logging.DEBUG)
 
 import inspect, os
 log_file = os.path.abspath(inspect.getfile(inspect.currentframe()) + '/../../../../../ss.log')
-fh = logging.FileHandler(log_file)
+#fh = logging.FileHandler(log_file)
+fh = logging.handlers.TimedRotatingFileHandler(log_file)
 fh.setLevel(logging.DEBUG)
 fh.setFormatter(formatter)
 log.addHandler(fh)

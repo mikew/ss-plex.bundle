@@ -1,5 +1,7 @@
 import bridge
 from ss import Downloader, DownloadStatus, Wizard, cache, util
+import logging
+slog = logging.getLogger('ss.plex')
 
 #util.redirect_output('/home/mike/ssp-out')
 
@@ -19,7 +21,7 @@ def Start():
     ObjectContainer.view_group = 'List'
     ObjectContainer.art        = R(PLUGIN_ART)
     DirectoryObject.art        = R(PLUGIN_ART)
-    Log('"Starting" SS-Plex')
+    slog.debug('"Starting" SS-Plex')
 
 def ValidatePrefs(): pass
 
@@ -143,9 +145,11 @@ def FavoritesToggle(endpoint, show_title, artwork):
     message = None
 
     if bridge.favorite.includes(endpoint):
+        slog.info('Removing %s from favorites' % show_title)
         message = 'favorites.response.removed'
         bridge.favorite.remove(endpoint)
     else:
+        slog.info('Adding %s from favorites' % show_title)
         message = 'favorites.response.added'
         bridge.favorite.append(endpoint = endpoint, title = show_title, artwork = artwork)
 
@@ -223,6 +227,7 @@ def DownloadsQueue(endpoint, media_hint, title):
     if bridge.download.in_history(endpoint):
         message = 'exists'
     else:
+        slog.info('Adding %s %s to download queue' % (media_hint, title))
         message = 'added'
         bridge.download.append(title = title, endpoint = endpoint, media_hint = media_hint)
 
@@ -235,6 +240,7 @@ def DownloadsDispatch():
 
 @route('%s/downloads/dispatch/force' % PLUGIN_PREFIX)
 def DownloadsDispatchForce():
+    slog.warning('Repairing downloads')
     bridge.download.clear_current()
     dispatch_download_threaded()
 
@@ -247,9 +253,10 @@ def DownloadsCancel(endpoint):
             bridge.download.command('cancel')
         else:
             try:
+                slog.info('Removing %s from download queue' % endpoint)
                 bridge.download.remove(download)
             except Exception, e:
-                #util.print_exception(e)
+                slog.exception('Error cancelling download')
                 pass
 
         return dialog('heading.download', F('download.response.cancel', download['title']))
@@ -327,6 +334,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     return container
 
 def render_listings(endpoint, default_title = None, return_response = False, cache_time = None):
+    slog.debug('Rendering listings for %s' % endpoint)
     listings_endpoint = util.listings_endpoint(endpoint)
 
     response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time, timeout = 45)

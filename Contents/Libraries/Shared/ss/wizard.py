@@ -13,16 +13,20 @@ class Wizard(object):
         self.file_hint   = None
         self.avoid_flv   = avoid_flv
         self.environment = environment
+        self.consumer    = None
+        self.source_list = []
 
         try:
             def get_sources():
                 return util.gzip_request(util.sources_endpoint(self.endpoint))
 
-            self.payload   = self.environment.str_to_json(cache.fetch('%s-sources' % self.endpoint, get_sources, expires = cache.TIME_HOUR / 2))
-            self.file_hint = self.payload['resource']['display_title']
+            self.payload     = self.environment.str_to_json(cache.fetch('%s-sources' % self.endpoint, get_sources, expires = cache.TIME_HOUR / 2))
+            self.source_list = self.payload.get('items', [])
+            self.file_hint   = self.payload['resource']['display_title']
+
+            log.debug('%s has %s sources' % (self.file_hint, len(self.source_list)))
         except Exception, e:
-            #util.print_exception(e)
-            log.exception('Unable to get wizard info')
+            log.exception('Unable to get wizard info for %s' % endpoint)
             pass
 
     def filtered_sources(self):
@@ -58,18 +62,20 @@ class Wizard(object):
                 #continue
 
     def sources(self, cb):
-        for foreign in self.filtered_sources():
+        for foreign in self.source_list:
             try:
                 consumer = Consumer(self.translate(foreign), environment = self.environment)
 
                 if self.avoid_flv and '.flv' in consumer.asset_url():
-                    log.info('Avoiding .flv %s' % consumer.asset_url())
+                    log.info('Avoiding .flv')
                     raise Exception('Avoiding .flv')
 
                 cb(consumer)
+                self.consumer = consumer
                 break
             except Exception, e:
                 log.exception('Error on %s' % consumer.url)
+                self.consumer = None
                 continue
 
 if __name__ == '__main__':
@@ -88,9 +94,9 @@ if __name__ == '__main__':
             found = c.asset_url()
 
         def print_every_url(c):
-            print c.url
-            print c.asset_url()
-            print c.file_name()
+            c.asset_url()
+            c.file_name()
+            c.consume()
             raise Exception('moving on.')
 
         #w.sources(print_url)
