@@ -87,7 +87,6 @@ if __name__ == '__main__':
     found = None
     def test():
         w = Wizard(test_url)
-        print w.file_hint
 
         def print_url(c):
             global found
