@@ -46,12 +46,21 @@ def SystemIndex():
     container = ObjectContainer(title1 = L('heading.system'))
 
     container.add(PrefsObject(title = L('system.heading.preferences')))
+    container.add(button('system.heading.reset',             SystemResetMenu))
+    container.add(button('system.heading.dispatch-force',    DownloadsDispatchForce))
+    container.add(button('version %s' % util.version.string, SystemIndex))
+
+    return container
+
+@route('%s/system/reset/menu' % PLUGIN_PREFIX)
+def SystemResetMenu():
+    container = ObjectContainer(title1 = L('system.heading.reset'))
+
     container.add(confirm('system.heading.reset-favorites',        SystemConfirmResetFavorites))
     container.add(confirm('system.heading.reset-search',           SystemConfirmResetSearches))
     container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
+    container.add(confirm('system.heading.reset-ss-cache',         SystemConfirmResetSSCache))
     container.add(confirm('system.heading.reset-factory',          SystemConfirmResetFactory))
-    container.add(button('system.heading.dispatch-force',          DownloadsDispatchForce))
-    container.add(button('version %s' % util.version.string, SystemIndex))
 
     return container
 
@@ -63,6 +72,9 @@ def SystemConfirmResetSearches(): return warning('system.warning.reset-search', 
 
 @route('%s/system/confirm/reset-downloads' % PLUGIN_PREFIX)
 def SystemConfirmResetDownloads(): return warning('system.warning.reset-download-history', 'confirm.yes', SystemResetDownloads)
+
+@route('%s/system/confirm/reset-ss-cache' % PLUGIN_PREFIX)
+def SystemConfirmResetSSCache(): return warning('system.warning.reset-ss-cache', 'confirm.yes', SystemResetSSCache)
 
 @route('%s/system/confirm/reset-factory' % PLUGIN_PREFIX)
 def SystemConfirmResetFactory(): return warning('system.warning.reset-factory', 'confirm.yes', SystemResetFactory)
@@ -82,9 +94,16 @@ def SystemResetDownloads():
     bridge.download.clear_history()
     return dialog('heading.system', 'system.response.reset-download-history')
 
+@route('%s/system/reset/ss-cache' % PLUGIN_PREFIX)
+def SystemResetSSCache():
+    util.clear_cache()
+    return dialog('heading.system', 'system.response.reset-ss-cache')
+
 @route('%s/system/reset/factory' % PLUGIN_PREFIX)
 def SystemResetFactory():
+    util.clear_cache()
     Dict.Reset()
+    Dict.Save()
     return dialog('heading.system', 'system.response.reset-factory')
 
 #############

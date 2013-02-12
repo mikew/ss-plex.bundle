@@ -19,6 +19,16 @@ def log_to_stderr():
     ch.setFormatter(formatter)
     log.addHandler(ch)
 
+def clear_cache():
+    log.info('Clearing the cache.')
+
+    import inspect, os
+    cache_dir = os.path.abspath(inspect.getfile(inspect.currentframe()) + '/../tmp')
+
+    for f in os.listdir(cache_dir):
+        cached = os.path.join(cache_dir, f)
+        if os.path.isfile(cached): os.unlink(cached)
+
 def listings_endpoint(path):
     #base_url = 'http://localhost:9292'
     #base_url = 'http://10.0.1.120:9292'
