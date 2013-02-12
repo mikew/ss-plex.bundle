@@ -41,20 +41,15 @@ def MediaObjectsForURL(url):
 
     return [ obj ]
 
-found = None
 @indirect
 def PlayWizard(endpoint, avoid_flv = 0):
     wizard = Wizard(endpoint, environment = bridge.environment.plex, avoid_flv = bool(int(avoid_flv)))
 
-    def first_working(consumer):
-        global found
-        consumer.consume()
-        found = consumer
-
+    def first_working(consumer): consumer.consume()
     wizard.sources(first_working)
 
-    if found: return video(found)
-    else:     raise  Ex.MediaNotAvailable
+    if wizard.consumer: return video(wizard.consumer)
+    else:               raise  Ex.MediaNotAvailable
 
 @indirect
 def PlayConsumer(url):

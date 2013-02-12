@@ -84,22 +84,24 @@ if __name__ == '__main__':
     args     = sys.argv
     test_url = args[1]
 
-    found = None
+    worked = 0
     def test():
         w = Wizard(test_url)
 
-        def print_url(c):
-            global found
-            found = c.asset_url()
+        #def print_url(c): c.consume()
+        #w.sources(print_url)
+        #w.consumer.asset_url()
+        #w.consumer.file_name()
 
         def print_every_url(c):
+            global worked
             c.asset_url()
             c.file_name()
             c.consume()
+            worked += 1
             raise Exception('moving on.')
 
-        #w.sources(print_url)
-        #print found
         w.sources(print_every_url)
+        print '%d of %d worked' % (worked, len(w.source_list))
 
     test()
