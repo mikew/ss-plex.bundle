@@ -193,7 +193,7 @@ def DownloadsIndex(refresh = 0):
         container.add(popup_button(current['title'], DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
 
         for ln in status.report():
-            container.add(popup_button(ln, DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
+            container.add(popup_button('- %s' % ln, DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
 
     for download in bridge.download.queue():
         container.add(popup_button(download['title'], DownloadsOptions, endpoint = download['endpoint'], icon = 'icon-downloads-queue.png'))
@@ -289,7 +289,7 @@ def RenderListings(endpoint, default_title = None):
 @route('%s/WatchOptions' % PLUGIN_PREFIX)
 def WatchOptions(endpoint, title, media_hint):
     container    = render_listings(endpoint, default_title = title, cache_time = cache.TIME_DAY)
-    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
+    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s&title=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()), util.q(title))
     wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url)
     sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title)
 
@@ -311,7 +311,7 @@ def WatchOptions(endpoint, title, media_hint):
 @route('%s/ListSources' % PLUGIN_PREFIX)
 def ListSources(endpoint, title):
     wizard = Wizard(endpoint, environment = bridge.environment.plex)
-    return render_listings_response(wizard.payload, endpoint)
+    return render_listings_response(wizard.payload, endpoint, wizard.file_hint)
 
 @route('%s/series/i{refresh}' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
@@ -405,7 +405,10 @@ def render_listings_response(response, endpoint, default_title = None):
             else:
                 service_url = '//ss%s' % util.translate_endpoint(element['original_url'], element['foreign_url'], True)
 
-            native = VideoClipObject(title = element['domain'], url = service_url)
+            native = VideoClipObject(
+                title = element['domain'],
+                url   = '%s&title=%s' % (service_url, util.q(default_title))
+            )
 
         #elif 'final' == element_type:
             #ss_url = '//ss/procedure?url=%s&title=%s' % (util.q(element['url']), util.q('FILE HINT HERE'))

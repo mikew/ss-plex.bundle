@@ -8,24 +8,26 @@ d = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../Lib
 if not d in sys.path:
     sys.path.insert(0, d)
 
+from urlparse import urlparse
 from ss import Consumer, Wizard, util
+import cgi
 import bridge
 
 to_export = dict(Log = Log, XML = XML, HTML = HTML, JSON = JSON, HTTP = HTTP)
 bridge.plex.init(**to_export)
 
-from urlparse import urlparse
-import cgi
+util.redirect_output('/Users/mike/Work/python/ss-plex.bundle/out')
 
-#util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
-
-def NormalizeURL(url):
-    return url
+def NormalizeURL(url): return url
 
 def MetadataObjectForURL(url):
+    print url
+    nil, nil, path, nil, query, nil = urlparse(url)
+    params = cgi.parse_qs(query)
+
     co = VideoClipObject(
-        title   = 'foo',
-        summary = 'bar'
+        title   = params['title'][0],
+        #summary = 'bar'
     )
 
     return co
@@ -33,7 +35,7 @@ def MetadataObjectForURL(url):
 #@deferred
 def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
-    params   = cgi.parse_qs(query)
+    params = cgi.parse_qs(query)
 
     if   '/procedure' == path: obj = mo(PlayConsumer, url      = params['url'][0])
     elif '/wizard'    == path: obj = mo(PlayWizard,   endpoint = params['endpoint'][0], avoid_flv = params['avoid_flv'][0])
