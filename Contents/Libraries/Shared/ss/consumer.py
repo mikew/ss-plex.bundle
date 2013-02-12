@@ -114,7 +114,11 @@ class Consumer(object):
         self.agent.open(url, urllib.urlencode(params))
 
     def replace_page(self, response):
-        self.page = self.ungzipResponse(response).read()
+        response = self.ungzipResponse(response).read()
+        cache.instance().set('%s-markup' % self.url, response)
+
+    def markup(self):
+        return cache.instance().get('%s-markup' % self.url)
 
     def wait(self, seconds):
         import time
@@ -146,7 +150,7 @@ class Consumer(object):
         import zlib
         default_params = {
             'url':  self.url,
-            'page': self.page
+            'page': self.markup()
         }
 
         helper_url = util.listings_endpoint('/helpers')
@@ -168,7 +172,7 @@ class Consumer(object):
         haystack = None
         url      = args.get('url', 'last_page')
 
-        if 'last_page' == url: haystack = self.page
+        if 'last_page' == url: haystack = self.markup()
         else: haystack = self.ungzipResponse(self.agent.open(url)).read()
 
         return haystack
@@ -242,5 +246,5 @@ if __name__ == '__main__':
 
     consumer = Consumer(test_url)
 
-    print consumer.asset_url()
+    #print consumer.asset_url()
     print consumer.file_name()
