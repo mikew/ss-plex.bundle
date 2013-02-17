@@ -334,7 +334,14 @@ def ListSources(endpoint, title):
 
 @route('%s/series/i{refresh}' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
+    import re
+
     container, response = render_listings(endpoint + '/episodes', show_title, True)
+    title_regex         = r'^' + re.escape(show_title) + r':?\s+'
+
+    for item in container.objects:
+        item.title = re.sub(title_regex, '', item.title)
+
     labels   = [ 'add', 'remove' ]
     label    = labels[int(bridge.favorite.includes(endpoint))]
 
