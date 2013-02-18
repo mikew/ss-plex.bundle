@@ -48,6 +48,7 @@ def SystemIndex():
     container.add(PrefsObject(title = L('system.heading.preferences')))
     container.add(button('system.heading.reset',             SystemResetMenu))
     container.add(button('system.heading.dispatch-force',    DownloadsDispatchForce))
+    container.add(button('system.heading.status',            SystemStatus))
     container.add(button('version %s' % util.version.string, SystemIndex))
 
     return container
@@ -61,6 +62,17 @@ def SystemResetMenu():
     container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
     container.add(confirm('system.heading.reset-ss-cache',         SystemConfirmResetSSCache))
     container.add(confirm('system.heading.reset-factory',          SystemConfirmResetFactory))
+
+    return container
+
+@route('%s/system/status' % PLUGIN_PREFIX)
+def SystemStatus():
+    container         = ObjectContainer(title1 = L('system.heading.status'))
+    movie_destination = bridge.plex.section_destination('movie')
+    show_destination  = bridge.plex.section_destination('show')
+
+    container.add(button('Movies will be downloaded to %s'   % movie_destination, SystemStatus))
+    container.add(button('TV Shows will be downloaded to %s' % show_destination,  SystemStatus))
 
     return container
 
