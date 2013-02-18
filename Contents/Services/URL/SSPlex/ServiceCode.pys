@@ -16,12 +16,11 @@ import bridge
 to_export = dict(Log = Log, XML = XML, HTML = HTML, JSON = JSON, HTTP = HTTP)
 bridge.plex.init(**to_export)
 
-util.redirect_output('/Users/mike/Work/python/ss-plex.bundle/out')
+#util.redirect_output('/Users/mike/Work/python/ss-plex.bundle/out')
 
 def NormalizeURL(url): return url
 
 def MetadataObjectForURL(url):
-    print url
     nil, nil, path, nil, query, nil = urlparse(url)
     params   = cgi.parse_qs(query)
     endpoint = params['endpoint'][0]
@@ -70,14 +69,19 @@ def PlayForeign(original, foreign):
     return video(consumer)
 
 def video(consumer):
-    consumer.consume()
+    try:
+        consumer.consume()
+        return IndirectResponse(VideoClipObject, key = consumer.asset_url())
 
-    return IndirectResponse(VideoClipObject,
-        key = consumer.asset_url(),
+    except Exception, e:
+        raise Ex.MediaNotAvailable
+
+    #return IndirectResponse(VideoClipObject,
+        #key          = consumer.asset_url(),
         #user_agent   = consumer.ua,
         #http_cookies = consumer.agent_cookie_string(),
         #http_headers = { 'Referer': consumer.url }
-    )
+    #)
 
     # Some clients only work with Redirect
     # others (Desktop / aTV2) can use this
