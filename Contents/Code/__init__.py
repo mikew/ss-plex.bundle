@@ -304,10 +304,11 @@ def DownloadsNext():
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
-    def test_cache():
-        return 'foo'
+    #def test_cache():
+        #return 'foo'
 
-    return ObjectContainer(header = 'Test', message = cache_fetch('test', test_cache))
+    #return ObjectContainer(header = 'Test', message = cache_fetch('test', test_cache))
+    bridge.favorite.append(endpoint='/foo/bar',title='nada',artwork=None)
 
 ###################
 # Listing Methods #
@@ -352,7 +353,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     title_regex         = r'^' + re.escape(show_title) + r':?\s+'
 
     for item in container.objects:
-        item.title = re.sub(title_regex, '', item.title)
+        item.title = re.sub(title_regex, '', str(item.title))
 
     labels   = [ 'add', 'remove' ]
     label    = labels[int(bridge.favorite.includes(endpoint))]
@@ -361,7 +362,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
         endpoint   = endpoint,
         icon       = 'icon-favorites.png',
         show_title = show_title,
-        artwork    = response['resource']['artwork']
+        artwork    = (response or {}).get('resource', {}).get('artwork')
     ))
 
     add_refresh_to(container, refresh, ListTVShow,
@@ -375,8 +376,15 @@ def render_listings(endpoint, default_title = None, return_response = False, cac
     slog.debug('Rendering listings for %s' % endpoint)
     listings_endpoint = util.listings_endpoint(endpoint)
 
-    response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time, timeout = 45)
-    container = render_listings_response(response, endpoint = endpoint, default_title = default_title)
+    try:
+        response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time, timeout = 45)
+        container = render_listings_response(response, endpoint = endpoint, default_title = default_title)
+    except Exception, e:
+        slog.exception('Error requesting %s' % endpoint)
+
+        response  = None
+        container = ObjectContainer(title1 = default_title)
+        container.add(button('heading.error', noop))
 
     if return_response:
         return [ container, response ]
@@ -478,6 +486,8 @@ def render_listings_response(response, endpoint, default_title = None):
 ##################
 # Plugin Helpers #
 ##################
+
+def noop(): return dialog('hello', 'good day')
 
 def dialog(title, message):           return ObjectContainer(header = L(str(title)), message = L(str(message)))
 def confirm(otitle, ocb, **kwargs):   return popup_button(L(str(otitle)), ocb, **kwargs)
