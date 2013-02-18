@@ -23,11 +23,14 @@ def NormalizeURL(url): return url
 def MetadataObjectForURL(url):
     print url
     nil, nil, path, nil, query, nil = urlparse(url)
-    params = cgi.parse_qs(query)
+    params   = cgi.parse_qs(query)
+    endpoint = params['endpoint'][0]
+    wizard   = Wizard(endpoint, environment = bridge.environment.plex)
 
     co = VideoClipObject(
-        title   = params['title'][0],
-        #summary = 'bar'
+        title   = wizard.file_hint,
+        summary = wizard.payload['resource']['display_overview'],
+        thumb   = wizard.payload['resource']['artwork']
     )
 
     return co

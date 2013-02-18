@@ -308,7 +308,7 @@ def RenderListings(endpoint, default_title = None):
 @route('%s/WatchOptions' % PLUGIN_PREFIX)
 def WatchOptions(endpoint, title, media_hint):
     container    = render_listings(endpoint, default_title = title, cache_time = cache.TIME_DAY)
-    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s&title=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()), util.q(title))
+    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
     wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url)
     sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title)
 
@@ -433,7 +433,7 @@ def render_listings_response(response, endpoint, default_title = None):
 
             native = VideoClipObject(
                 title = element['domain'],
-                url   = '%s&title=%s' % (service_url, util.q(default_title))
+                url   = '%s&endpoint=%s' % (service_url, util.q(endpoint))
             )
 
         #elif 'final' == element_type:
