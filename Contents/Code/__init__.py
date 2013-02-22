@@ -34,6 +34,7 @@ def MainMenu():
     container.add(button('search.heading.saved', SearchIndex, icon = 'icon-saved-search.png'))
     container.add(button('heading.download',     DownloadsIndex, refresh = 0, icon = 'icon-downloads.png'))
     container.add(button('heading.system',       SystemIndex, icon = 'icon-system.png'))
+    container.add(PrefsObject(title = L('system.heading.preferences')))
 
     return container
 
@@ -45,7 +46,6 @@ def MainMenu():
 def SystemIndex():
     container = ObjectContainer(title1 = L('heading.system'))
 
-    container.add(PrefsObject(title = L('system.heading.preferences')))
     container.add(button('system.heading.reset',             SystemResetMenu))
     container.add(button('system.heading.dispatch-force',    DownloadsDispatchForce))
     container.add(button('system.heading.status',            SystemStatus))
