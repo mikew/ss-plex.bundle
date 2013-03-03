@@ -145,7 +145,8 @@ def dispatch(should_thread = True):
         downloader = Downloader(download['endpoint'],
             environment = environment.plex,
             destination = plex.section_destination(download['media_hint']),
-            limit       = speed_limit()
+            limit       = speed_limit(),
+            strategy    = strategy()
         )
         downloader.wizard.avoid_flv = avoid_flv()
 
