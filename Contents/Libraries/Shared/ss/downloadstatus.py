@@ -32,18 +32,16 @@ def parse_wget(fname):
         f.close()
 
         status_line      = data.split("\r")[-1]
-        status_match     = re.search(r'(\d+).*?([0-9A-Za-z]+)/s\s+eta (.+) ', status_line)
+        status_match     = re.search(r'(\d+)%.*?([0-9A-Za-z]+)/s\s+(?:eta|in) (.+) ', status_line)
         total_size       = re.search(r'^Length: \d+ \((.+)\)', data, re.MULTILINE).group(1)
         percent_total    = status_match.group(1)
         average_download = status_match.group(2)
-        eta              = status_match.group(3)
+        eta              = status_match.group(3).strip()
 
-        print status_line
-        print [ total_size, percent_total, average_download, eta ]
         values = [ percent_total, total_size, percent_total, '?', '?', '?', average_download, 0, '?', '?', eta, average_download ]
     except Exception, e:
-        import util
         util.print_exception(e)
+        pass
 
     return values
 
@@ -81,12 +79,10 @@ class DownloadStatus(object):
             values = globals()['parse_' + self.strategy](self.fname)
 
             for i, value in enumerate(values):
-                print "%s\t%s" % (keys[i], value)
                 setattr(self, keys[i], value)
         except:
             values = [ 0, '?', 0, 0, 0, 0, 0, 0, '?', 0, '?', 0 ]
             for i, value in enumerate(values):
-                print "%s\t%s" % (keys[i], value)
                 setattr(self, keys[i], value)
 
         self.parsed = True
@@ -97,8 +93,8 @@ if __name__ == '__main__':
 
     #status = DownloadStatus('curl-status-file', strategy = 'curl')
     #status = DownloadStatus('wget-status-file',           strategy = 'wget')
-    #status = DownloadStatus('wget-finished-status-file',  strategy = 'wget')
-    status = DownloadStatus('wget-failed-status-file',    strategy = 'wget')
+    status = DownloadStatus('wget-finished-status-file',  strategy = 'wget')
+    #status = DownloadStatus('wget-failed-status-file',    strategy = 'wget')
     #status = DownloadStatus('nonexistent')
     for ln in status.report():
         print ln

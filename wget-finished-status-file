@@ -1,0 +1,19 @@
+--2013-03-03 00:08:58--  http://media-c10.putlocker.com/download/16/79/f93dccd354b5856dc962f64ff8166a76?h=Uougm_1UBUh0l2l-vJnn8A&e=1362291776&f=7dec5af053c4d663d9a2ba97dd1f0d0c.flv
+Resolving media-c10.putlocker.com... 84.39.116.6
+Connecting to media-c10.putlocker.com|84.39.116.6|:80... connected.
+HTTP request sent, awaiting response... 
+  HTTP/1.1 200 OK
+  Server: nginx
+  Date: Sun, 03 Mar 2013 03:38:59 GMT
+  Content-Type: application/octet-stream
+  Content-Length: 270213104
+  Last-Modified: Sat, 02 Mar 2013 22:36:52 GMT
+  Connection: close
+  Content-Disposition: attachment; filename="7dec5af053c4d663d9a2ba97dd1f0d0c.flv"
+  Accept-Ranges: bytes
+Length: 270213104 (258M) [application/octet-stream]
+Saving to: â˜/Users/mike/Movies/TV/Real Time With Bill Maher 11x6 March 1 2013.mp4.partâ™
+
+100%[======================================>] 270,213,104  726KB/s   in 6m 3s  
+
+2013-03-03 00:15:02 (728 KB/s) - â˜/Users/mike/Movies/TV/Real Time With Bill Maher 11x6 March 1 2013.mp4.partâ™ saved [270213104/270213104]
