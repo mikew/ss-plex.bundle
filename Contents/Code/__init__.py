@@ -254,11 +254,11 @@ def DownloadsIndex(refresh = 0):
 
 @route('%s/downloads/show' % PLUGIN_PREFIX)
 def DownloadsOptions(endpoint):
-    download  = bridge.download.from_queue(endpoint)
-    failed    = bridge.download.from_failed(endpoint)
+    download = bridge.download.from_queue(endpoint)
+    failed   = bridge.download.from_failed(endpoint)
 
     if download:
-        container = ObjectContainer(title1 = download['title'])
+        container     = ObjectContainer(title1 = download['title'])
         cancel_button = button('download.heading.cancel', DownloadsCancel, endpoint = endpoint)
 
         if bridge.download.is_current(endpoint):
@@ -272,9 +272,9 @@ def DownloadsOptions(endpoint):
 
         return container
     elif failed:
-        container = ObjectContainer(title1 = failed['title'])
-
-        retry_button = button('download.heading.retry', DownloadsQueue,
+        container     = ObjectContainer(title1 = failed['title'])
+        cancel_button = button('download.heading.cancel', DownloadsRemoveFailed, endpoint = endpoint)
+        retry_button  = button('download.heading.retry', DownloadsQueue,
             endpoint   = failed['endpoint'],
             media_hint = failed['media_hint'],
             title      = failed['title'],
@@ -282,6 +282,7 @@ def DownloadsOptions(endpoint):
         )
 
         container.add(retry_button)
+        container.add(cancel_button)
 
         return container
     else:
@@ -331,6 +332,12 @@ def DownloadsCancel(endpoint):
 @route('%s/downloads/next' % PLUGIN_PREFIX)
 def DownloadsNext():
     bridge.download.command('next')
+    return dialog('heading.download', 'download.response.next')
+
+@route('%s/downloads/remove-failed' % PLUGIN_PREFIX)
+def DownloadsRemoveFailed(endpoint):
+    bridge.download.remove_failed(endpoint)
+    return dialog('heading.download', 'download.response.remove-failed')
 
 #########################
 # Development Endpoints #
