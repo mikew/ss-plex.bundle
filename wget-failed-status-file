@@ -1,0 +1,34 @@
+--2013-03-02 23:38:42--  http://media-c10.putlocker.com/download/9/49/4c79841cfaf3d97aaccedef1dc40c6d1?h=SiAPDxApWudPi8VmbjmuMA&e=1362279661&f=ba56f705aaf55dea431c17317a5a4292.flv
+Resolving media-c10.putlocker.com... 84.39.116.6
+Connecting to media-c10.putlocker.com|84.39.116.6|:80... connected.
+HTTP request sent, awaiting response... 
+  HTTP/1.1 302 Moved Temporarily
+  Server: nginx
+  Date: Sun, 03 Mar 2013 03:08:43 GMT
+  Content-Type: text/html
+  Content-Length: 154
+  Connection: close
+  Location: http://www.putlocker.com?h=SiAPDxApWudPi8VmbjmuMA&e=1362279661&f=ba56f705aaf55dea431c17317a5a4292.flv
+  Content-Disposition: attachment; filename="ba56f705aaf55dea431c17317a5a4292.flv"
+Location: http://www.putlocker.com?h=SiAPDxApWudPi8VmbjmuMA&e=1362279661&f=ba56f705aaf55dea431c17317a5a4292.flv [following]
+--2013-03-02 23:38:43--  http://www.putlocker.com/?h=SiAPDxApWudPi8VmbjmuMA&e=1362279661&f=ba56f705aaf55dea431c17317a5a4292.flv
+Resolving www.putlocker.com... 89.238.130.247
+Connecting to www.putlocker.com|89.238.130.247|:80... connected.
+HTTP request sent, awaiting response... 
+  HTTP/1.1 200 OK
+  Server: nginx
+  Date: Sun, 03 Mar 2013 03:08:43 GMT
+  Content-Type: text/html
+  Transfer-Encoding: chunked
+  Set-Cookie: PHPSESSID=ot2sjb7nobkf229958ss4telf6; path=/
+  Expires: Thu, 19 Nov 1981 08:52:00 GMT
+  Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+  Pragma: no-cache
+  Set-Cookie: SERVERID=w1x; path=/
+Length: unspecified [text/html]
+Saving to: ‘/Users/mike/Work/python/ss-plex.bundle/Green Lantern The Animated Series 1x24 Scarred.avi.part.html’
+
+    [<=>                                    ] 0           --.-K/s                  [ <=>                                   ] 7,709       --.-K/s   in 0.1s    
+
+2013-03-02 23:38:43 (66.8 KB/s) - ‘/Users/mike/Work/python/ss-plex.bundle/Green Lantern The Animated Series 1x24 Scarred.avi.part.html’ saved [7709]
+

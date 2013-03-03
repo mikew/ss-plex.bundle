@@ -154,21 +154,19 @@ class Downloader(object):
     def really_download(self):
         from signal import SIGTERM
         import subprocess
-        import re
 
-        options = self.curl_options()
-        log.info(options)
-        piped    = subprocess.Popen(options)
+        command  = self.download_command()
+        piped    = subprocess.Popen(command)
         self.pid = piped.pid
 
+        log.info(command)
         self.run_start_callbacks()
         piped.wait()
 
         returned = abs(piped.returncode)
-        status   = DownloadStatus(self.status_file())
-        status.parse_status_file()
+        status   = DownloadStatus(self.status_file(), strategy = self.strategy)
 
-        if re.search(r'(k|K|\d)$', status.total_size):
+        if status.file_too_small():
             returned = 99
 
         if 0 == returned:
@@ -184,7 +182,8 @@ class Downloader(object):
             raise Exception('cURL returned %s, trying next source.' % returned)
 
     def cleanup_status_file(self):
-        self.attempt_remove(self.status_file())
+        #self.attempt_remove(self.status_file())
+        pass
 
     def cleanup(self):
         self.cleanup_status_file()
@@ -206,7 +205,7 @@ if __name__ == '__main__':
     def success(dl): print 'success'
     def error(dl):   print 'error'
 
-    dl = Downloader(test_url, destination = os.getcwd())
+    dl = Downloader(test_url, destination = os.getcwd(), strategy = 'wget')
 
     dl.on_start(start)
     dl.on_success(success)

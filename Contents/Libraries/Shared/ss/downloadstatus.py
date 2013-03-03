@@ -1,5 +1,3 @@
-# -*- coding: UTF-8 -*-
-
 keys = [
   'percent_total',
   'total_size',
@@ -15,11 +13,46 @@ keys = [
   'current_speed'
 ]
 
+def parse_curl(fname):
+    values = None
+    f = open(fname, 'r')
+    f.seek(-100, 2)
+    values = f.read().split("\r")[-1].split()
+    f.close()
+
+    return values
+
+def parse_wget(fname):
+    values = None
+
+    try:
+        import re
+        f = open(fname, 'r')
+        data = f.read()
+        f.close()
+
+        status_line      = data.split("\r")[-1]
+        status_match     = re.search(r'(\d+).*?([0-9A-Za-z]+)/s\s+eta (.+) ', status_line)
+        total_size       = re.search(r'^Length: \d+ \((.+)\)', data, re.MULTILINE).group(1)
+        percent_total    = status_match.group(1)
+        average_download = status_match.group(2)
+        eta              = status_match.group(3)
+
+        print status_line
+        print [ total_size, percent_total, average_download, eta ]
+        values = [ percent_total, total_size, percent_total, '?', '?', '?', average_download, 0, '?', '?', eta, average_download ]
+    except Exception, e:
+        import util
+        util.print_exception(e)
+
+    return values
+
 class DownloadStatus(object):
-    def __init__(self, fname):
+    def __init__(self, fname, strategy = 'curl'):
         super(DownloadStatus, self).__init__()
-        self.fname  = fname
-        self.parsed = False
+        self.fname    = fname
+        self.parsed   = False
+        self.strategy = strategy
 
     def report_progress(self):
         self.parse_status_file()
@@ -32,20 +65,28 @@ class DownloadStatus(object):
     def report(self):
         return [ self.report_progress(), self.report_speed() ]
 
+    def file_too_small(self):
+        import re
+
+        self.parse_status_file()
+        if re.search(r'(k|K|\d|\?)$', self.total_size):
+            return True
+        else:
+            return False
+
     def parse_status_file(self):
         if self.parsed: return
 
         try:
-            f = open(self.fname, 'r')
-            f.seek(-100, 2)
-            values = f.read().split("\r")[-1].split()
-            f.close()
+            values = globals()['parse_' + self.strategy](self.fname)
 
             for i, value in enumerate(values):
+                print "%s\t%s" % (keys[i], value)
                 setattr(self, keys[i], value)
         except:
             values = [ 0, '?', 0, 0, 0, 0, 0, 0, '?', 0, '?', 0 ]
             for i, value in enumerate(values):
+                print "%s\t%s" % (keys[i], value)
                 setattr(self, keys[i], value)
 
         self.parsed = True
@@ -54,7 +95,12 @@ if __name__ == '__main__':
     import sys
     args = sys.argv
 
-    status = DownloadStatus('curl-status-file')
-    #status = DownloadStatus('zcurl-status-file')
+    #status = DownloadStatus('curl-status-file', strategy = 'curl')
+    #status = DownloadStatus('wget-status-file',           strategy = 'wget')
+    #status = DownloadStatus('wget-finished-status-file',  strategy = 'wget')
+    status = DownloadStatus('wget-failed-status-file',    strategy = 'wget')
+    #status = DownloadStatus('nonexistent')
     for ln in status.report():
         print ln
+
+    print status.file_too_small()
