@@ -16,7 +16,7 @@
   'search.response.removed': 'Your search has been removed.',
 
   'system.heading.dispatch-force':          'Repair Downloads',
-  'system.heading.status':                  'Status',
+  'system.heading.status':                  'Information',
   'system.heading.reset':                   'Reset',
   'system.heading.reset-favorites':         'Favorites',
   'system.heading.reset-search':            'Saved Searches',

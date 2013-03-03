@@ -46,9 +46,9 @@ def MainMenu():
 def SystemIndex():
     container = ObjectContainer(title1 = L('heading.system'))
 
-    container.add(button('system.heading.reset',             SystemResetMenu, icon = 'icon-reset.png'))
-    container.add(button('system.heading.dispatch-force',    DownloadsDispatchForce))
-    container.add(button('system.heading.status',            SystemStatus))
+    container.add(button('system.heading.reset',          SystemResetMenu, icon = 'icon-reset.png'))
+    container.add(button('system.heading.status',         SystemStatus,    icon = 'icon-system-status.png'))
+    container.add(button('system.heading.dispatch-force', DownloadsDispatchForce))
 
     return container
 
@@ -346,11 +346,12 @@ def DownloadsRemoveFailed(endpoint):
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
     pass
-    #def test_cache():
-        #return 'foo'
+    #import os
+    #env = ""
+    #for k, v in os.environ.iteritems():
+        #env += "%s='%s' " % (k, v)
 
-    #return ObjectContainer(header = 'Test', message = cache_fetch('test', test_cache))
-    #bridge.favorite.append(endpoint='/foo/bar',title='nada',artwork=None)
+    #return dialog('test', env)
 
 ###################
 # Listing Methods #
