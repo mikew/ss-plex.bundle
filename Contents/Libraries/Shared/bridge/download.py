@@ -12,6 +12,7 @@ log = logging.getLogger('ss.bridge.download')
 
 def queue():           return user.initialize_dict('downloads',        [])
 def history():         return user.initialize_dict('download_history', [])
+def failed():          return user.initialize_dict('download_failed',  [])
 def avoid_flv():       return plex.user_prefs()['avoid_flv_downloading']
 def speed_limit():     return plex.user_prefs()['download_limit']
 def current():         return plex.user_dict()['download_current']
@@ -33,13 +34,27 @@ def strategy():
 
 def clear_history(): user.attempt_clear('download_history')
 def clear_current(): user.attempt_clear('download_current')
+def clear_failed():  user.attempt_clear('download_failed')
 
 def append(**kwargs):
     queue().append(kwargs)
     plex.user_dict().Save()
 
+def append_failed(**kwargs):
+    failed().append(kwargs)
+    plex.user_dict().Save()
+
 def remove(download):
     queue().remove(download)
+    plex.user_dict().Save()
+
+def remove_failed(endpoint):
+    found = from_failed(endpoint)
+
+    if not found:
+        return
+
+    failed().remove(found)
     plex.user_dict().Save()
 
 def set_current(download):
@@ -67,6 +82,10 @@ def from_queue(endpoint):
 
         if found:
             return found[0]
+
+def from_failed(endpoint):
+    found = filter(lambda download: download['endpoint'] == endpoint, failed())
+    if found: return found[0]
 
 def pid_running_windows(pid):
     import ctypes, ctypes.wintypes
@@ -150,6 +169,12 @@ def dispatch(should_thread = True):
     def store_download_endpoint(dl):
         history().append(dl.endpoint)
 
+    def append_failed_download(dl):
+        append_failed(endpoint = dl.endpoint, title = dl.wizard.file_hint, media_hint = download['media_hint'])
+
+    def clear_download_from_failed(dl):
+        remove_failed(dl.endpoint)
+
     set_current(download)
 
     def perform_download():
@@ -162,11 +187,13 @@ def dispatch(should_thread = True):
         downloader.wizard.avoid_flv = avoid_flv()
 
         downloader.on_start(store_curl_pid)
+        downloader.on_start(clear_download_from_failed)
 
         downloader.on_success(update_library)
         downloader.on_success(store_download_endpoint)
         downloader.on_success(clear_download_and_dispatch)
 
+        downloader.on_error(append_failed_download)
         downloader.on_error(clear_download_and_dispatch)
 
         downloader.download()

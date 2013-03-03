@@ -59,6 +59,7 @@ def SystemResetMenu():
     container.add(confirm('system.heading.reset-favorites',        SystemConfirmResetFavorites))
     container.add(confirm('system.heading.reset-search',           SystemConfirmResetSearches))
     container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
+    container.add(confirm('system.heading.reset-download-failed',  SystemConfirmResetDownloadsFailed))
     container.add(confirm('system.heading.reset-ss-cache',         SystemConfirmResetSSCache))
     container.add(confirm('system.heading.reset-factory',          SystemConfirmResetFactory))
 
@@ -79,19 +80,28 @@ def SystemStatus():
     return container
 
 @route('%s/system/confirm/reset-favorites' % PLUGIN_PREFIX)
-def SystemConfirmResetFavorites(): return warning('system.warning.reset-favorites', 'confirm.yes', SystemResetFavorites)
+def SystemConfirmResetFavorites():
+    return warning('system.warning.reset-favorites', 'confirm.yes', SystemResetFavorites)
 
 @route('%s/system/confirm/reset-searches' % PLUGIN_PREFIX)
-def SystemConfirmResetSearches(): return warning('system.warning.reset-search', 'confirm.yes', SystemResetSearches)
+def SystemConfirmResetSearches():
+    return warning('system.warning.reset-search', 'confirm.yes', SystemResetSearches)
 
 @route('%s/system/confirm/reset-downloads' % PLUGIN_PREFIX)
-def SystemConfirmResetDownloads(): return warning('system.warning.reset-download-history', 'confirm.yes', SystemResetDownloads)
+def SystemConfirmResetDownloads():
+    return warning('system.warning.reset-download-history', 'confirm.yes', SystemResetDownloads)
+
+@route('%s/system/confirm/reset-downloads-failed' % PLUGIN_PREFIX)
+def SystemConfirmResetDownloadsFailed():
+    return warning('system.warning.reset-download-failed', 'confirm.yes', SystemResetDownloadsFailed)
 
 @route('%s/system/confirm/reset-ss-cache' % PLUGIN_PREFIX)
-def SystemConfirmResetSSCache(): return warning('system.warning.reset-ss-cache', 'confirm.yes', SystemResetSSCache)
+def SystemConfirmResetSSCache():
+    return warning('system.warning.reset-ss-cache', 'confirm.yes', SystemResetSSCache)
 
 @route('%s/system/confirm/reset-factory' % PLUGIN_PREFIX)
-def SystemConfirmResetFactory(): return warning('system.warning.reset-factory', 'confirm.yes', SystemResetFactory)
+def SystemConfirmResetFactory():
+    return warning('system.warning.reset-factory', 'confirm.yes', SystemResetFactory)
 
 @route('%s/system/reset/favorites' % PLUGIN_PREFIX)
 def SystemResetFavorites():
@@ -107,6 +117,11 @@ def SystemResetSearches():
 def SystemResetDownloads():
     bridge.download.clear_history()
     return dialog('heading.system', 'system.response.reset-download-history')
+
+@route('%s/system/reset/downloads-failed' % PLUGIN_PREFIX)
+def SystemResetDownloadsFailed():
+    bridge.download.clear_failed()
+    return dialog('heading.system', 'system.response.reset-download-failed')
 
 @route('%s/system/reset/ss-cache' % PLUGIN_PREFIX)
 def SystemResetSSCache():
@@ -231,25 +246,42 @@ def DownloadsIndex(refresh = 0):
     for download in bridge.download.queue():
         container.add(popup_button(download['title'], DownloadsOptions, endpoint = download['endpoint'], icon = 'icon-downloads-queue.png'))
 
+    for download in bridge.download.failed():
+        container.add(popup_button(download['title'], DownloadsOptions, endpoint = download['endpoint'], icon = 'icon-downloads-failed.png'))
+
     add_refresh_to(container, refresh, DownloadsIndex)
     return container
 
 @route('%s/downloads/show' % PLUGIN_PREFIX)
 def DownloadsOptions(endpoint):
-    download = bridge.download.from_queue(endpoint)
+    download  = bridge.download.from_queue(endpoint)
+    failed    = bridge.download.from_failed(endpoint)
 
     if download:
-        container  = ObjectContainer(title1 = download['title'])
-        obj_cancel = button('download.heading.cancel', DownloadsCancel, endpoint = endpoint)
+        container = ObjectContainer(title1 = download['title'])
+        cancel_button = button('download.heading.cancel', DownloadsCancel, endpoint = endpoint)
 
         if bridge.download.is_current(endpoint):
             if bridge.download.curl_running():
                 container.add(button('download.heading.next', DownloadsNext))
-                container.add(obj_cancel)
+                container.add(cancel_button)
             else:
                 container.add(button('download.heading.repair', DownloadsDispatchForce))
         else:
-            container.add(obj_cancel)
+            container.add(cancel_button)
+
+        return container
+    elif failed:
+        container = ObjectContainer(title1 = failed['title'])
+
+        retry_button = button('download.heading.retry', DownloadsQueue,
+            endpoint   = failed['endpoint'],
+            media_hint = failed['media_hint'],
+            title      = failed['title'],
+            icon       = 'icon-downloads-queue.png'
+        )
+
+        container.add(retry_button)
 
         return container
     else:
