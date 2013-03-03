@@ -10,7 +10,7 @@ PLUGIN_TITLE  = L('title')
 PLUGIN_ART    = 'art-default.jpg'
 PLUGIN_ICON   = 'icon-default.png'
 
-to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs, HTTP = HTTP)
+to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs, HTTP = HTTP, Platform = Platform)
 bridge.plex.init(**to_export)
 
 def Start():
@@ -49,7 +49,6 @@ def SystemIndex():
     container.add(button('system.heading.reset',             SystemResetMenu, icon = 'icon-reset.png'))
     container.add(button('system.heading.dispatch-force',    DownloadsDispatchForce))
     container.add(button('system.heading.status',            SystemStatus))
-    container.add(button('version %s' % util.version.string, SystemIndex))
 
     return container
 
@@ -70,9 +69,12 @@ def SystemStatus():
     container         = ObjectContainer(title1 = L('system.heading.status'))
     movie_destination = bridge.plex.section_destination('movie')
     show_destination  = bridge.plex.section_destination('show')
+    download_strategy = bridge.download.strategy()
 
-    container.add(button('Movies will be downloaded to %s'   % movie_destination, SystemStatus))
-    container.add(button('TV Shows will be downloaded to %s' % show_destination,  SystemStatus))
+    container.add(button('Movies will be downloaded to %s'   % movie_destination,   noop))
+    container.add(button('TV Shows will be downloaded to %s' % show_destination,    noop))
+    container.add(button('Media will be downloaded with %s'  % download_strategy,   noop))
+    container.add(button('version %s'                        % util.version.string, noop))
 
     return container
 
@@ -219,7 +221,7 @@ def DownloadsIndex(refresh = 0):
     if bridge.download.assumed_running():
         current       = bridge.download.current()
         endpoint      = current['endpoint']
-        status        = DownloadStatus(Downloader.status_file_for(endpoint))
+        status        = DownloadStatus(Downloader.status_file_for(endpoint), strategy = bridge.download.strategy())
 
         container.add(popup_button(current['title'], DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
 
@@ -304,11 +306,12 @@ def DownloadsNext():
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
+    pass
     #def test_cache():
         #return 'foo'
 
     #return ObjectContainer(header = 'Test', message = cache_fetch('test', test_cache))
-    bridge.favorite.append(endpoint='/foo/bar',title='nada',artwork=None)
+    #bridge.favorite.append(endpoint='/foo/bar',title='nada',artwork=None)
 
 ###################
 # Listing Methods #
