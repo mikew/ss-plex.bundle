@@ -17,5 +17,12 @@
     "type":     "enum",
     "values":   [ "0", "100", "200", "300", "500", "800", "1300", "2100" ],
     "default":  "0"
+  },
+  {
+    "id":       "download_strategy",
+    "label":    "Download using",
+    "type":     "enum",
+    "values":   [ "auto", "curl", "wget" ],
+    "default":  "auto"
   }
 ]

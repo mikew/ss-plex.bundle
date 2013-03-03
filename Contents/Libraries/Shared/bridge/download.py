@@ -20,6 +20,17 @@ def assumed_running(): return 'download_current' in plex.user_dict()
 def curl_running():    return pid_running(current_pid())
 def running_windows(): return 'nt' == os.name
 
+def strategy():
+    strategy = plex.user_prefs()['download_strategy']
+
+    if 'auto' == strategy:
+        strategy = 'curl'
+
+        if 'Linux' == plex.platform_os():
+            strategy = 'wget'
+
+    return strategy
+
 def clear_history(): user.attempt_clear('download_history')
 def clear_current(): user.attempt_clear('download_current')
 

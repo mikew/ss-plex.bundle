@@ -2,15 +2,14 @@ config = dict()
 
 def init(**kwargs):
     global config
-    existing = config.keys()
 
     for key, val in kwargs.iteritems():
-        if not key in existing:
-            config[key] = val
+        if key in config: continue
+        config[key] = val
 
-
-def user_dict():  return config['Dict']
-def user_prefs(): return config['Prefs']
+def user_dict():   return config['Dict']
+def user_prefs():  return config['Prefs']
+def platform_os(): return config['Platform'].OS
 
 def section_element(section):
     query = '//Directory[@type="%s"]' % section
