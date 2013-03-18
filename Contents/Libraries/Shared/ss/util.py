@@ -167,5 +167,5 @@ def sorted_by_title(collection, getter = lambda x: x):
 class version:
     major  = 0
     minor  = 5
-    patch  = 0
+    patch  = 1
     string = '%s.%s.%s' % (major, minor, patch)
