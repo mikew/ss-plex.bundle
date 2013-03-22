@@ -6,3 +6,4 @@ media-server.log
 plex-system.log
 plugin-log
 Contents/Libraries/Shared/ss/tmp/*
+ss.log

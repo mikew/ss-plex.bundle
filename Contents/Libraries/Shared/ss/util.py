@@ -1,11 +1,33 @@
 from urllib import quote_plus as q
-# import logging
-# logging.basicConfig(
-#     filename = r'C:\Users\Mike\Desktop\ss.log',
-#     level    = logging.DEBUG,
-#     format   = '%(asctime)s %(message)s [%(levelname)s]',
-#     datefmt  = '%m/%d/%Y %I:%M:%S %p'
-# )
+
+import logging
+log = logging.getLogger("ss")
+formatter = logging.Formatter("%(asctime)s - %(name)s\t- %(levelname)s\t%(message)s")
+log.setLevel(logging.DEBUG)
+
+import inspect, os
+log_file = os.path.abspath(inspect.getfile(inspect.currentframe()) + '/../../../../../ss.log')
+fh = logging.FileHandler(log_file)
+#fh = logging.TimedRotatingFileHandler(log_file)
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+log.addHandler(fh)
+
+def log_to_stderr():
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
+
+def clear_cache():
+    log.info('Clearing the cache.')
+
+    import inspect, os
+    cache_dir = os.path.abspath(inspect.getfile(inspect.currentframe()) + '/../tmp')
+
+    for f in os.listdir(cache_dir):
+        cached = os.path.join(cache_dir, f)
+        if os.path.isfile(cached): os.unlink(cached)
 
 def listings_endpoint(path):
     #base_url = 'http://localhost:9292'
@@ -144,6 +166,6 @@ def sorted_by_title(collection, getter = lambda x: x):
 
 class version:
     major  = 0
-    minor  = 2
-    patch  = 4
+    minor  = 5
+    patch  = 1
     string = '%s.%s.%s' % (major, minor, patch)

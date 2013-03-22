@@ -2,6 +2,9 @@ import util
 import environment
 import cache
 
+import logging
+log = logging.getLogger('ss.consumer')
+
 class Consumer(object):
     def __init__(self, url, environment = environment.default):
         import mechanize
@@ -40,7 +43,7 @@ class Consumer(object):
         self.final = final
 
     def consume(self):
-        if self.consumed or not cache.stale('%s-url' % self.url):
+        if self.consumed or not cache.stale('%s-url' % self.url, expires = 3 * cache.TIME_HOUR):
             return
 
         self.proc = self.find_procedure()
@@ -71,6 +74,7 @@ class Consumer(object):
                 break
 
         if found:
+            log.info('Found procedure for %s' % domain)
             proc = procedures[found]
             del proc[0]
             return proc
@@ -80,7 +84,9 @@ class Consumer(object):
             self.consume()
             return self.final
 
-        return cache.fetch('%s-url' % self.url, get_final, expires = 3 * cache.TIME_HOUR)
+        cached = cache.fetch('%s-url' % self.url, get_final, expires = 3 * cache.TIME_HOUR)
+        log.info(cached)
+        return cached
 
     def file_name(self):
         def get_fname():
@@ -90,12 +96,14 @@ class Consumer(object):
         if not self.fname:
             self.fname = cache.fetch('%s-fname' % self.url, get_fname, expires = cache.TIME_DAY)
 
+        log.info(self.fname)
         return self.fname
 
     def run_step(self, step):
         getattr(self, step['name'])(step['args'])
 
     def request_page(self, url):
+        log.debug('Requesting %s' % url)
         self.replace_page( self.agent.open(url) )
 
     def post_request(self, params):
@@ -106,14 +114,18 @@ class Consumer(object):
         self.agent.open(url, urllib.urlencode(params))
 
     def replace_page(self, response):
-        self.page = self.ungzipResponse(response).read()
+        response = self.ungzipResponse(response).read()
+        cache.instance().set('%s-markup' % self.url, response)
+
+    def markup(self):
+        return cache.instance().get('%s-markup' % self.url)
 
     def wait(self, seconds):
         import time
+        log.debug('Waiting for %s seconds' % seconds)
         time.sleep(seconds)
 
     def submit_form(self, args):
-
         # TODO: handle more cases
         if args.get('index') is not None:
             self.agent.select_form(nr = args['index'])
@@ -138,7 +150,7 @@ class Consumer(object):
         import zlib
         default_params = {
             'url':  self.url,
-            'page': self.page
+            'page': self.markup()
         }
 
         helper_url = util.listings_endpoint('/helpers')
@@ -160,7 +172,7 @@ class Consumer(object):
         haystack = None
         url      = args.get('url', 'last_page')
 
-        if 'last_page' == url: haystack = self.page
+        if 'last_page' == url: haystack = self.markup()
         else: haystack = self.ungzipResponse(self.agent.open(url)).read()
 
         return haystack
@@ -227,11 +239,12 @@ class Consumer(object):
         return r
 
 if __name__ == '__main__':
+    util.log_to_stderr()
     import sys
     args     = sys.argv
     test_url = args[1]
 
     consumer = Consumer(test_url)
 
-    print consumer.asset_url()
+    #print consumer.asset_url()
     print consumer.file_name()

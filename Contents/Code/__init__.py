@@ -1,14 +1,16 @@
 import bridge
 from ss import Downloader, DownloadStatus, Wizard, cache, util
+import logging
+slog = logging.getLogger('ss.plex')
 
-#util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
+#util.redirect_output('/home/mike/ssp-out')
 
 PLUGIN_PREFIX = '/video/ssp'
 PLUGIN_TITLE  = L('title')
 PLUGIN_ART    = 'art-default.jpg'
 PLUGIN_ICON   = 'icon-default.png'
 
-to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs)
+to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs, HTTP = HTTP, Platform = Platform)
 bridge.plex.init(**to_export)
 
 def Start():
@@ -19,7 +21,7 @@ def Start():
     ObjectContainer.view_group = 'List'
     ObjectContainer.art        = R(PLUGIN_ART)
     DirectoryObject.art        = R(PLUGIN_ART)
-    Log('"Starting" SS-Plex')
+    slog.debug('"Starting" SS-Plex')
 
 def ValidatePrefs(): pass
 
@@ -32,6 +34,7 @@ def MainMenu():
     container.add(button('search.heading.saved', SearchIndex, icon = 'icon-saved-search.png'))
     container.add(button('heading.download',     DownloadsIndex, refresh = 0, icon = 'icon-downloads.png'))
     container.add(button('heading.system',       SystemIndex, icon = 'icon-system.png'))
+    container.add(PrefsObject(title = L('system.heading.preferences')))
 
     return container
 
@@ -43,27 +46,62 @@ def MainMenu():
 def SystemIndex():
     container = ObjectContainer(title1 = L('heading.system'))
 
-    container.add(PrefsObject(title = L('system.heading.preferences')))
+    container.add(button('system.heading.reset',          SystemResetMenu, icon = 'icon-reset.png'))
+    container.add(button('system.heading.status',         SystemStatus,    icon = 'icon-system-status.png'))
+    container.add(button('system.heading.dispatch-force', DownloadsDispatchForce))
+
+    return container
+
+@route('%s/system/reset/menu' % PLUGIN_PREFIX)
+def SystemResetMenu():
+    container = ObjectContainer(title1 = L('system.heading.reset'))
+
     container.add(confirm('system.heading.reset-favorites',        SystemConfirmResetFavorites))
     container.add(confirm('system.heading.reset-search',           SystemConfirmResetSearches))
     container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
+    container.add(confirm('system.heading.reset-download-failed',  SystemConfirmResetDownloadsFailed))
+    container.add(confirm('system.heading.reset-ss-cache',         SystemConfirmResetSSCache))
     container.add(confirm('system.heading.reset-factory',          SystemConfirmResetFactory))
-    container.add(button('system.heading.dispatch-force',          DownloadsDispatchForce))
-    container.add(button('version %s' % util.version.string, SystemIndex))
+
+    return container
+
+@route('%s/system/status' % PLUGIN_PREFIX)
+def SystemStatus():
+    container         = ObjectContainer(title1 = L('system.heading.status'))
+    movie_destination = bridge.plex.section_destination('movie')
+    show_destination  = bridge.plex.section_destination('show')
+    download_strategy = bridge.download.strategy()
+
+    container.add(button('Movies will be downloaded to %s'   % movie_destination,   noop))
+    container.add(button('TV Shows will be downloaded to %s' % show_destination,    noop))
+    container.add(button('Media will be downloaded with %s'  % download_strategy,   noop))
+    container.add(button('version %s'                        % util.version.string, noop))
 
     return container
 
 @route('%s/system/confirm/reset-favorites' % PLUGIN_PREFIX)
-def SystemConfirmResetFavorites(): return warning('system.warning.reset-favorites', 'confirm.yes', SystemResetFavorites)
+def SystemConfirmResetFavorites():
+    return warning('system.warning.reset-favorites', 'confirm.yes', SystemResetFavorites)
 
 @route('%s/system/confirm/reset-searches' % PLUGIN_PREFIX)
-def SystemConfirmResetSearches(): return warning('system.warning.reset-search', 'confirm.yes', SystemResetSearches)
+def SystemConfirmResetSearches():
+    return warning('system.warning.reset-search', 'confirm.yes', SystemResetSearches)
 
 @route('%s/system/confirm/reset-downloads' % PLUGIN_PREFIX)
-def SystemConfirmResetDownloads(): return warning('system.warning.reset-download-history', 'confirm.yes', SystemResetDownloads)
+def SystemConfirmResetDownloads():
+    return warning('system.warning.reset-download-history', 'confirm.yes', SystemResetDownloads)
+
+@route('%s/system/confirm/reset-downloads-failed' % PLUGIN_PREFIX)
+def SystemConfirmResetDownloadsFailed():
+    return warning('system.warning.reset-download-failed', 'confirm.yes', SystemResetDownloadsFailed)
+
+@route('%s/system/confirm/reset-ss-cache' % PLUGIN_PREFIX)
+def SystemConfirmResetSSCache():
+    return warning('system.warning.reset-ss-cache', 'confirm.yes', SystemResetSSCache)
 
 @route('%s/system/confirm/reset-factory' % PLUGIN_PREFIX)
-def SystemConfirmResetFactory(): return warning('system.warning.reset-factory', 'confirm.yes', SystemResetFactory)
+def SystemConfirmResetFactory():
+    return warning('system.warning.reset-factory', 'confirm.yes', SystemResetFactory)
 
 @route('%s/system/reset/favorites' % PLUGIN_PREFIX)
 def SystemResetFavorites():
@@ -80,9 +118,21 @@ def SystemResetDownloads():
     bridge.download.clear_history()
     return dialog('heading.system', 'system.response.reset-download-history')
 
+@route('%s/system/reset/downloads-failed' % PLUGIN_PREFIX)
+def SystemResetDownloadsFailed():
+    bridge.download.clear_failed()
+    return dialog('heading.system', 'system.response.reset-download-failed')
+
+@route('%s/system/reset/ss-cache' % PLUGIN_PREFIX)
+def SystemResetSSCache():
+    util.clear_cache()
+    return dialog('heading.system', 'system.response.reset-ss-cache')
+
 @route('%s/system/reset/factory' % PLUGIN_PREFIX)
 def SystemResetFactory():
+    util.clear_cache()
     Dict.Reset()
+    Dict.Save()
     return dialog('heading.system', 'system.response.reset-factory')
 
 #############
@@ -143,9 +193,11 @@ def FavoritesToggle(endpoint, show_title, artwork):
     message = None
 
     if bridge.favorite.includes(endpoint):
+        slog.info('Removing %s from favorites' % show_title)
         message = 'favorites.response.removed'
         bridge.favorite.remove(endpoint)
     else:
+        slog.info('Adding %s from favorites' % show_title)
         message = 'favorites.response.added'
         bridge.favorite.append(endpoint = endpoint, title = show_title, artwork = artwork)
 
@@ -184,15 +236,18 @@ def DownloadsIndex(refresh = 0):
     if bridge.download.assumed_running():
         current       = bridge.download.current()
         endpoint      = current['endpoint']
-        status        = DownloadStatus(Downloader.status_file_for(endpoint))
+        status        = DownloadStatus(Downloader.status_file_for(endpoint), strategy = bridge.download.strategy())
 
         container.add(popup_button(current['title'], DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
 
         for ln in status.report():
-            container.add(popup_button(ln, DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
+            container.add(popup_button('- %s' % ln, DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads.png'))
 
     for download in bridge.download.queue():
         container.add(popup_button(download['title'], DownloadsOptions, endpoint = download['endpoint'], icon = 'icon-downloads-queue.png'))
+
+    for download in bridge.download.failed():
+        container.add(popup_button(download['title'], DownloadsOptions, endpoint = download['endpoint'], icon = 'icon-downloads-failed.png'))
 
     add_refresh_to(container, refresh, DownloadsIndex)
     return container
@@ -200,19 +255,34 @@ def DownloadsIndex(refresh = 0):
 @route('%s/downloads/show' % PLUGIN_PREFIX)
 def DownloadsOptions(endpoint):
     download = bridge.download.from_queue(endpoint)
+    failed   = bridge.download.from_failed(endpoint)
 
     if download:
-        container  = ObjectContainer(title1 = download['title'])
-        obj_cancel = button('download.heading.cancel', DownloadsCancel, endpoint = endpoint)
+        container     = ObjectContainer(title1 = download['title'])
+        cancel_button = button('download.heading.cancel', DownloadsCancel, endpoint = endpoint)
 
-        if bridge.download.assumed_running():
+        if bridge.download.is_current(endpoint):
             if bridge.download.curl_running():
                 container.add(button('download.heading.next', DownloadsNext))
-                container.add(obj_cancel)
+                container.add(cancel_button)
             else:
                 container.add(button('download.heading.repair', DownloadsDispatchForce))
         else:
-            container.add(obj_cancel)
+            container.add(cancel_button)
+
+        return container
+    elif failed:
+        container     = ObjectContainer(title1 = failed['title'])
+        cancel_button = button('download.heading.cancel', DownloadsRemoveFailed, endpoint = endpoint)
+        retry_button  = button('download.heading.retry', DownloadsQueue,
+            endpoint   = failed['endpoint'],
+            media_hint = failed['media_hint'],
+            title      = failed['title'],
+            icon       = 'icon-downloads-queue.png'
+        )
+
+        container.add(retry_button)
+        container.add(cancel_button)
 
         return container
     else:
@@ -223,6 +293,7 @@ def DownloadsQueue(endpoint, media_hint, title):
     if bridge.download.in_history(endpoint):
         message = 'exists'
     else:
+        slog.info('Adding %s %s to download queue' % (media_hint, title))
         message = 'added'
         bridge.download.append(title = title, endpoint = endpoint, media_hint = media_hint)
 
@@ -235,6 +306,7 @@ def DownloadsDispatch():
 
 @route('%s/downloads/dispatch/force' % PLUGIN_PREFIX)
 def DownloadsDispatchForce():
+    slog.warning('Repairing downloads')
     bridge.download.clear_current()
     dispatch_download_threaded()
 
@@ -247,9 +319,10 @@ def DownloadsCancel(endpoint):
             bridge.download.command('cancel')
         else:
             try:
+                slog.info('Removing %s from download queue' % endpoint)
                 bridge.download.remove(download)
             except Exception, e:
-                #util.print_exception(e)
+                slog.exception('Error cancelling download')
                 pass
 
         return dialog('heading.download', F('download.response.cancel', download['title']))
@@ -259,6 +332,12 @@ def DownloadsCancel(endpoint):
 @route('%s/downloads/next' % PLUGIN_PREFIX)
 def DownloadsNext():
     bridge.download.command('next')
+    return dialog('heading.download', 'download.response.next')
+
+@route('%s/downloads/remove-failed' % PLUGIN_PREFIX)
+def DownloadsRemoveFailed(endpoint):
+    bridge.download.remove_failed(endpoint)
+    return dialog('heading.download', 'download.response.remove-failed')
 
 #########################
 # Development Endpoints #
@@ -266,10 +345,13 @@ def DownloadsNext():
 
 @route('%s/test' % PLUGIN_PREFIX)
 def QuickTest():
-    def test_cache():
-        return 'foo'
+    pass
+    #import os
+    #env = ""
+    #for k, v in os.environ.iteritems():
+        #env += "%s='%s' " % (k, v)
 
-    return ObjectContainer(header = 'Test', message = cache_fetch('test', test_cache))
+    #return dialog('test', env)
 
 # UAS
 @route('%s/update' % PLUGIN_PREFIX)
@@ -289,16 +371,17 @@ def RenderListings(endpoint, default_title = None):
 def WatchOptions(endpoint, title, media_hint):
     container    = render_listings(endpoint, default_title = title, cache_time = cache.TIME_DAY)
     wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
-    wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url)
-    sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title)
+    wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url, thumb = R('icon-watch-now.png'))
+    sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title, icon = 'icon-view-all-sources.png')
 
     if bridge.download.in_history(endpoint):
-        download_item = button('media.persisted', DownloadsOptions, endpoint = endpoint)
+        download_item = button('media.persisted', DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads-queue.png')
     else:
         download_item = button('media.watch-later', DownloadsQueue,
             endpoint   = endpoint,
             media_hint = media_hint,
-            title      = title
+            title      = title,
+            icon       = 'icon-downloads-queue.png'
         )
 
     container.objects.insert(0, wizard_item)
@@ -310,11 +393,18 @@ def WatchOptions(endpoint, title, media_hint):
 @route('%s/ListSources' % PLUGIN_PREFIX)
 def ListSources(endpoint, title):
     wizard = Wizard(endpoint, environment = bridge.environment.plex)
-    return render_listings_response(wizard.payload, endpoint)
+    return render_listings_response(wizard.payload, endpoint, wizard.file_hint)
 
 @route('%s/series/i{refresh}' % PLUGIN_PREFIX)
 def ListTVShow(endpoint, show_title, refresh = 0):
+    import re
+
     container, response = render_listings(endpoint + '/episodes', show_title, True)
+    title_regex         = r'^' + re.escape(show_title) + r':?\s+'
+
+    for item in container.objects:
+        item.title = re.sub(title_regex, '', str(item.title))
+
     labels   = [ 'add', 'remove' ]
     label    = labels[int(bridge.favorite.includes(endpoint))]
 
@@ -322,7 +412,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
         endpoint   = endpoint,
         icon       = 'icon-favorites.png',
         show_title = show_title,
-        artwork    = response['resource']['artwork']
+        artwork    = (response or {}).get('resource', {}).get('artwork')
     ))
 
     add_refresh_to(container, refresh, ListTVShow,
@@ -333,10 +423,18 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     return container
 
 def render_listings(endpoint, default_title = None, return_response = False, cache_time = None):
+    slog.debug('Rendering listings for %s' % endpoint)
     listings_endpoint = util.listings_endpoint(endpoint)
 
-    response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time)
-    container = render_listings_response(response, endpoint = endpoint, default_title = default_title)
+    try:
+        response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time, timeout = 45)
+        container = render_listings_response(response, endpoint = endpoint, default_title = default_title)
+    except Exception, e:
+        slog.exception('Error requesting %s' % endpoint)
+
+        response  = None
+        container = ObjectContainer(title1 = default_title)
+        container.add(button('heading.error', noop))
 
     if return_response:
         return [ container, response ]
@@ -350,7 +448,7 @@ def render_listings_response(response, endpoint, default_title = None):
     )
 
     for element in response.get( 'items', [] ):
-        native          = None
+        native           = None
         permalink        = element.get('endpoint')
         display_title    = element.get('display_title')    or element.get('title')
         overview         = element.get('display_overview') or element.get('overview')
@@ -403,7 +501,10 @@ def render_listings_response(response, endpoint, default_title = None):
             else:
                 service_url = '//ss%s' % util.translate_endpoint(element['original_url'], element['foreign_url'], True)
 
-            native = VideoClipObject(title = element['domain'], url = service_url)
+            native = VideoClipObject(
+                title = element['domain'],
+                url   = '%s&endpoint=%s' % (service_url, util.q(endpoint))
+            )
 
         #elif 'final' == element_type:
             #ss_url = '//ss/procedure?url=%s&title=%s' % (util.q(element['url']), util.q('FILE HINT HERE'))
@@ -435,6 +536,8 @@ def render_listings_response(response, endpoint, default_title = None):
 ##################
 # Plugin Helpers #
 ##################
+
+def noop(): return dialog('hello', 'good day')
 
 def dialog(title, message):           return ObjectContainer(header = L(str(title)), message = L(str(message)))
 def confirm(otitle, ocb, **kwargs):   return popup_button(L(str(otitle)), ocb, **kwargs)

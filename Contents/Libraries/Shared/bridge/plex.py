@@ -2,41 +2,44 @@ config = dict()
 
 def init(**kwargs):
     global config
-    existing = config.keys()
 
     for key, val in kwargs.iteritems():
-        if not key in existing:
-            config[key] = val
+        if key in config: continue
+        config[key] = val
 
+def user_dict():   return config['Dict']
+def user_prefs():  return config['Prefs']
+def platform_os(): return config['Platform'].OS
 
-def user_dict():  return config['Dict']
-def user_prefs(): return config['Prefs']
+def plex_endpoint(path): return 'http://127.0.0.1:32400%s' % path
 
-def section_element(section):
-    query = '//Directory[@type="%s"]' % section
-    dirs  = config['XML'].ElementFromURL('http://127.0.0.1:32400/library/sections').xpath(query)
-    for d in dirs:
-        if '.none' not in d.get('agent'):
-            return d
+def section_info(section):
+    import re
 
-def refresh_section(section):
-    element = section_element(section)
-    key     = element.get('key')
-    url     = 'http://127.0.0.1:32400/library/sections/%s/refresh' % key
+    xmlobj   = config['XML'].ElementFromURL(plex_endpoint('/library/sections'))
+    query    = '//Directory[@type="%s"]' % section
+    matching = filter(lambda el: '.none' not in el.get('agent'), xmlobj.xpath(query))
 
-    config['HTTP'].Request(url, immediate = True)
+    for directory in matching:
+        locations = directory.xpath('./Location')
+        for location in locations:
+            path = location.get('path')
+            if re.search(r'ss.?p', path):
+                return match_from(directory, location)
+    else:
+        return match_from(directory, locations[0])
+
+def match_from(directory, location):
+    return [ directory.get('key'), location.get('path') ]
 
 def section_destination(section):
-    element   = section_element(section)
-    locations = element.xpath('./Location')
-    hinted    = locations[0].get('path')
-    fragment  = '/ssp'
+    found = section_info(section)
+    if not found: return
 
-    for element in locations:
-        path = element.get('path')
+    return found[1]
 
-        if path.endswith(fragment) or path.endswith(fragment + '/'):
-            hinted = path
-            break
+def refresh_section(section):
+    found = section_info(section)
+    if not found: return
 
-    return hinted
+    config['HTTP'].Request(plex_endpoint('/library/sections/%s/refresh' % found[0]), immediate = True)

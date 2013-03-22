@@ -7,8 +7,12 @@ import signal
 import thread
 from ss import Downloader, util
 
+import logging
+log = logging.getLogger('ss.bridge.download')
+
 def queue():           return user.initialize_dict('downloads',        [])
 def history():         return user.initialize_dict('download_history', [])
+def failed():          return user.initialize_dict('download_failed',  [])
 def avoid_flv():       return plex.user_prefs()['avoid_flv_downloading']
 def speed_limit():     return plex.user_prefs()['download_limit']
 def current():         return plex.user_dict()['download_current']
@@ -17,15 +21,40 @@ def assumed_running(): return 'download_current' in plex.user_dict()
 def curl_running():    return pid_running(current_pid())
 def running_windows(): return 'nt' == os.name
 
+def strategy():
+    strategy = plex.user_prefs()['download_strategy']
+
+    if 'auto' == strategy:
+        strategy = 'curl'
+
+        if 'Linux' == plex.platform_os():
+            strategy = 'wget'
+
+    return strategy
+
 def clear_history(): user.attempt_clear('download_history')
 def clear_current(): user.attempt_clear('download_current')
+def clear_failed():  user.attempt_clear('download_failed')
 
 def append(**kwargs):
     queue().append(kwargs)
     plex.user_dict().Save()
 
+def append_failed(**kwargs):
+    failed().append(kwargs)
+    plex.user_dict().Save()
+
 def remove(download):
     queue().remove(download)
+    plex.user_dict().Save()
+
+def remove_failed(endpoint):
+    found = from_failed(endpoint)
+
+    if not found:
+        return
+
+    failed().remove(found)
     plex.user_dict().Save()
 
 def set_current(download):
@@ -53,6 +82,10 @@ def from_queue(endpoint):
 
         if found:
             return found[0]
+
+def from_failed(endpoint):
+    found = filter(lambda download: download['endpoint'] == endpoint, failed())
+    if found: return found[0]
 
 def pid_running_windows(pid):
     import ctypes, ctypes.wintypes
@@ -100,58 +133,72 @@ def signal_process_windows(pid, to_send = 0):
         return False
 
 def command(command):
-    if curl_running():
-        signals  = [ signal.SIGTERM, signal.SIGINT ]
-        commands = [ 'cancel',       'next' ]
-        to_send  = signals[commands.index(command)]
-        pid      = current_pid()
+    if not curl_running():
+        return
 
-        if pid:
-            return signal_process(pid, to_send)
+    signals  = [ signal.SIGTERM, signal.SIGINT ]
+    commands = [ 'cancel',       'next' ]
+    to_send  = signals[commands.index(command)]
+
+    return signal_process(current_pid(), to_send)
 
 def dispatch(should_thread = True):
-    if not assumed_running():
-        try:
-            download = queue().pop(0)
-        except IndexError, e:
-            #util.print_exception(e)
-            return
+    log.info('Dispatching download')
 
-        set_current(download)
+    if assumed_running():
+        return
 
-        def perform_download():
-            downloader = Downloader(download['endpoint'],
-                environment = environment.plex,
-                destination = plex.section_destination(download['media_hint']),
-                limit       = speed_limit()
-            )
-            downloader.wizard.avoid_flv = avoid_flv()
+    try:
+        download = queue().pop(0)
+    except IndexError, e:
+        log.info('Download queue empty')
+        return
 
-            def store_curl_pid(dl):
-                current()['title'] = dl.file_name()
-                current()['pid']   = dl.pid
-                plex.user_dict().Save()
+    def store_curl_pid(dl):
+        current()['title'] = dl.file_name()
+        current()['pid']   = dl.pid
+        plex.user_dict().Save()
 
-            def update_library(dl):
-                plex.refresh_section(download['media_hint'])
+    def update_library(dl):
+        plex.refresh_section(download['media_hint'])
 
-            def clear_download_and_dispatch(dl):
-                clear_current()
-                dispatch(False)
+    def clear_download_and_dispatch(dl):
+        clear_current()
+        dispatch(False)
 
-            def store_download_endpoint(dl):
-                history().append(dl.endpoint)
+    def store_download_endpoint(dl):
+        history().append(dl.endpoint)
 
-            downloader.on_start(store_curl_pid)
+    def append_failed_download(dl):
+        append_failed(endpoint = dl.endpoint, title = dl.wizard.file_hint, media_hint = download['media_hint'])
 
-            downloader.on_success(update_library)
-            downloader.on_success(store_download_endpoint)
-            downloader.on_success(clear_download_and_dispatch)
+    def clear_download_from_failed(dl):
+        remove_failed(dl.endpoint)
 
-            downloader.on_error(clear_download_and_dispatch)
-            downloader.download()
+    set_current(download)
 
-        if should_thread:
-            thread.start_new_thread(perform_download, ())
-        else:
-            perform_download()
+    def perform_download():
+        downloader = Downloader(download['endpoint'],
+            environment = environment.plex,
+            destination = plex.section_destination(download['media_hint']),
+            limit       = speed_limit(),
+            strategy    = strategy()
+        )
+        downloader.wizard.avoid_flv = avoid_flv()
+
+        downloader.on_start(store_curl_pid)
+        downloader.on_start(clear_download_from_failed)
+
+        downloader.on_success(update_library)
+        downloader.on_success(store_download_endpoint)
+        downloader.on_success(clear_download_and_dispatch)
+
+        downloader.on_error(append_failed_download)
+        downloader.on_error(clear_download_and_dispatch)
+
+        downloader.download()
+
+    if should_thread:
+        thread.start_new_thread(perform_download, ())
+    else:
+        perform_download()

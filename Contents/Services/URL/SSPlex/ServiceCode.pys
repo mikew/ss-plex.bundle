@@ -8,24 +8,28 @@ d = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../Lib
 if not d in sys.path:
     sys.path.insert(0, d)
 
+from urlparse import urlparse
 from ss import Consumer, Wizard, util
+import cgi
 import bridge
 
-to_export = dict(Log = Log, XML = XML, HTML = HTML, JSON = JSON)
+to_export = dict(Log = Log, XML = XML, HTML = HTML, JSON = JSON, HTTP = HTTP)
 bridge.plex.init(**to_export)
 
-from urlparse import urlparse
-import cgi
+#util.redirect_output('/Users/mike/Work/python/ss-plex.bundle/out')
 
-#util.redirect_output('/Users/mike/Work/other/ss-plex.bundle/out')
-
-def NormalizeURL(url):
-    return url
+def NormalizeURL(url): return url
 
 def MetadataObjectForURL(url):
+    nil, nil, path, nil, query, nil = urlparse(url)
+    params   = cgi.parse_qs(query)
+    endpoint = params['endpoint'][0]
+    wizard   = Wizard(endpoint, environment = bridge.environment.plex)
+
     co = VideoClipObject(
-        title   = 'foo',
-        summary = 'bar'
+        title   = wizard.file_hint,
+        summary = wizard.payload['resource']['display_overview'],
+        thumb   = wizard.payload['resource']['artwork']
     )
 
     return co
@@ -33,7 +37,7 @@ def MetadataObjectForURL(url):
 #@deferred
 def MediaObjectsForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
-    params   = cgi.parse_qs(query)
+    params = cgi.parse_qs(query)
 
     if   '/procedure' == path: obj = mo(PlayConsumer, url      = params['url'][0])
     elif '/wizard'    == path: obj = mo(PlayWizard,   endpoint = params['endpoint'][0], avoid_flv = params['avoid_flv'][0])
@@ -41,20 +45,15 @@ def MediaObjectsForURL(url):
 
     return [ obj ]
 
-found = None
 @indirect
 def PlayWizard(endpoint, avoid_flv = 0):
     wizard = Wizard(endpoint, environment = bridge.environment.plex, avoid_flv = bool(int(avoid_flv)))
 
-    def first_working(consumer):
-        global found
-        consumer.consume()
-        found = consumer
-
+    def first_working(consumer): consumer.consume()
     wizard.sources(first_working)
 
-    if found: return video(found)
-    else:     raise  Ex.MediaNotAvailable
+    if wizard.consumer: return video(wizard.consumer)
+    else:               raise  Ex.MediaNotAvailable
 
 @indirect
 def PlayConsumer(url):
@@ -70,14 +69,19 @@ def PlayForeign(original, foreign):
     return video(consumer)
 
 def video(consumer):
-    consumer.consume()
+    try:
+        consumer.consume()
+        return IndirectResponse(VideoClipObject, key = consumer.asset_url())
 
-    return IndirectResponse(VideoClipObject,
-        key = consumer.asset_url(),
+    except Exception, e:
+        raise Ex.MediaNotAvailable
+
+    #return IndirectResponse(VideoClipObject,
+        #key          = consumer.asset_url(),
         #user_agent   = consumer.ua,
         #http_cookies = consumer.agent_cookie_string(),
         #http_headers = { 'Referer': consumer.url }
-    )
+    #)
 
     # Some clients only work with Redirect
     # others (Desktop / aTV2) can use this
