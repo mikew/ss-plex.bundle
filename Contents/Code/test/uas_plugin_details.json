@@ -1,0 +1,14 @@
+[
+    {
+        "title"           :     "Foo",
+        "bundle"          :     "foo.bundle",
+        "type"            :     ["Video"],
+        "description"     :     "description",
+        "repo"            :     "git@github.com:owner/foo.bundle.git",
+        "branch"          :     "master",
+        "icon"            :     "foo-icon.png",
+        "hidden"          :     "False",
+        "date added"      :     "April 17, 2011",
+        "tracking url"    :     "foo-tracking"
+    }
+]
