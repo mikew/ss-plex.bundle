@@ -1,11 +1,5 @@
 all_channels = None
 
-try:
-    JSON
-except NameError, e:
-    import bridge
-    JSON = bridge.plex.config['JSON']
-
 class ChannelInfo(object):
     def __init__(self, attrs):
         super(ChannelInfo, self).__init__()
