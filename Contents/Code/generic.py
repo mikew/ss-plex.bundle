@@ -1,3 +1,26 @@
+@route('%s/WatchOptions' % PLUGIN_PREFIX)
+def WatchOptions(endpoint, title, media_hint):
+    container    = render_listings(endpoint, default_title = title, cache_time = cache.TIME_DAY)
+    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
+    wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url, thumb = R('icon-watch-now.png'))
+    sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title, icon = 'icon-view-all-sources.png')
+
+    if bridge.download.in_history(endpoint):
+        download_item = button('media.persisted', DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads-queue.png')
+    else:
+        download_item = button('media.watch-later', DownloadsQueue,
+            endpoint   = endpoint,
+            media_hint = media_hint,
+            title      = title,
+            icon       = 'icon-downloads-queue.png'
+        )
+
+    container.objects.insert(0, wizard_item)
+    container.objects.insert(1, download_item)
+    container.objects.insert(2, sources_item)
+
+    return container
+
 def render_listings(endpoint, default_title = None, return_response = False, cache_time = None):
     slog.debug('Rendering listings for %s' % endpoint)
     listings_endpoint = util.listings_endpoint(endpoint)
