@@ -1,10 +1,10 @@
 from functools import wraps
+import os
+import nose
 
 core = None
 
 def publish_local_file(local_path, name = None):
-    import os
-
     local_path = os.path.abspath(__file__ + '/../../../../' + local_path)
     local_file = open(local_path, 'r')
     contents   = local_file.read()
@@ -14,11 +14,8 @@ def publish_local_file(local_path, name = None):
     core.sandbox.publish_api(contents, name = name)
 
 def sandbox(f):
-
     @wraps(f)
     def wrapper():
-        import nose
-
         core.sandbox.publish_api(nose)
         core.sandbox.publish_api(nose.tools.eq_)
         core.sandbox.publish_api(nose.tools.ok_)
