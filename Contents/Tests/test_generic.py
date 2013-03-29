@@ -256,3 +256,35 @@ def test_icon_for_movies():
     container = generic.render_listings_response(response, '/')
     rendered = container.objects[0]
     ok_('icon-movies.png' in rendered.thumb)
+
+@sandboxed
+def test_watch_options():
+    import generic
+    def stubbed_json(*args, **kwargs): return dict()
+    generic.JSON.ObjectFromURL = stubbed_json
+
+    container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
+    watch_now_key = ('//ss/wizard?endpoint=%s&avoid_flv=%s' % (
+        '/', int(Prefs['avoid_flv_streaming'])
+    ))
+
+    eq_(3, len(container))
+
+    eq_('Watch Now',       str(container.objects[0].title))
+    eq_('VideoClipObject', container.objects[0].__class__.__name__)
+    eq_(watch_now_key,     container.objects[0].url)
+
+    eq_('Watch Later',      str(container.objects[1].title))
+    eq_('View All Sources', str(container.objects[2].title))
+
+@with_setup(setup_env)
+@sandboxed
+def test_watch_options_with_suggestions():
+    import generic
+    def stubbed_json(*args, **kwargs): return dict(items = [ mocks['show_with_meta'] ])
+    generic.JSON.ObjectFromURL = stubbed_json
+
+    container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
+
+    eq_(4, len(container))
+    eq_(mocks['show']['display_title'], container.objects[3].title)
