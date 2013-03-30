@@ -1,4 +1,11 @@
-@route('%s/WatchOptions' % PLUGIN_PREFIX)
+import consts
+from ss import cache
+
+@route('%s/RenderListings' % consts.prefix)
+def RenderListings(endpoint, default_title = None):
+    return render_listings(endpoint, default_title)
+
+@route('%s/WatchOptions' % consts.prefix)
 def WatchOptions(endpoint, title, media_hint):
     container    = render_listings(endpoint, default_title = title, cache_time = cache.TIME_DAY)
     wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))

@@ -76,11 +76,8 @@ def setup_env():
 def test_can_render_endpoint():
     import generic
 
-    mocked   = mocks['endpoint']
-    response = dict(
-        items = [ mocked ]
-    )
-
+    mocked       = mocks['endpoint']
+    response     = dict(items = [ mocked ])
     container    = generic.render_listings_response(response, '/')
     rendered     = container.objects[0]
     expected_key = ('/video/ssp/RenderListings?endpoint=%s&default_title=%s' % (
@@ -260,8 +257,7 @@ def test_icon_for_movies():
 @sandboxed
 def test_watch_options():
     import generic
-    def stubbed_json(*args, **kwargs): return dict()
-    generic.JSON.ObjectFromURL = stubbed_json
+    generic.JSON.ObjectFromURL = lambda *a, **k: dict()
 
     container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
     watch_now_key = ('//ss/wizard?endpoint=%s&avoid_flv=%s' % (
@@ -270,19 +266,18 @@ def test_watch_options():
 
     eq_(3, len(container))
 
-    eq_('Watch Now',       str(container.objects[0].title))
+    eq_('media.watch-now', container.objects[0].title)
     eq_('VideoClipObject', container.objects[0].__class__.__name__)
     eq_(watch_now_key,     container.objects[0].url)
 
-    eq_('Watch Later',      str(container.objects[1].title))
-    eq_('View All Sources', str(container.objects[2].title))
+    eq_('heading.watch_later', container.objects[1].title.key)
+    eq_('View All Sources', container.objects[2].title.key)
 
 @with_setup(setup_env)
 @sandboxed
 def test_watch_options_with_suggestions():
     import generic
-    def stubbed_json(*args, **kwargs): return dict(items = [ mocks['show_with_meta'] ])
-    generic.JSON.ObjectFromURL = stubbed_json
+    generic.JSON.ObjectFromURL = lambda *a, **k: dict(items = [ mocks['show_with_meta'] ])
 
     container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
 
