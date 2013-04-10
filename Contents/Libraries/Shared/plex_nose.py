@@ -6,27 +6,31 @@ import unittest
 
 import Framework
 
-class TestCase(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        print 'setup'
+run_once_ = False
+def run_once():
+    global run_once_
+    if run_once_ is False:
+        core.sandbox.publish_api(nose)
+        core.sandbox.publish_api(nose.tools.eq_)
+        core.sandbox.publish_api(nose.tools.ok_)
+        run_once_ = True
 
-    def setUp(self):
-        _dict = Framework.api.datakit.DictKit(core.sandbox)
-        _dict._dict_path = '/'
-        _dict._load()
-        core.sandbox.publish_api(_dict, name = 'Dict')
-        #core.sandbox.environment['Dict'] = dict()
+class EmptyDict(Framework.api.datakit.DictKit):
+    def Save(self):
+        pass
 
-    def tearDown(self):
-        core.sandbox.call_named_function('Reset', mod_name = 'Dict', raise_exceptions = True)
+    def _really_save(self):
+        pass
 
-    #def __init__(self):
-        #super(UnitTest, self).__init__()
-        #self.arg = arg
+def stub_dict():
+    _dict = EmptyDict(core.sandbox)
+    core.sandbox.publish_api(_dict, name = 'Dict')
+
+def reset_dict():
+    core.sandbox.execute('Dict.Reset()')
 
 def publish_local_file(local_path, name = None):
-    local_path = os.path.abspath(__file__ + '/../../../../' + local_path)
+    local_path = os.path.abspath(core.bundle_path + '/' + local_path)
     local_file = open(local_path, 'r')
     contents   = local_file.read()
     local_file.close()
@@ -34,21 +38,61 @@ def publish_local_file(local_path, name = None):
     if not name: name = os.path.basename(local_path)
     core.sandbox.publish_api(contents, name = name)
 
-run_once_ = False
-def run_once():
-    global run_once_
-    if run_once_ is False:
-        print 'run once'
-        core.sandbox.publish_api(nose)
-        core.sandbox.publish_api(nose.tools.eq_)
-        core.sandbox.publish_api(nose.tools.ok_)
-        #if core.init_code: core.sandbox.execute(core.init_code)
-        run_once_ = True
-
 def sandbox(f):
     @wraps(f)
     def wrapper(*a, **k):
         run_once()
+        stub_dict()
         core.sandbox.execute(f.func_code)
+        reset_dict()
 
     return wrapper
+
+class TestCase(unittest.TestCase):
+    def _exc_info(self):
+        """Return a version of sys.exc_info() with the traceback frame
+           minimised; usually the top level of the traceback frame is not
+           needed.
+        """
+        import sys
+        exctype, excvalue, tb = sys.exc_info()
+        if sys.platform[:4] == 'java': ## tracebacks look different in Jython
+            return (exctype, excvalue, tb)
+        return (exctype, excvalue, tb)
+
+    def run(self, result=None):
+        if result is None: result = self.defaultTestResult()
+        result.startTest(self)
+        testMethod = getattr(self, self._testMethodName)
+        testMethod = sandbox(testMethod)
+
+        try:
+            try:
+                self.setUp()
+            except KeyboardInterrupt:
+                raise
+            except:
+                result.addError(self, self._exc_info())
+                return
+
+            ok = False
+            try:
+                testMethod()
+                ok = True
+            except self.failureException:
+                result.addFailure(self, self._exc_info())
+            except KeyboardInterrupt:
+                raise
+            except:
+                result.addError(self, self._exc_info())
+
+            try:
+                self.tearDown()
+            except KeyboardInterrupt:
+                raise
+            except:
+                result.addError(self, self._exc_info())
+                ok = False
+            if ok: result.addSuccess(self)
+        finally:
+            result.stopTest(self)
