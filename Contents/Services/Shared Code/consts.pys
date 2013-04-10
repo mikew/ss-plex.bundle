@@ -1,0 +1,4 @@
+prefix = '/video/ssp'
+title  = L('title')
+art    = R('art-default.jpg')
+icon   = R('icon-default.png')

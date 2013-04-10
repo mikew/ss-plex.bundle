@@ -1,14 +1,10 @@
-import consts
-from ss import cache
-
 @route('%s/RenderListings' % consts.prefix)
 def RenderListings(endpoint, default_title = None):
     return render_listings(endpoint, default_title)
 
 @route('%s/WatchOptions' % consts.prefix)
 def WatchOptions(endpoint, title, media_hint):
-    print bridge.download.history()
-    container    = render_listings(endpoint, default_title = title, cache_time = cache.TIME_DAY)
+    container    = render_listings(endpoint, default_title = title, cache_time = ss.cache.TIME_DAY)
     wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
     wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url, thumb = R('icon-watch-now.png'))
     sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title, icon = 'icon-view-all-sources.png')
@@ -31,7 +27,7 @@ def WatchOptions(endpoint, title, media_hint):
 
 def render_listings(endpoint, default_title = None, return_response = False, cache_time = None):
     slog.debug('Rendering listings for %s' % endpoint)
-    listings_endpoint = util.listings_endpoint(endpoint)
+    listings_endpoint = ss.util.listings_endpoint(endpoint)
 
     try:
         response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time, timeout = 45)
@@ -74,7 +70,7 @@ def render_listings_response(response, endpoint, default_title = None):
 
             if '/tv' == permalink:
                 native.thumb = R('icon-tv.png')
-            elif '/movies' == permalink :
+            elif '/movies' == permalink:
                 native.thumb = R('icon-movies.png')
 
         elif 'show' == element_type:
@@ -103,36 +99,14 @@ def render_listings_response(response, endpoint, default_title = None):
             final_url = element.get('final_url')
 
             if final_url:
-                service_url = '//ss/procedure?url=%s' % util.q(final_url)
+                service_url = '//ss/procedure?url=%s' % ss.util.q(final_url)
             else:
-                service_url = '//ss%s' % util.translate_endpoint(element['original_url'], element['foreign_url'], True)
+                service_url = '//ss%s' % ss.util.translate_endpoint(element['original_url'], element['foreign_url'], True)
 
             native = VideoClipObject(
                 title = element['domain'],
-                url   = '%s&endpoint=%s' % (service_url, util.q(endpoint))
+                url   = '%s&endpoint=%s' % (service_url, ss.util.q(endpoint))
             )
-
-        #elif 'final' == element_type:
-            #ss_url = '//ss/procedure?url=%s&title=%s' % (util.q(element['url']), util.q('FILE HINT HERE'))
-            #native = VideoClipObject(url = ss_url, title = display_title)
-
-        #elif 'movie' == element_type:
-            #native = MovieObject(
-                #rating_key = permalink,
-                #title      = display_title,
-                #tagline    = element.get( 'tagline' ),
-                #summary    = element.get( 'desc' ),
-                #key        = sources_callback
-            #)
-        #elif 'episode' == element_type:
-            #native = EpisodeObject(
-                #rating_key     = permalink,
-                #title          = display_title,
-                #summary        = element.get( 'desc' ),
-                #season         = int( element.get( 'season', 0 ) ),
-                #absolute_index = int( element.get( 'number', 0 ) ),
-                #key            = sources_callback
-            #)
 
         if None != native:
             container.add( native )

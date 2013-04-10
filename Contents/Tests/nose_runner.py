@@ -11,7 +11,7 @@ import os, inspect
 
 # Get python path from Plex Media Server installation
 # OS X specific currently
-PYTHON_DIR    = os.path.expanduser('~/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Versions/2/Python')
+PYTHON_DIR    = os.path.expanduser(os.environ['PLEX_FRAMEWORK_PATH'])
 FRAMEWORK_DIR = os.path.abspath(os.path.join(PYTHON_DIR, '..'))
 
 # Get the path to our plugin.bundle
@@ -19,7 +19,6 @@ bundle_path   = os.path.abspath(inspect.getfile(inspect.currentframe()) + '/../.
 sys.path.insert(0, PYTHON_DIR)
 
 import subsystem
-import os
 import config
 
 # Redirect stdout to stderr
@@ -61,37 +60,6 @@ sys.path.insert(0, os.path.join(SHARED_DIR, "Libraries"))
 ## LOAD AND CONFIGURE THE FRAMEWORK ##
 
 import Framework
-import Framework.constants as const
-#from optparse import OptionParser
-
-#parser = OptionParser()
-#parser.add_option("-i", "--interface", dest="interface", default=config.default_interface)
-#parser.add_option("-q", "--quiet", action="store_false", dest="verbose", default=True)
-#parser.add_option("-p", "--socket-interface-port", dest="socket_interface_port", default=config.socket_interface_port)
-#parser.add_option("-s", "--server-version", dest="server_version")
-#parser.add_option("-d", "--daemon", dest="daemon_command")
-#parser.add_option("-P", "--pid-file", dest="pid_file")
-#parser.add_option("-l", "--log-file", dest="log_file")
-#parser.add_option("-c", "--config-file", dest="config_file")
-#(options, args) = parser.parse_args()
-
-#bundle_path = args[0]
-
-#del parser
-#del OptionParser
-
-class BootstrapOptions:
-    def __init__(self):
-        self.interface      = 'socket'
-        self.verbose        = True
-        self.server_version = None
-        self.daemon_command = None
-        self.pid_file       = None
-        self.log_file       = None
-        self.config_file    = None
-        self.socket_interface_port = config.socket_interface_port
-
-options = BootstrapOptions()
 
 # Whack any .pyc files found in Contents/Libraries
 libs_path = os.path.join(bundle_path, 'Contents', 'Libraries')
@@ -102,41 +70,11 @@ if os.path.exists(libs_path):
                 fp = os.path.join(root, f)
                 os.unlink(fp)
 
-# Select the interface class to use
-if options.interface == const.interface.pipe:
-    interface_class = Framework.interfaces.PipeInterface
-elif options.interface == const.interface.socket:
-    interface_class = Framework.interfaces.SocketInterface
-    if int(options.socket_interface_port) != config.socket_interface_port:
-        config.socket_interface_port = int(options.socket_interface_port)
-else:
-    #TODO: Error info - no matching interface found
-    sys.stderr.write('No matching interface found.\n')
-    sys.exit(1)
-
-#if options.server_version != None:
-    #config.server_version = options.server_version
-
-# Configure the log_dir, if one was given
-#if options.log_file:
-    #config.log_file = os.path.abspath(options.log_file)
-
-# Configure the pid file, if one was given
-#if options.pid_file:
-    #config.pid_file = os.path.abspath(options.pid_file)
-
-# Load the config file if one was provided
-#if options.config_file:
-    #import simplejson
-    #f = open(options.config_file, 'r')
-    #json_config = simplejson.load(f)
-    #f.close()
-    #for key in json_config:
-        #setattr(config, key, json_config[key])
-
 daemonized = False
 # Copy the damonized attribute into config
 setattr(config, 'daemonized', daemonized)
+setattr(config, 'log_file', bundle_path + '/test.log')
+setattr(config, 'services_bundle_path', bundle_path)
 
 # Create a core object for the plug-in bundle
 core = Framework.core.FrameworkCore(bundle_path, FRAMEWORK_DIR, config)
@@ -146,59 +84,20 @@ if not core.load_code():
     sys.stderr.write('Error loading bundle code.\n')
     sys.exit(2)
 
-# Create an instance of the selected interface
-#interface = interface_class(core)
-
-# Try to start the core
-#if not core.start():
-    #sys.stderr.write('Error starting framework core.\n')
-    #sys.exit(3)
-
 if core.init_code:
     core.sandbox.execute(core.init_code)
-
-# Start listening on the interface
-#interface.listen(daemonized)
 
 sys.path.insert(0, core.code_path)
 
 import plex_nose
-plex_nose.core = core
-
-#from nose.plugins import Plugin
-
-#class PlexSandbox(Plugin):
-    #name = 'plex_sandbox'
-    #score = 10000
-
-    #def prepareTestRunner(self, runner):
-        #asdfasdfasdf
-        #raise Exception(runner)
-        #return PlexSandboxRunner(runner.stream)
-
+import spec
 import sys
-import nose
+
 sys.argv.insert(1, '-vv')
 sys.argv.insert(1, '-s')
-nose.main()
+sys.argv.insert(1, '--with-spec')
+sys.argv.insert(1, '--spec-color')
 
-#def nose_runner():
-    #import sys
-    #import nose
-
-    #sys.argv.insert(1, '-vv')
-    #sys.argv.insert(1, '-s')
-
-    #plex_nose.bridge(
-        #L = L,
-        #F = F,
-        #JSON = JSON,
-        #XML = XML,
-        #HTTP = HTTP,
-        #Dict = Dict,
-        #Prefs = Prefs
-    #)
-
-    #nose.main()
-
-#core.sandbox.execute(nose_runner.func_code)
+plex_nose.core = core
+plex_nose.nose.run(addplugins=[spec.Spec()])
+os._exit(0)

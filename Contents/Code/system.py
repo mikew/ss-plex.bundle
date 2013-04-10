@@ -1,92 +1,94 @@
-@route('%s/system' % PLUGIN_PREFIX)
-def SystemIndex():
+FEATURE_PREFIX = '%s/system' % consts.prefix
+
+@route(FEATURE_PREFIX)
+def MainMenu():
     container = ObjectContainer(title1 = L('heading.system'))
 
-    container.add(button('system.heading.reset',          SystemResetMenu, icon = 'icon-reset.png'))
-    container.add(button('system.heading.status',         SystemStatus,    icon = 'icon-system-status.png'))
+    container.add(button('system.heading.reset',          ResetMenu,  icon = 'icon-reset.png'))
+    container.add(button('system.heading.status',         StatusMenu, icon = 'icon-system-status.png'))
     container.add(button('system.heading.dispatch-force', DownloadsDispatchForce))
 
     return container
 
-@route('%s/system/reset/menu' % PLUGIN_PREFIX)
-def SystemResetMenu():
+@route('%s/reset' % FEATURE_PREFIX)
+def ResetMenu():
     container = ObjectContainer(title1 = L('system.heading.reset'))
 
-    container.add(confirm('system.heading.reset-favorites',        SystemConfirmResetFavorites))
-    container.add(confirm('system.heading.reset-search',           SystemConfirmResetSearches))
-    container.add(confirm('system.heading.reset-download-history', SystemConfirmResetDownloads))
-    container.add(confirm('system.heading.reset-download-failed',  SystemConfirmResetDownloadsFailed))
-    container.add(confirm('system.heading.reset-ss-cache',         SystemConfirmResetSSCache))
-    container.add(confirm('system.heading.reset-factory',          SystemConfirmResetFactory))
+    container.add(confirm('system.heading.reset-favorites',        ConfirmResetFavorites))
+    container.add(confirm('system.heading.reset-search',           ConfirmResetSearches))
+    container.add(confirm('system.heading.reset-download-history', ConfirmResetDownloads))
+    container.add(confirm('system.heading.reset-download-failed',  ConfirmResetDownloadsFailed))
+    container.add(confirm('system.heading.reset-ss-cache',         ConfirmResetSSCache))
+    container.add(confirm('system.heading.reset-factory',          ConfirmResetFactory))
 
     return container
 
-@route('%s/system/status' % PLUGIN_PREFIX)
-def SystemStatus():
+@route('%s/status' % FEATURE_PREFIX)
+def StatusMenu():
     container         = ObjectContainer(title1 = L('system.heading.status'))
     movie_destination = bridge.plex.section_destination('movie')
     show_destination  = bridge.plex.section_destination('show')
     download_strategy = bridge.download.strategy()
 
-    container.add(button('Movies will be downloaded to %s'   % movie_destination,   noop))
-    container.add(button('TV Shows will be downloaded to %s' % show_destination,    noop))
-    container.add(button('Media will be downloaded with %s'  % download_strategy,   noop))
-    container.add(button('version %s'                        % util.version.string, noop))
+    container.add(button(F('system.status.movie-destination', movie_destination),   noop))
+    container.add(button(F('system.status.show-destination',  show_destination),    noop))
+    container.add(button(F('system.status.download-strategy', download_strategy),   noop))
+    container.add(button(F('system.status.version',           ss.util.version.string), noop))
 
     return container
 
-@route('%s/system/confirm/reset-favorites' % PLUGIN_PREFIX)
-def SystemConfirmResetFavorites():
-    return warning('system.warning.reset-favorites', 'confirm.yes', SystemResetFavorites)
+@route('%s/confirm/reset-favorites' % FEATURE_PREFIX)
+def ConfirmResetFavorites():
+    return warning('system.warning.reset-favorites', 'confirm.yes', ResetFavorites)
 
-@route('%s/system/confirm/reset-searches' % PLUGIN_PREFIX)
-def SystemConfirmResetSearches():
-    return warning('system.warning.reset-search', 'confirm.yes', SystemResetSearches)
+@route('%s/confirm/reset-searches' % FEATURE_PREFIX)
+def ConfirmResetSearches():
+    return warning('system.warning.reset-search', 'confirm.yes', ResetSearches)
 
-@route('%s/system/confirm/reset-downloads' % PLUGIN_PREFIX)
-def SystemConfirmResetDownloads():
-    return warning('system.warning.reset-download-history', 'confirm.yes', SystemResetDownloads)
+@route('%s/confirm/reset-downloads' % FEATURE_PREFIX)
+def ConfirmResetDownloads():
+    return warning('system.warning.reset-download-history', 'confirm.yes', ResetDownloads)
 
-@route('%s/system/confirm/reset-downloads-failed' % PLUGIN_PREFIX)
-def SystemConfirmResetDownloadsFailed():
-    return warning('system.warning.reset-download-failed', 'confirm.yes', SystemResetDownloadsFailed)
+@route('%s/confirm/reset-downloads-failed' % FEATURE_PREFIX)
+def ConfirmResetDownloadsFailed():
+    return warning('system.warning.reset-download-failed', 'confirm.yes', ResetDownloadsFailed)
 
-@route('%s/system/confirm/reset-ss-cache' % PLUGIN_PREFIX)
-def SystemConfirmResetSSCache():
-    return warning('system.warning.reset-ss-cache', 'confirm.yes', SystemResetSSCache)
+@route('%s/confirm/reset-ss-cache' % FEATURE_PREFIX)
+def ConfirmResetSSCache():
+    return warning('system.warning.reset-ss-cache', 'confirm.yes', ResetSSCache)
 
-@route('%s/system/confirm/reset-factory' % PLUGIN_PREFIX)
-def SystemConfirmResetFactory():
-    return warning('system.warning.reset-factory', 'confirm.yes', SystemResetFactory)
+@route('%s/confirm/reset-factory' % FEATURE_PREFIX)
+def ConfirmResetFactory():
+    return warning('system.warning.reset-factory', 'confirm.yes', ResetFactory)
 
-@route('%s/system/reset/favorites' % PLUGIN_PREFIX)
-def SystemResetFavorites():
+@route('%s/reset/favorites' % FEATURE_PREFIX)
+def ResetFavorites():
     bridge.favorite.clear()
     return dialog('heading.system', 'system.response.reset-favorites')
 
-@route('%s/system/reset/searches' % PLUGIN_PREFIX)
-def SystemResetSearches():
+@route('%s/reset/searches' % FEATURE_PREFIX)
+def ResetSearches():
     bridge.search.clear()
     return dialog('heading.system', 'system.response.reset-search')
 
-@route('%s/system/reset/downloads' % PLUGIN_PREFIX)
-def SystemResetDownloads():
+@route('%s/reset/downloads' % FEATURE_PREFIX)
+def ResetDownloads():
     bridge.download.clear_history()
     return dialog('heading.system', 'system.response.reset-download-history')
 
-@route('%s/system/reset/downloads-failed' % PLUGIN_PREFIX)
-def SystemResetDownloadsFailed():
+@route('%s/reset/downloads-failed' % FEATURE_PREFIX)
+def ResetDownloadsFailed():
     bridge.download.clear_failed()
     return dialog('heading.system', 'system.response.reset-download-failed')
 
-@route('%s/system/reset/ss-cache' % PLUGIN_PREFIX)
-def SystemResetSSCache():
-    util.clear_cache()
+@route('%s/reset/ss-cache' % FEATURE_PREFIX)
+def ResetSSCache():
+    ss.util.clear_cache()
     return dialog('heading.system', 'system.response.reset-ss-cache')
 
-@route('%s/system/reset/factory' % PLUGIN_PREFIX)
-def SystemResetFactory():
-    util.clear_cache()
+@route('%s/reset/factory' % FEATURE_PREFIX)
+def ResetFactory():
+    ss.util.clear_cache()
     Dict.Reset()
     Dict.Save()
     return dialog('heading.system', 'system.response.reset-factory')
