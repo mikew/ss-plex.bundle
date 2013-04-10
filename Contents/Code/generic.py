@@ -7,6 +7,7 @@ def RenderListings(endpoint, default_title = None):
 
 @route('%s/WatchOptions' % consts.prefix)
 def WatchOptions(endpoint, title, media_hint):
+    print bridge.download.history()
     container    = render_listings(endpoint, default_title = title, cache_time = cache.TIME_DAY)
     wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
     wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url, thumb = R('icon-watch-now.png'))

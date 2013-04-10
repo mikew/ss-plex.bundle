@@ -19,6 +19,6 @@ def python_unittest(test_file)
 end
 
 guard 'shell' do
-  watch(%r{Contents/Code/(.*).py})       {|m| python_unittest "Contents/Tests/test_#{m[1]}.py" }
-  watch(%r{Contents/Tests/test_(.*).py}) {|m| python_unittest "Contents/Tests/test_#{m[1]}.py" }
+  watch(%r{Contents/Code/(.*).py$})       {|m| python_unittest "Contents/Tests/test_#{m[1]}.py" }
+  watch(%r{Contents/Tests/test_(.*).py$}) {|m| python_unittest "Contents/Tests/test_#{m[1]}.py" }
 end
