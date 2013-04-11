@@ -99,5 +99,5 @@ sys.argv.insert(1, '--with-spec')
 sys.argv.insert(1, '--spec-color')
 
 plex_nose.core = core
-plex_nose.nose.run(addplugins=[spec.Spec()])
+plex_nose.nose.run(addplugins = [ spec.Spec() ])
 os._exit(0)

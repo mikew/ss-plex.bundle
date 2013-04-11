@@ -45,65 +45,6 @@ def MainMenu():
 # Favorites #
 #############
 
-@route('%s/favorites' % PLUGIN_PREFIX)
-def FavoritesIndex():
-    container = ObjectContainer(
-        title1 = 'Favorites'
-    )
-
-    if 'favorites' in Dict:
-        container.add(button('favorites.heading.migrate', FavoritesMigrate1to2))
-    else:
-        for endpoint, fav in util.sorted_by_title(bridge.favorite.collection().iteritems(), lambda x: x[1]['title']):
-            title  = fav['title']
-            native = TVShowObject(
-                rating_key = endpoint,
-                title      = title,
-                thumb      = fav['artwork'],
-                key        = Callback(ListTVShow, refresh = 0, endpoint = endpoint, show_title = title)
-            )
-
-            container.add(native)
-
-    return container
-
-@route('%s/favorites/toggle' % PLUGIN_PREFIX)
-def FavoritesToggle(endpoint, show_title, artwork):
-    message = None
-
-    if bridge.favorite.includes(endpoint):
-        slog.info('Removing %s from favorites' % show_title)
-        message = 'favorites.response.removed'
-        bridge.favorite.remove(endpoint)
-    else:
-        slog.info('Adding %s from favorites' % show_title)
-        message = 'favorites.response.added'
-        bridge.favorite.append(endpoint = endpoint, title = show_title, artwork = artwork)
-
-    return dialog('heading.favorites', F(message, show_title))
-
-def FavoritesMigrate1to2():
-    @thread
-    def migrate():
-        if 'favorites' in Dict:
-            old_favorites = bridge.plex.user_dict()['favorites']
-            new_favorites = bridge.favorite.collection()
-
-            for endpoint, title in old_favorites.iteritems():
-                if endpoint not in new_favorites:
-                    try:
-                        response = JSON.ObjectFromURL(util.listings_endpoint(endpoint))
-                        bridge.favorite.append(endpoint = endpoint, title = response['display_title'], artwork = response['artwork'])
-                    except Exception, e:
-                        #util.print_exception(e)
-                        pass
-
-            del Dict['favorites']
-            bridge.plex.user_dict().Save()
-
-    migrate()
-    return dialog('Favorites', 'Your favorites are being updated. Return shortly.')
-
 ###############
 # Downloading #
 ###############
@@ -298,5 +239,5 @@ def add_refresh_to(container, refresh, ocb, **kwargs):
 import generic
 import system
 import search
+import favorites
 #import downloads
-#import favorites

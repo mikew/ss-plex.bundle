@@ -11,10 +11,10 @@ class TestRenderListings(plex_nose.TestCase):
         @mock.patch.object(JSON, 'ObjectFromURL', return_value = Exception)
         def test(mock_json):
             container = generic.render_listings('/')
-            rendered = container.objects[0]
+            rendered  = container.objects[0]
 
-            eq_(1, len(container))
-            eq_('heading.error', rendered.title._key)
+            eq_(len(container),  1)
+            eqL_(rendered.title, 'heading.error')
 
         test()
 
@@ -24,69 +24,65 @@ class TestRenderListingsResponse(plex_nose.TestCase):
         setup_mocks()
 
     def test_can_render_endpoint():
-        mocked       = mocks['endpoint']
-        response     = dict(items = [ mocked ])
-        container    = generic.render_listings_response(response, '/')
-        rendered     = container.objects[0]
-        expected_key = Callback(generic.RenderListings,
-            endpoint      = mocked['endpoint'],
-            default_title = mocked['display_title']
-        )
+        mocked    = mocks['endpoint']
+        response  = dict(items = [ mocked ])
+        container = generic.render_listings_response(response, '/')
+        rendered  = container.objects[0]
 
         eq_('DirectoryObject', rendered.__class__.__name__)
-        eq_(mocked['display_title'], rendered.title)
-        eq_(expected_key, rendered.key)
+        eq_(rendered.title,  mocked['display_title'])
+        eqcb_(rendered.key,  generic.RenderListings,
+                endpoint      = mocked['endpoint'],
+                default_title = mocked['display_title']
+                )
 
     def test_can_render_show():
-        mocked       = mocks['show']
-        response     = dict(items = [ mocked ])
-        container    = generic.render_listings_response(response, '/')
-        rendered     = container.objects[0]
-        expected_key = Callback(generic.ListTVShow,
-            endpoint = mocked['endpoint'],
-            show_title = mocked['display_title'],
-            refresh = 0
-        )
+        mocked    = mocks['show']
+        response  = dict(items = [ mocked ])
+        container = generic.render_listings_response(response, '/')
+        rendered  = container.objects[0]
 
-        eq_('TVShowObject',             rendered.__class__.__name__)
-        eq_(mocked['display_title'],    rendered.title)
-        eq_(mocked['display_overview'], rendered.summary)
-        eq_(mocked['artwork'],          rendered.thumb)
-        eq_(expected_key,               rendered.key)
+        eq_('TVShowObject',    rendered.__class__.__name__)
+        eq_(rendered.title,    mocked['display_title'])
+        eq_(rendered.summary,  mocked['display_overview'])
+        eq_(rendered.thumb,    mocked['artwork'])
+        eqcb_(rendered.key,    generic.ListTVShow,
+                endpoint   = mocked['endpoint'],
+                show_title = mocked['display_title'],
+                refresh    = 0
+                )
 
     def test_can_render_episode():
         mocked    = mocks['episode']
         response  = dict(items = [ mocked ])
         container = generic.render_listings_response(response, '/')
         rendered  = container.objects[0]
-        expected_key = Callback(generic.WatchOptions,
-            endpoint = mocked['endpoint'],
-            title = mocked['display_title'],
-            media_hint = 'show'
-        )
 
-        eq_('PopupDirectoryObject',     rendered.__class__.__name__)
-        eq_(mocked['display_title'],    rendered.title)
-        eq_(mocked['display_overview'], rendered.summary)
-        eq_(mocked['artwork'],          rendered.thumb)
-        eq_(expected_key, rendered.key)
+        eq_('PopupDirectoryObject',  rendered.__class__.__name__)
+        eq_(rendered.title,    mocked['display_title'])
+        eq_(rendered.summary,  mocked['display_overview'])
+        eq_(rendered.thumb,    mocked['artwork'])
+        eqcb_(rendered.key,    generic.WatchOptions,
+                endpoint   = mocked['endpoint'],
+                title      = mocked['display_title'],
+                media_hint = 'show'
+                )
 
     def test_can_render_movie():
         mocked    = mocks['movie']
         response  = dict(items = [ mocked ])
         container = generic.render_listings_response(response, '/')
         rendered  = container.objects[0]
-        expected_key = Callback(generic.WatchOptions,
-            endpoint = mocked['endpoint'],
-            title = mocked['display_title'],
-            media_hint = 'movie'
-        )
 
         eq_('PopupDirectoryObject',  rendered.__class__.__name__)
-        eq_(mocked['display_title'],    rendered.title)
-        eq_(mocked['display_overview'], rendered.summary)
-        eq_(mocked['artwork'],          rendered.thumb)
-        eq_(expected_key, rendered.key)
+        eq_(rendered.title,    mocked['display_title'])
+        eq_(rendered.summary,  mocked['display_overview'])
+        eq_(rendered.thumb,    mocked['artwork'])
+        eqcb_(rendered.key,    generic.WatchOptions,
+                endpoint   = mocked['endpoint'],
+                title      = mocked['display_title'],
+                media_hint = 'movie'
+                )
 
     def test_can_render_foreign():
         from ss.util import q
@@ -100,8 +96,8 @@ class TestRenderListingsResponse(plex_nose.TestCase):
         ))
 
         eq_('VideoClipObject', rendered.__class__.__name__)
-        eq_(mocked['domain'], rendered.title)
-        eq_(expected, rendered.url)
+        eq_(rendered.title, mocked['domain'])
+        eq_(rendered.url, expected)
 
     def test_can_render_foreign_with_final():
         from ss.util import q
@@ -114,35 +110,39 @@ class TestRenderListingsResponse(plex_nose.TestCase):
             q(mocked['final_url']), q('/')
         ))
 
-        eq_(expected, rendered.url)
+        eq_(rendered.url, expected)
 
     def test_can_suggest_title():
         response  = dict()
         suggested = 'foo'
-        container = generic.render_listings_response(response, '/', default_title = suggested)
+        container = generic.render_listings_response(response, '/',
+                default_title = suggested)
 
-        eq_('foo', container.title1)
+        eq_(container.title1, 'foo')
 
     def test_cannot_suggest_title_when_exists():
         response  = dict(title = 'bar')
         suggested = 'foo'
-        container = generic.render_listings_response(response, '/', default_title = suggested)
+        container = generic.render_listings_response(response, '/',
+                default_title = suggested)
 
-        eq_('bar', container.title1)
+        eq_(container.title1, 'bar')
 
 class TestIcons(plex_nose.TestCase):
     def test_icon_for_tv():
-        mocked = dict(endpoint = '/tv', _type = 'endpoint')
-        response = dict(items = [ mocked ])
+        mocked    = dict(endpoint = '/tv', _type = 'endpoint')
+        response  = dict(items = [ mocked ])
         container = generic.render_listings_response(response, '/')
-        rendered = container.objects[0]
+        rendered  = container.objects[0]
+
         ok_('icon-tv.png' in rendered.thumb)
 
     def test_icon_for_movies():
-        mocked = dict(endpoint = '/movies', _type = 'endpoint')
-        response = dict(items = [ mocked ])
+        mocked    = dict(endpoint = '/movies', _type = 'endpoint')
+        response  = dict(items = [ mocked ])
         container = generic.render_listings_response(response, '/')
-        rendered = container.objects[0]
+        rendered  = container.objects[0]
+
         ok_('icon-movies.png' in rendered.thumb)
 
 class TestWatchOptions(plex_nose.TestCase):
@@ -154,16 +154,16 @@ class TestWatchOptions(plex_nose.TestCase):
             '/', int(Prefs['avoid_flv_streaming'])
         ))
 
-        eq_(3, len(container))
+        eq_(len(container), 3)
 
+        eq_('VideoClipObject', container.objects[0].__class__.__name__)
         # May be due to the fact that it is a VideoClipObject
         # but we cannot test against I18N key here
-        eq_('Watch Now',       container.objects[0].title)
-        eq_('VideoClipObject', container.objects[0].__class__.__name__)
-        eq_(watch_now_key,     container.objects[0].url)
+        eq_(container.objects[0].title,   'Watch Now')
+        eq_(container.objects[0].url,     watch_now_key)
 
-        eq_('media.watch-later', container.objects[1].title._key)
-        eq_('media.all-sources', container.objects[2].title._key)
+        eqL_(container.objects[1].title,  'media.watch-later')
+        eqL_(container.objects[2].title,  'media.all-sources')
 
     def test_when_in_history():
         import mock
@@ -172,7 +172,7 @@ class TestWatchOptions(plex_nose.TestCase):
         @mock.patch.object(bridge.download, 'history', return_value = ['/'])
         def test(*a):
             container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
-            eq_('media.persisted', container.objects[1].title._key)
+            eqL_(container.objects[1].title, 'media.persisted')
 
         test()
 
@@ -183,7 +183,7 @@ class TestWatchOptions(plex_nose.TestCase):
         @mock.patch.object(bridge.download, 'queue', return_value = [dict(endpoint = '/')])
         def test(*a):
             container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
-            eq_('media.persisted', container.objects[1].title._key)
+            eqL_(container.objects[1].title, 'media.persisted')
 
         test()
 
@@ -195,7 +195,7 @@ class TestWatchOptions(plex_nose.TestCase):
         @mock.patch.object(bridge.download, 'assumed_running', return_value = True)
         def test(*a):
             container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
-            eq_('media.persisted', container.objects[1].title._key)
+            eqL_(container.objects[1].title, 'media.persisted')
 
         test()
 
@@ -208,6 +208,6 @@ class TestWatchOptions(plex_nose.TestCase):
             container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
 
             eq_(4, len(container))
-            eq_(mocks['show']['display_title'], container.objects[3].title)
+            eq_(container.objects[3].title, mocks['show']['display_title'])
 
         test()
