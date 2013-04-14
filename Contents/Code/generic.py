@@ -1,3 +1,5 @@
+import downloads
+
 @route('%s/RenderListings' % consts.prefix)
 def RenderListings(endpoint, default_title = None):
     return render_listings(endpoint, default_title)
@@ -10,9 +12,9 @@ def WatchOptions(endpoint, title, media_hint):
     sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title, icon = 'icon-view-all-sources.png')
 
     if bridge.download.in_history(endpoint):
-        download_item = button('media.persisted', DownloadsOptions, endpoint = endpoint, icon = 'icon-downloads-queue.png')
+        download_item = button('media.persisted', downloads.Options, endpoint = endpoint, icon = 'icon-downloads-queue.png')
     else:
-        download_item = button('media.watch-later', DownloadsQueue,
+        download_item = button('media.watch-later', downloads.Queue,
             endpoint   = endpoint,
             media_hint = media_hint,
             title      = title,

@@ -1,3 +1,5 @@
+import downloads
+
 FEATURE_PREFIX = '%s/system' % consts.prefix
 
 @route(FEATURE_PREFIX)
@@ -6,7 +8,7 @@ def MainMenu():
 
     container.add(button('system.heading.reset',          ResetMenu,  icon = 'icon-reset.png'))
     container.add(button('system.heading.status',         StatusMenu, icon = 'icon-system-status.png'))
-    container.add(button('system.heading.dispatch-force', DownloadsDispatchForce))
+    container.add(button('system.heading.dispatch-force', downloads.DispatchForce))
 
     return container
 

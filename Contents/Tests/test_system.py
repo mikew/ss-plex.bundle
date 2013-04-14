@@ -4,7 +4,7 @@ class SystemMenuTests(plex_nose.TestCase):
     def test_main_menu():
         container = system.MainMenu()
 
-        eq_(len(container.objects), 3)
+        eq_(len(container), 3)
         eqL_(container.title1,      'heading.system')
 
         eqL_(container.objects[0].title, 'system.heading.reset')
@@ -14,12 +14,12 @@ class SystemMenuTests(plex_nose.TestCase):
         eqcb_(container.objects[1].key,  system.StatusMenu)
 
         eqL_(container.objects[2].title, 'system.heading.dispatch-force')
-        eqcb_(container.objects[2].key,  DownloadsDispatchForce)
+        eqcb_(container.objects[2].key,  downloads.DispatchForce)
 
     def test_reset_menu():
         container = system.ResetMenu()
 
-        eq_(len(container.objects), 6)
+        eq_(len(container), 6)
         eqL_(container.title1,      'system.heading.reset')
 
         eqL_(container.objects[0].title, 'system.heading.reset-favorites')
@@ -51,7 +51,7 @@ class SystemMenuTests(plex_nose.TestCase):
             return container
 
         container = test()
-        eq_(4, len(container.objects))
+        eq_(len(container), 4)
 
         eqF_(container.objects[0].title,  'system.status.movie-destination')
         eqF_(container.objects[1].title,  'system.status.show-destination')
