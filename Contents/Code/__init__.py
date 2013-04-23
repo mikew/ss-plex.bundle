@@ -10,6 +10,9 @@ PLUGIN_TITLE  = L('title')
 PLUGIN_ART    = 'art-default.jpg'
 PLUGIN_ICON   = 'icon-default.png'
 
+import updater
+updater.init(repo = 'mikew/ss-plex.bundle', branch = 'stable')
+
 to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs, HTTP = HTTP, Platform = Platform)
 bridge.plex.init(**to_export)
 
@@ -35,7 +38,7 @@ def MainMenu():
     container.add(button('heading.download',     DownloadsIndex, refresh = 0, icon = 'icon-downloads.png'))
     container.add(button('heading.system',       SystemIndex, icon = 'icon-system.png'))
     container.add(PrefsObject(title = L('system.heading.preferences')))
-
+    updater.add_button_to(container)
     return container
 
 ##########
