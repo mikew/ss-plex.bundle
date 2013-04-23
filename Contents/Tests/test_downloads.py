@@ -138,7 +138,7 @@ class TestDownloads(plex_nose.TestCase):
     def test_options_for_failed():
         import mock
 
-        download = dict(title = 'foo', endpoint = '/')
+        download = dict(title = 'foo', endpoint = '/', media_hint = 'show')
         @mock.patch.object(bridge.download, 'from_queue', return_value = None)
         @mock.patch.object(bridge.download, 'from_failed', return_value = download)
         def test(*a):
@@ -146,7 +146,37 @@ class TestDownloads(plex_nose.TestCase):
 
         container = test()
         eq_(container.title1, download['title'])
-        eq_(len(container), 1)
+        eq_(len(container), 2)
 
-        eqL_(container.objects[0].title, 'download.heading.cancel')
-        eqcb_(container.objects[0].key, downloads.Cancel, endpoint = download['endpoint'])
+        eqL_(container.objects[0].title, 'download.heading.retry')
+        eqcb_(container.objects[0].key, downloads.Queue, **download)
+
+        eqL_(container.objects[1].title, 'download.heading.cancel')
+        eqcb_(container.objects[1].key, downloads.RemoveFailed, endpoint = download['endpoint'])
+
+    def test_queue():
+        import mock
+
+        download = dict(title = 'foo', endpoint = '/', media_hint = 'show')
+        @mock.patch.object(downloads, 'dispatch_download_threaded')
+        def test(*a):
+            return downloads.Queue(**download)
+
+        container = test()
+        ok_(bridge.download.from_queue(download['endpoint']))
+        eqL_(container.header, 'heading.download')
+        eqF_(container.message, 'download.response.added')
+
+    def test_queue_when_exists():
+        import mock
+
+        download = dict(title = 'foo', endpoint = '/', media_hint = 'show')
+        @mock.patch.object(bridge.download, 'queue', return_value = [ download ])
+        @mock.patch.object(downloads, 'dispatch_download_threaded')
+        def test(*a):
+            return downloads.Queue(**download)
+
+        container = test()
+        ok_(bridge.download.from_queue(download['endpoint']))
+        eqL_(container.header, 'heading.download')
+        eqF_(container.message, 'download.response.exists')
