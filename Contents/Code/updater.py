@@ -18,7 +18,6 @@ class GithubStrategy(object):
 
     def perform_update(self):
         archive = Archive.ZipFromURL(self.archive_url)
-
         for name in archive.Names():
             data    = archive[name]
             parts   = name.split('/')
@@ -27,7 +26,7 @@ class GithubStrategy(object):
 
             if '/.' in name: continue
 
-            if full.endswith('/'):
+            if name.endswith('/'):
                 Core.storage.ensure_dirs(full)
             else:
                 Core.storage.save(full, data)
