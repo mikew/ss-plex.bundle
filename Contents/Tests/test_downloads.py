@@ -180,3 +180,32 @@ class TestDownloads(plex_nose.TestCase):
         ok_(bridge.download.from_queue(download['endpoint']))
         eqL_(container.header, 'heading.download')
         eqF_(container.message, 'download.response.exists')
+
+    def test_cancel():
+        import mock
+        download = dict(title = 'foo', endpoint = '/', media_hint = 'show')
+        @mock.patch.object(bridge.download, 'queue', return_value = [download])
+        def test(*a):
+            container = downloads.Cancel(endpoint = download['endpoint'])
+            ok_(download not in bridge.download.history())
+            return container
+
+        container = test()
+        eqL_(container.header, 'heading.download')
+        eqF_(container.message, 'download.response.cancel')
+
+    def test_cancel_when_current():
+        import mock
+        downloads.Cancel(endpoint = '/')
+        download = dict(title = 'foo', endpoint = '/', media_hint = 'show')
+        @mock.patch.object(bridge.download, 'current', return_value = download)
+        @mock.patch.object(bridge.download, 'is_current', return_value = True)
+        @mock.patch.object(bridge.download, 'command')
+        def test(command_mock, *a):
+            container = downloads.Cancel(endpoint = download['endpoint'])
+            command_mock.asset_called_once_with('cancel')
+            return container
+
+        container = test()
+        eqL_(container.header, 'heading.download')
+        eqF_(container.message, 'download.response.cancel')
