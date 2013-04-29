@@ -3,20 +3,20 @@ import plex_nose
 class UiHelpersTest(plex_nose.TestCase):
     def test_plobj():
         from ui import plobj
-        subject = plobj(DirectoryObject, 'title', noop, icon = PLUGIN_ART)
+        subject = plobj(DirectoryObject, 'title', noop, icon = consts.art)
 
         eq_(subject.__class__.__name__, 'DirectoryObject')
         eqL_(subject.title, 'title')
-        eq_(subject.thumb, R(PLUGIN_ART))
+        eq_(subject.thumb, R(consts.art))
         eqcb_(subject.key, noop)
 
     def test_plobj_with_f():
         from ui import plobj
-        subject = plobj(DirectoryObject, F('system.status.version', '1.0'), noop, icon = PLUGIN_ART)
+        subject = plobj(DirectoryObject, F('system.status.version', '1.0'), noop, icon = consts.art)
 
         eq_(subject.__class__.__name__, 'DirectoryObject')
         eqF_(subject.title, 'system.status.version')
-        eq_(subject.thumb, R(PLUGIN_ART))
+        eq_(subject.thumb, R(consts.art))
         eqcb_(subject.key, noop)
 
     def test_input_button():

@@ -8,10 +8,10 @@ consts = SharedCodeService.consts
 slog   = logging.getLogger('ss.plex')
 
 # TODO: remove once everything is extracted
-PLUGIN_PREFIX = consts.prefix
-PLUGIN_TITLE  = consts.title
-PLUGIN_ART    = consts.art
-PLUGIN_ICON   = consts.icon
+#PLUGIN_PREFIX = consts.prefix
+#PLUGIN_TITLE  = consts.title
+#PLUGIN_ART    = consts.art
+#PLUGIN_ICON   = consts.icon
 
 to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs, HTTP = HTTP, Platform = Platform)
 bridge.plex.init(**to_export)
@@ -45,12 +45,12 @@ def MainMenu():
 # Listing Methods #
 ###################
 
-@route('%s/ListSources' % PLUGIN_PREFIX)
+@route('%s/ListSources' % consts.prefix)
 def ListSources(endpoint, title):
     wizard = Wizard(endpoint, environment = bridge.environment.plex)
     return render_listings_response(wizard.payload, endpoint, wizard.file_hint)
 
-@route('%s/series/i{refresh}' % PLUGIN_PREFIX)
+@route('%s/series/i{refresh}' % consts.prefix)
 def ListTVShow(endpoint, show_title, refresh = 0):
     import re
 
