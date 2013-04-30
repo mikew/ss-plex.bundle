@@ -27,6 +27,18 @@ def WatchOptions(endpoint, title, media_hint):
 
     return container
 
+def modify_title_for_persisted(title, endpoint):
+    if bridge.download.in_history(endpoint):
+        return F('generic.mark-persisted', title)
+
+    return title
+
+def modify_title_for_favorite(title, endpoint):
+    if bridge.favorite.includes(endpoint):
+        return F('generic.mark-favorite', title)
+
+    return title
+
 def render_listings(endpoint, default_title = None, return_response = False, cache_time = None):
     slog.debug('Rendering listings for %s' % endpoint)
     listings_endpoint = ss.util.listings_endpoint(endpoint)
@@ -76,6 +88,9 @@ def render_listings_response(response, endpoint, default_title = None):
                 native.thumb = R('icon-movies.png')
 
         elif 'show' == element_type:
+            if bridge.download.in_history(permalink):
+                display_title = F('generic.in-history', display_title)
+
             native = TVShowObject(
                 rating_key = permalink,
                 title      = display_title,

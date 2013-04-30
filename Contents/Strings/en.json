@@ -56,6 +56,9 @@
   "favorites.response.added":    "%s was added to your favorites.",
   "favorites.response.removed":  "%s was removed from your favorites.",
 
+  "generic.mark-persisted": "↧ %s",
+  "generic.mark-favorite":  "✩ %s",
+
   "download.heading.next":            "Try next source",
   "download.heading.cancel":          "Remove download",
   "download.heading.repair":          "Repair Downloads",

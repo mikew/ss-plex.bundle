@@ -18,6 +18,64 @@ class TestRenderListings(plex_nose.TestCase):
 
         test()
 
+class TestModifyTitle(plex_nose.TestCase):
+    @classmethod
+    def setup_class(cls):
+        class stub(): pass
+
+        persisted = stub()
+        persisted.endpoint = '/foo'
+        persisted.title    = 'foo'
+
+        favorite = stub()
+        favorite.endpoint = '/foo'
+        favorite.title    = 'foo'
+
+        favorite_collection = dict()
+        favorite_collection[favorite.endpoint] = favorite
+
+        to_publish = stub()
+        to_publish.persisted = persisted
+        to_publish.favorite  = favorite
+        to_publish.favorite_collection = favorite_collection
+
+        plex_nose.core.sandbox.publish_api(to_publish, name = 'mocks')
+
+    @classmethod
+    def teardown_class(cls):
+        plex_nose.core.sandbox.execute('del mocks')
+
+    def test_modify_title_for_persisted():
+        import mock
+
+        @mock.patch.object(bridge.download, 'history', return_value = [mocks.persisted.endpoint])
+        def test(*a):
+            subject = generic.modify_title_for_persisted(mocks.persisted.title,
+                    mocks.persisted.endpoint)
+
+            print subject
+            eq_(subject._string1._key, 'generic.mark-persisted')
+
+        test()
+
+    def test_modify_title_for_favorite():
+        import mock
+
+        @mock.patch.object(bridge.favorite, 'collection', return_value = mocks.favorite_collection)
+        def test(*a):
+            subject = generic.modify_title_for_favorite(mocks.favorite.title,
+                    mocks.favorite.endpoint)
+
+            print subject
+            eq_(subject._string1._key, 'generic.mark-favorite')
+
+        test()
+
+    def test_modify_title_for_favorite_or_persisted():
+        import mock
+
+        @mock.patch.object(bridge.)
+
 class TestRenderListingsResponse(plex_nose.TestCase):
     @classmethod
     def setup_class(cls):
