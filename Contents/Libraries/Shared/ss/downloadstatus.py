@@ -87,7 +87,7 @@ class DownloadStatus(object):
 
     def report_speed(self):
         self.parse_status_file()
-        return '%s remaning; %s average.' % (self.time_left, self.average_download)
+        return '%s remaining; %s average.' % (self.time_left, self.average_download)
 
     def report(self):
         return [ self.report_progress(), self.report_speed() ]
