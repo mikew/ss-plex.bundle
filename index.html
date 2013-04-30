@@ -20,9 +20,8 @@
         <p class="header"></p>
 
         <ul>
-          <!--<li class="download"><a class="buttons" href="https://github.com/mikew/ss-plex.bundle/zipball/master">Download ZIP</a></li>-->
-          <!--<li class="download"><a class="buttons" href="https://github.com/mikew/ss-plex.bundle/tarball/master">Download TAR</a></li>-->
-          <li class="download"><a class="buttons" href="#installation">Installation</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/mikew/ss-plex.bundle/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/mikew/ss-plex.bundle/tarball/master">Download TAR</a></li>
           <li><a class="buttons github" href="https://github.com/mikew/ss-plex.bundle">View On GitHub</a></li>
         </ul>
 
@@ -35,61 +34,57 @@
 
 <p>Imagine if all the media scattered around the internet could be found in one collection. Movies and TV Shows, of late and of yore, at your fingertips.</p>
 
-<p><img src="http://i.imgur.com/QfNCYCP.png" alt=""></p>
+<p><img src="http://i.imgur.com/QfNCYCP.png" alt="dashboard-thumbnail"></p>
 
 <p>Well, here it is.</p>
 
 <p><strong>TL;DR</strong> <a href="http://imgur.com/a/ULaY9">Screenshot Tour</a></p>
 
-<h1 id="installation">Installation</h1>
+<h2>Installation</h2>
 
 <p>Requirements:</p>
 
 <ul>
 <li><a href="http://plexapp.com/getplex/">Plex Media Server</a></li>
-<li><a href="http://forums.plexapp.com/index.php/topic/25523-unsupported-appstore/">Unsupported App Store</a></li>
+<li><a href="http://mikew.github.io/ss-plex.bundle/ss-plex.bundle.zip">ss-plex.bundle</a></li>
 <li>
 <em>Optional:</em> curl or wget, for downloading media</li>
-</ul><p>After installing Plex Media Server and the Unsupported App Store, you will use the latter to install and update SS-Plex.</p>
+</ul><p>After installing Plex Media Server, open the Plug-ins folder and extract ss-plex.bundle. Restart the server simply by closing and opening it again and you are ready to go.</p>
 
-<h1>Usage</h1>
+<h2>Usage</h2>
 
 <p>Once inside the channel you will find a wide scope of media. Everything is updated automatically and available to watch just about any device you can imagine: Android/iOS, PC, OS X, AppleTV, Raspberry Pi, Web Browsers support HLS or Flash, Smart TVs, DLNA (PS3/Xbox 360).</p>
 
-<h1>Background</h1>
+<h2>Background</h2>
 
-<p>The channel is powered by a library that is based on the idea that each piece of media will have multiple sources to stream from, and to try each of those in sequence until one works. this list of sources and how to navigate the individual items is managed elsewhere. to summarize, it doesn't need to be updated.</p>
+<p>The channel is powered by a library that is based on the idea that each piece of media will have multiple sources to stream from, and to try each of those in sequence until one works. This list of sources and how to navigate the individual items is managed elsewhere. To summarize, it doesn't need to be updated.</p>
 
-<p>see <a href="http://github.com/mikew/ss-raspberry">ss-raspberry</a> for some insight into how portable this idea is.</p>
+<p>See <a href="http://github.com/mikew/ss-raspberry">ss-raspberry</a> for some insight into how portable this idea is.</p>
 
-<h1>Frequently Asked Questions</h1>
+<h2>Frequently Asked Questions</h2>
 
-<ul>
-<li>
-<p><strong>Q). Where will my media be downloaded?</strong></p>
+<h3>Q). Where will my media be downloaded?</h3>
 
 <p><strong>A).</strong> Since the plex media server already manages your libraries for you, the channel uses the information from there. for most library configurations, this should work wonders.</p>
 
-<p>if, however, you have a less typical set of libraries and you find the channel has chosen the wrong location, you may add a folder named 'ssp', 'ss-plex', 'ss potato', etc. to the proper section and that will be used instead.</p>
-</li>
-<li>
-<p><strong>Q). There is a download reporting 100% complete, why is the queue broken?</strong></p>
+<p>If, however, you have a less typical set of libraries and you find the channel has chosen the wrong location, you may add a folder named 'ssp', 'ss-plex', 'ss potato', etc. to the proper section and that will be used instead.</p>
 
-<p><strong>A).</strong> This is an odd error that can occur. you will be presented with the option to "Repair Downloads", which will get the queue working, but there will be a video file with a '.part' extension left on your hard drive. You are free to remove that '.part' extension.</p>
-</li>
-<li>
-<p><strong>Q). nothing will download, what do I do?</strong></p>
+<p>Navigate to <code>System &gt; Information</code> if you would like to know more.</p>
 
-<p><strong>A).</strong> Make sure you have curl or wget installed:</p>
+<h3>Q). There is a download reporting 100% complete, why is the queue broken?</h3>
 
-<p>Windows: <a href="http://curl.haxx.se/dlwiz/?type=bin">download a curl binary</a> and place it in C:\Windows. wget binaries exist but installation is not as simple.</p>
+<p><strong>A).</strong> This is an odd error that can occur. You will be presented with the option to "Repair Downloads", which will get the queue working, but there will be a video file with a '.part' extension left on your hard drive. You are free to remove that '.part' extension.</p>
 
-<p>OS X: curl works out of the box. wget can be installed through other means.</p>
+<h3>Q). Nothing will download, what do I do?</h3>
 
-<p>Linux: wget is installed more often than not. curl can be installed but may not work due to issues with libcurl.so provided by Plex Media Server.</p>
+<p><strong>A).</strong> First, make sure the channel knows where to download media, as discussed earlier.</p>
 
-<p>Then make sure the proper locations are being used, as discussed earlier.</p>
-</li>
+<p>Second, make sure you've got curl or wget installed on your system:</p>
+
+<ul>
+<li><p><strong>Windows</strong>: <a href="http://curl.haxx.se/dlwiz/?type=bin">download a curl binary</a> and place it in C:\Windows. wget binaries exist but installation is not as simple.</p></li>
+<li><p><strong>OS X</strong>: curl works out of the box. wget can be installed through other means.</p></li>
+<li><p><strong>Linux</strong>: wget is installed more often than not. curl can be installed but may not work due to issues with libcurl.so provided by Plex Media Server.</p></li>
 </ul>
       </section>
       <footer>
