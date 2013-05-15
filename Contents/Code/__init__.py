@@ -1,15 +1,11 @@
 from ui import button, popup_button, input_button, dialog, confirm, warning
 
-import ss
 import bridge
-import logging
 
 consts = SharedCodeService.consts
-slog   = logging.getLogger('ss.plex')
 
-
-to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs, HTTP = HTTP, Platform = Platform)
-bridge.plex.init(**to_export)
+ss = common.init_ss()
+slog = ss.util.getLogger('ss.plex')
 
 def Start():
     # Initialize the plug-in
@@ -42,8 +38,8 @@ def MainMenu():
 
 @route('%s/ListSources' % consts.prefix)
 def ListSources(endpoint, title):
-    wizard = Wizard(endpoint, environment = bridge.environment.plex)
-    return render_listings_response(wizard.payload, endpoint, wizard.file_hint)
+    wizard = ss.Wizard(endpoint)
+    return generic.render_listings_response(wizard.payload, endpoint, wizard.file_hint)
 
 @route('%s/series/i{refresh}' % consts.prefix)
 def ListTVShow(endpoint, show_title, refresh = 0):

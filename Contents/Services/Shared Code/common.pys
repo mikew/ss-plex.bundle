@@ -1,0 +1,34 @@
+# Some clients request a certain endpoint
+# that doesn't add Contents/Libraries/Shared
+# to sys.path. this fixes that.
+
+import inspect, os, sys
+d = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../Libraries/Shared' ) # script directory
+
+if not d in sys.path:
+    sys.path.insert(0, d)
+
+import ss
+
+class SSPlexEnvironment(object):
+    def json_from_url(self, payload_url, params = {}, expires = 0):
+        return JSON.ObjectFromURL(payload_url, values = params, cacheTime = expires)
+
+    def css_from_string(self, haystack, selector):
+        return HTML.ElementFromString(haystack).cssselect(selector)
+
+    def xpath_from_string(self, haystack, query):
+        return HTML.ElementFromString(haystack).xpath(query)
+
+    def json_from_object(self, obj):
+        return JSON.StringFromObject(obj)
+
+    def json_from_string(self, string):
+        return JSON.ObjectFromString(string)
+
+def init_ss():
+    if not isinstance(ss.environment.factory, SSPlexEnvironment):
+        ss.environment.factory = SSPlexEnvironment()
+
+    return ss
+

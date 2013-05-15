@@ -7,15 +7,11 @@ d = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../Lib
 
 if not d in sys.path:
     sys.path.insert(0, d)
+import common
+ss = common.init_ss()
 
 from urlparse import urlparse
-from ss import Consumer, Wizard, util
 import cgi
-import bridge
-
-to_export = dict(Log = Log, XML = XML, HTML = HTML, JSON = JSON, HTTP = HTTP)
-bridge.plex.init(**to_export)
-
 #util.redirect_output('/Users/mike/Work/python/ss-plex.bundle/out')
 
 def NormalizeURL(url): return url
@@ -24,7 +20,7 @@ def MetadataObjectForURL(url):
     nil, nil, path, nil, query, nil = urlparse(url)
     params   = cgi.parse_qs(query)
     endpoint = params['endpoint'][0]
-    wizard   = Wizard(endpoint, environment = bridge.environment.plex)
+    wizard   = ss.Wizard(endpoint)
 
     co = VideoClipObject(
         title   = wizard.file_hint,
@@ -47,9 +43,9 @@ def MediaObjectsForURL(url):
 
 @indirect
 def PlayWizard(endpoint, avoid_flv = 0):
-    wizard = Wizard(endpoint, environment = bridge.environment.plex, avoid_flv = bool(int(avoid_flv)))
+    wizard = ss.Wizard(endpoint, avoid_flv = bool(int(avoid_flv)))
 
-    def first_working(consumer): consumer.consume()
+    def first_working(consumer): consumer.asset_url
     wizard.sources(first_working)
 
     if wizard.consumer: return video(wizard.consumer)
@@ -57,21 +53,21 @@ def PlayWizard(endpoint, avoid_flv = 0):
 
 @indirect
 def PlayConsumer(url):
-    consumer = Consumer(url, environment = bridge.environment.plex)
+    consumer = ss.Consumer(url)
     return video(consumer)
 
 @indirect
 def PlayForeign(original, foreign):
-    response = JSON.ObjectFromURL( util.translate_endpoint(original, foreign) )
-    url      = util.translated_from(response)
-    consumer = Consumer(url, environment = bridge.environment.plex)
+    response = JSON.ObjectFromURL( ss.util.translate_endpoint(original, foreign) )
+    url      = ss.util.translated_from(response)
+    consumer = ss.Consumer(url)
 
     return video(consumer)
 
 def video(consumer):
     try:
         consumer.consume()
-        return IndirectResponse(VideoClipObject, key = consumer.asset_url())
+        return IndirectResponse(VideoClipObject, key = consumer.asset_url)
 
     except Exception, e:
         raise Ex.MediaNotAvailable
