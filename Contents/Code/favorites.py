@@ -39,6 +39,7 @@ def Toggle(endpoint, show_title, artwork):
 
     return dialog('heading.favorites', F(message, show_title))
 
+@route('%s/migrate-1-2' % FEATURE_PREFIX)
 def Migrate1to2():
     @thread
     def migrate():
@@ -60,4 +61,3 @@ def Migrate1to2():
 
     migrate()
     return dialog('Favorites', 'Your favorites are being updated. Return shortly.')
-
