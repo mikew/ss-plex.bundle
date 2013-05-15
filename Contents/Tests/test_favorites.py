@@ -4,9 +4,11 @@ class FavoritesTests(plex_nose.TestCase):
     def test_main_menu():
         import mock
 
-        show = dict(title = 'foo', artwork = 'foo.jpg', endpoint = '/')
+        show = dict(title = 'foo', artwork = 'foo.jpg', endpoint = '/shows/1')
+        collection = dict()
+        collection[show['endpoint']] = show
 
-        @mock.patch.object(bridge.favorite, 'collection', return_value = {'/':show})
+        @mock.patch.object(bridge.favorite, 'collection', return_value = collection)
         def test(*a):
             return favorites.MainMenu()
 
@@ -25,7 +27,7 @@ class FavoritesTests(plex_nose.TestCase):
     def test_toggle():
         import mock
 
-        show = dict(title = 'foo', artwork = 'foo.jpg', endpoint = '/')
+        show = dict(title = 'foo', artwork = 'foo.jpg', endpoint = '/shows/1')
 
         @mock.patch.object(bridge.favorite, 'collection', return_value = {})
         def test(*a):
@@ -39,9 +41,11 @@ class FavoritesTests(plex_nose.TestCase):
     def test_toggle_when_existing():
         import mock
 
-        show = dict(title = 'foo', artwork = 'foo.jpg', endpoint = '/')
+        show = dict(title = 'foo', artwork = 'foo.jpg', endpoint = '/shows/1')
+        collection = dict()
+        collection[show['endpoint']] = show
 
-        @mock.patch.object(bridge.favorite, 'collection', return_value = {'/':show})
+        @mock.patch.object(bridge.favorite, 'collection', return_value = collection)
         def test(*a):
             container = favorites.Toggle(show['endpoint'], show['title'], show['artwork'])
             ok_(not bridge.favorite.includes(show['endpoint']))

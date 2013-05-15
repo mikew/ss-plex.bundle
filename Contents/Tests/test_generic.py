@@ -28,7 +28,7 @@ class TestModifyTitle(plex_nose.TestCase):
         persisted.title    = 'foo'
 
         favorite = stub()
-        favorite.endpoint = '/foo'
+        favorite.endpoint = '/shows/1'
         favorite.title    = 'foo'
 
         favorite_collection = dict()

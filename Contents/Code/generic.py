@@ -7,12 +7,12 @@ def RenderListings(endpoint, default_title = None):
 @route('%s/WatchOptions' % consts.prefix)
 def WatchOptions(endpoint, title, media_hint):
     container    = render_listings(endpoint, default_title = title, cache_time = ss.cache.TIME_DAY)
-    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.user.avoid_flv_streaming()))
+    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s' % (endpoint, int(bridge.settings.get('avoid_flv_streaming', False)))
     wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url, thumb = R('icon-watch-now.png'))
     sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title, icon = 'icon-view-all-sources.png')
 
-    if bridge.download.in_history(endpoint):
-        download_item = button('media.persisted', downloads.Options, endpoint = endpoint, icon = 'icon-downloads-queue.png')
+    if bridge.download.includes(endpoint):
+        download_item = button('media.persisted', downloads.OptionsForEndpoint, endpoint = endpoint, icon = 'icon-downloads-queue.png')
     else:
         download_item = button('media.watch-later', downloads.Queue,
             endpoint   = endpoint,
@@ -28,7 +28,7 @@ def WatchOptions(endpoint, title, media_hint):
     return container
 
 def modify_title_for_persisted(title, endpoint):
-    if bridge.download.in_history(endpoint):
+    if bridge.download.includes(endpoint):
         return F('generic.mark-persisted', title)
 
     return title

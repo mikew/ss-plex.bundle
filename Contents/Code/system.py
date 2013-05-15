@@ -28,8 +28,8 @@ def ResetMenu():
 @route('%s/status' % FEATURE_PREFIX)
 def StatusMenu():
     container         = ObjectContainer(title1 = L('system.heading.status'))
-    movie_destination = bridge.plex.section_destination('movie')
-    show_destination  = bridge.plex.section_destination('show')
+    movie_destination = bridge.settings.get('movie_destination')
+    show_destination  = bridge.settings.get('show_destination')
     download_strategy = bridge.download.strategy()
 
     container.add(button(F('system.status.movie-destination', movie_destination),   noop))

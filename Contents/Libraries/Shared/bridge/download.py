@@ -1,17 +1,17 @@
-#from ss import Downloader, util
+import ss
 import settings
 
 import os
 import signal
 import thread
 
-#log = util.getLogger('ss.bridge.download')
+log = ss.util.getLogger('ss.bridge.download')
 
 def queue():           return settings.get('downloads',        [])
 def history():         return settings.get('download_history', [])
 def failed():          return settings.get('download_failed',  [])
 def avoid_flv():       return settings.get('avoid_flv_downloading')
-def speed_limit():     return settings.get('download_limit')
+def speed_limit():     return settings.get('download_limit', 0)
 def current():         return settings.get('download_current')
 def current_pid():     return current().get('pid')
 def assumed_running(): return settings.get('download_current') != None
@@ -140,8 +140,9 @@ def dispatch(should_thread = True):
     set_current(download)
 
     def perform_download():
-        downloader = Downloader(download['endpoint'],
-            destination = plex.section_destination(download['media_hint']),
+        dest_key = '%s_destination' % download['media_hint']
+        downloader = ss.Downloader(download['endpoint'],
+            destination = settings.get(dest_key),
             limit       = speed_limit(),
             strategy    = strategy(),
             avoid_small_files = True
@@ -213,4 +214,3 @@ def signal_process_windows(pid, to_send = 0):
         return True
     except:
         return False
-
