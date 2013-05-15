@@ -7,11 +7,6 @@ import logging
 consts = SharedCodeService.consts
 slog   = logging.getLogger('ss.plex')
 
-# TODO: remove once everything is extracted
-#PLUGIN_PREFIX = consts.prefix
-#PLUGIN_TITLE  = consts.title
-#PLUGIN_ART    = consts.art
-#PLUGIN_ICON   = consts.icon
 
 to_export = dict(Log = Log, Dict = Dict, XML = XML, HTML = HTML, JSON = JSON, Prefs = Prefs, HTTP = HTTP, Platform = Platform)
 bridge.plex.init(**to_export)
@@ -22,8 +17,8 @@ def Start():
     Plugin.AddViewGroup('List',     viewMode = 'List',      mediaType = 'items')
 
     ObjectContainer.view_group = 'List'
-    ObjectContainer.art        = R(PLUGIN_ART)
-    DirectoryObject.art        = R(PLUGIN_ART)
+    ObjectContainer.art        = consts.art
+    DirectoryObject.art        = consts.art
     slog.debug('"Starting" SS-Plex')
 
 def ValidatePrefs(): pass
