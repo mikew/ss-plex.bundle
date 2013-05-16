@@ -32,6 +32,10 @@ def MainMenu():
 
     return container
 
+@route('%s/search/{query}')
+def SearchResultsMenu(query, foo = 1):
+    return search.ResultsMenu(query)
+
 ###################
 # Listing Methods #
 ###################

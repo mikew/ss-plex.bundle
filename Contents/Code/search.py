@@ -10,7 +10,6 @@ def MainMenu():
 
     return container
 
-@route('%s/results/{query}' % FEATURE_PREFIX)
 def ResultsMenu(query, foo = 1):
     container = render_listings('/search/%s' % ss.util.q(query))
     labels    = [ 'add', 'remove' ]
