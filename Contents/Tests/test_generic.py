@@ -188,7 +188,7 @@ class TestRenderListingsResponse(plex_nose.TestCase):
 
 class TestIcons(plex_nose.TestCase):
     def test_icon_for_tv():
-        mocked    = dict(endpoint = '/tv', _type = 'endpoint')
+        mocked    = dict(endpoint = '/shows', _type = 'endpoint')
         response  = dict(items = [ mocked ])
         container = generic.render_listings_response(response, '/')
         rendered  = container.objects[0]

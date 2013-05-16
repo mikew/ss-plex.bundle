@@ -82,7 +82,7 @@ def render_listings_response(response, endpoint, default_title = None):
                 thumb   = element.get('artwork')
             )
 
-            if '/tv' == permalink:
+            if '/shows' == permalink:
                 native.thumb = R('icon-tv.png')
             elif '/movies' == permalink:
                 native.thumb = R('icon-movies.png')
