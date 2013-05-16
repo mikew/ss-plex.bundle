@@ -1,10 +1,11 @@
 from ui import button, popup_button, input_button, dialog, confirm, warning
 
-import bridge
-
 consts = SharedCodeService.consts
+common = SharedCodeService.common
 
 ss = common.init_ss()
+import bridge_init
+bridge = bridge_init.init_bridge()
 slog = ss.util.getLogger('ss.plex')
 
 def Start():
@@ -21,13 +22,13 @@ def ValidatePrefs(): pass
 
 @handler(consts.prefix, consts.title, thumb = consts.icon, art = consts.art)
 def MainMenu():
-    container = render_listings('/')
+    container = generic.render_listings('/')
 
-    container.add(button('heading.favorites',    FavoritesIndex, icon = 'icon-favorites.png'))
-    container.add(input_button('heading.search', 'search.prompt', SearchResults, icon = 'icon-search.png', foo = 1))
-    container.add(button('search.heading.saved', SearchIndex, icon = 'icon-saved-search.png'))
-    container.add(button('heading.download',     DownloadsIndex, refresh = 0, icon = 'icon-downloads.png'))
-    container.add(button('heading.system',       SystemIndex, icon = 'icon-system.png'))
+    container.add(button('heading.favorites',    favorites.MainMenu, icon = 'icon-favorites.png'))
+    container.add(input_button('heading.search', 'search.prompt', SearchResultsMenu, icon = 'icon-search.png', foo = 1))
+    container.add(button('search.heading.saved', search.MainMenu, icon = 'icon-saved-search.png'))
+    container.add(button('heading.download',     downloads.MainMenu, refresh = 0, icon = 'icon-downloads.png'))
+    container.add(button('heading.system',       system.MainMenu, icon = 'icon-system.png'))
     container.add(PrefsObject(title = L('system.heading.preferences')))
 
     return container
@@ -49,7 +50,7 @@ def ListSources(endpoint, title):
 def ListTVShow(endpoint, show_title, refresh = 0):
     import re
 
-    container, response = render_listings(endpoint + '/episodes', show_title, True)
+    container, response = generic.render_listings(endpoint + '/episodes', show_title, True)
     title_regex         = r'^' + re.escape(show_title) + r':?\s+'
 
     for item in container.objects:
@@ -58,7 +59,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     labels   = [ 'add', 'remove' ]
     label    = labels[int(bridge.favorite.includes(endpoint))]
 
-    container.objects.insert(0, button('favorites.heading.%s' % label, FavoritesToggle,
+    container.objects.insert(0, button('favorites.heading.%s' % label, favorites.Toggle,
         endpoint   = endpoint,
         icon       = 'icon-favorites.png',
         show_title = show_title,

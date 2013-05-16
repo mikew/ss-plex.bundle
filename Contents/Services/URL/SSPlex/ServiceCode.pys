@@ -1,18 +1,8 @@
-# Some clients request a certain endpoint
-# that doesn't add Contents/Libraries/Shared
-# to sys.path. this fixes that.
-
-import inspect, os, sys
-d = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../Libraries/Shared' ) # script directory
-
-if not d in sys.path:
-    sys.path.insert(0, d)
 import common
 ss = common.init_ss()
 
 from urlparse import urlparse
 import cgi
-#util.redirect_output('/Users/mike/Work/python/ss-plex.bundle/out')
 
 def NormalizeURL(url): return url
 
