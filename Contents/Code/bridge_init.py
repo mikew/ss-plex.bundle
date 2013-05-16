@@ -20,6 +20,9 @@ def platform_os():
     return Platform.OS
 
 class BridgeSettingsStore(object):
+    def __init__(self):
+        Dict['access']
+
     def get(self, key, default = None):
         defined = 'get_%s' % key
         if hasattr(self, defined):
