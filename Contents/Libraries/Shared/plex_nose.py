@@ -35,7 +35,7 @@ def publish_helpers():
         nose.tools.eq_(given._key, expected)
 
     def eqF_(given, expected):
-        nose.tools.eq_(given._key._string1._key, expected)
+        nose.tools.eq_(given._string1._key, expected)
 
     def eqcb_(given, expected, **k):
         cb = core.sandbox.environment['Callback'](expected, **k)

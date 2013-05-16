@@ -1,20 +1,26 @@
-def dialog(title, message):           return ObjectContainer(header = L(title), message = L(message))
-def confirm(otitle, ocb, **kwargs):   return popup_button(otitle, ocb, **kwargs)
+def dialog(title, message):
+    title   = ensure_localized(title)
+    message = ensure_localized(message)
+
+    return ObjectContainer(header = title, message = message)
+
+def confirm(otitle, ocb, **kwargs):
+    return popup_button(otitle, ocb, **kwargs)
+
 def warning(otitle, ohandle, ocb, **kwargs):
-    container = ObjectContainer(header = L(otitle))
+    otitle    = ensure_localized(otitle)
+    container = ObjectContainer(header = otitle)
     container.add(button(ohandle, ocb, **kwargs))
 
     return container
 
 def plobj(obj, otitle, cb, **kwargs):
-    icon = None
+    icon   = None
+    otitle = ensure_localized(otitle)
 
     if 'icon' in kwargs:
         icon = R(kwargs['icon'])
         del kwargs['icon']
-
-    if not isinstance(otitle, Framework.components.localization.LocalString):
-        otitle = L(otitle)
 
     item = obj(title = otitle, key = Callback(cb, **kwargs))
     if icon:
@@ -22,9 +28,27 @@ def plobj(obj, otitle, cb, **kwargs):
 
     return item
 
-def button(otitle, ocb, **kwargs):       return plobj(DirectoryObject,      otitle, ocb, **kwargs)
-def popup_button(otitle, ocb, **kwargs): return plobj(PopupDirectoryObject, otitle, ocb, **kwargs)
+def button(otitle, ocb, **kwargs):
+    return plobj(DirectoryObject, otitle, ocb, **kwargs)
+
+def popup_button(otitle, ocb, **kwargs):
+    return plobj(PopupDirectoryObject, otitle, ocb, **kwargs)
+
 def input_button(otitle, prompt, ocb, **kwargs):
-    item        = plobj(InputDirectoryObject, otitle, ocb, **kwargs)
-    item.prompt = L(prompt)
+    prompt = ensure_localized(prompt)
+    item   = plobj(InputDirectoryObject, otitle, ocb, **kwargs)
+    item.prompt = prompt
+
     return item
+
+def ensure_localized(string):
+    #string = str(string)
+
+    l = Framework.components.localization.LocalString
+    f = Framework.components.localization.LocalStringFormatter
+    is_localized = isinstance(string, l) or isinstance(string, f)
+
+    if not is_localized:
+        string = L(string)
+
+    return string
