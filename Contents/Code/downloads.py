@@ -27,42 +27,6 @@ def MainMenu(refresh = 0):
     add_refresh_to(container, refresh, MainMenu)
     return container
 
-#@route('%s/show' % FEATURE_PREFIX)
-#def Options(endpoint):
-    #download = bridge.download.from_queue(endpoint)
-    #failed   = bridge.download.from_failed(endpoint)
-
-    #if download:
-        #container     = ObjectContainer(title1 = download['title'])
-        #cancel_button = button('download.heading.cancel', Cancel, endpoint = endpoint)
-
-        #if bridge.download.is_current(endpoint):
-            #if bridge.download.curl_running():
-                #container.add(button('download.heading.next', NextSource))
-                #container.add(cancel_button)
-            #else:
-                #container.add(button('download.heading.repair', DispatchForce))
-        #else:
-            #container.add(cancel_button)
-
-        #return container
-    #elif failed:
-        #container     = ObjectContainer(title1 = failed['title'])
-        #cancel_button = button('download.heading.cancel', RemoveFailed, endpoint = endpoint)
-        #retry_button  = button('download.heading.retry', Queue,
-            #endpoint   = failed['endpoint'],
-            #media_hint = failed['media_hint'],
-            #title      = failed['title'],
-            #icon       = 'icon-downloads-queue.png'
-        #)
-
-        #container.add(retry_button)
-        #container.add(cancel_button)
-
-        #return container
-    #else:
-        #return dialog('heading.error', F('download.response.not-found', endpoint))
-
 @route('%s/options-for-endpoint' % FEATURE_PREFIX)
 def OptionsForEndpoint(endpoint):
     if bridge.download.is_current(endpoint):
@@ -145,24 +109,6 @@ def DispatchForce():
     bridge.download.clear_current()
     dispatch_download_threaded()
 
-#@route('%s/cancel' % FEATURE_PREFIX)
-#def Cancel(endpoint):
-    #download = bridge.download.from_queue(endpoint)
-
-    #if download:
-        #if bridge.download.is_current(endpoint):
-            #bridge.download.command('cancel')
-        #else:
-            #try:
-                #slog.info('Removing %s from download queue' % endpoint)
-                #bridge.download.remove(download)
-            #except Exception, e:
-                #slog.exception('Error cancelling download')
-                #pass
-
-        #return dialog('heading.download', F('download.response.cancel', download['title']))
-    #else:
-        #return dialog('heading.error', F('download.response.not-found', endpoint))
 
 @route('%s/next' % FEATURE_PREFIX)
 def NextSource():
