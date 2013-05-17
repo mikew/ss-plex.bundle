@@ -11,7 +11,6 @@ def getLogger(name):
 
 def log_to_file(log_file):
     fh = logging.FileHandler(log_file)
-    fh = logging.TimedRotatingFileHandler(log_file)
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
     log.addHandler(fh)
