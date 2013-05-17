@@ -90,7 +90,7 @@ def OptionsForFailed(endpoint):
 
 @route('%s/queue' % FEATURE_PREFIX)
 def Queue(endpoint, media_hint, title):
-    if bridge.download.includes(endpoint):
+    if bridge.download.was_successful(endpoint):
         message = 'exists'
     else:
         slog.info('Adding %s %s to download queue' % (media_hint, title))
