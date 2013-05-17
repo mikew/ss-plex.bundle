@@ -1,0 +1,22 @@
+<MediaContainer size="6" allowSync="0" identifier="com.plexapp.plugins.library" mediaTagPrefix="/system/bundle/media/flags/" mediaTagVersion="1361244789" title1="Plex Library">
+  <Directory art="/:/resources/show-fanart.jpg" filters="1" refreshing="0" thumb="/:/resources/show.png" key="7" type="show" title="DVR Deluge" agent="com.plexapp.agents.thetvdb" scanner="Plex Series Scanner" language="en" uuid="1464d357-b88e-4599-ba1b-079a35b2b3b5" updatedAt="1361738031" createdAt="1361688259">
+    <Location path="D:/Gathered/BTsFinished"/>
+  </Directory>
+  <Directory art="/:/resources/movie-fanart.jpg" filters="1" refreshing="0" thumb="/:/resources/video.png" key="4" type="movie" title="Home Movies" agent="com.plexapp.agents.none" scanner="Plex Movie Scanner" language="xn" uuid="ce78fcf6-6b38-427d-ab43-aa51e33cc42f" updatedAt="1361738033" createdAt="1349216580">
+    <Location path="D:/Media/MiscClips"/>
+  </Directory>
+  <Directory art="/:/resources/movie-fanart.jpg" filters="1" refreshing="0" thumb="/:/resources/movie.png" key="1" type="movie" title="Movies" agent="com.plexapp.agents.imdb" scanner="Plex Movie Scanner" language="en" uuid="4433019b-863f-41b8-a6d0-2926a4fe9920" updatedAt="1361738035" createdAt="1349216163">
+    <Location path="D:/Media/Video"/>
+    <Location path="D:/Media/Video/ssp"/>
+  </Directory>
+  <Directory art="/:/resources/artist-fanart.jpg" filters="1" refreshing="0" thumb="/:/resources/artist.png" key="6" type="artist" title="Music" agent="com.plexapp.agents.lastfm" scanner="Plex Music Scanner" language="en" uuid="35b4841f-38c4-4692-b7b6-41d78c13c6f8" updatedAt="1361738108" createdAt="1353105544">
+    <Location path="D:/Media/Audio/Mp3s"/>
+  </Directory>
+  <Directory art="/:/resources/photo-fanart.jpg" filters="1" refreshing="0" thumb="/:/resources/photo.png" key="3" type="photo" title="Pics" agent="com.plexapp.agents.none" scanner="Plex Photo Scanner" language="xn" uuid="5b83efea-40d8-4dd2-bb16-dffd526c117b" updatedAt="1361738168" createdAt="1349216517">
+    <Location path="D:/Media/Picture"/>
+  </Directory>
+  <Directory art="/:/resources/show-fanart.jpg" filters="1" refreshing="0" thumb="/:/resources/show.png" key="2" type="show" title="TV Shows" agent="com.plexapp.agents.thetvdb" scanner="Plex Series Scanner" language="en" uuid="45c2ae75-a656-49c0-bd4d-4b2f3d7baceb" updatedAt="1361738170" createdAt="1349216273">
+    <Location path="D:/Media/TV-Series"/>
+    <Location path="D:/Media/TV-Series/ssp"/>
+  </Directory>
+</MediaContainer>

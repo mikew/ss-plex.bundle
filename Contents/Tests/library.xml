@@ -1,0 +1,10 @@
+<MediaContainer size="2" allowSync="0" identifier="com.plexapp.plugins.library" mediaTagPrefix="/system/bundle/media/flags/" mediaTagVersion="1365384983" title1="Plex Library">
+  <Directory art="/:/resources/movie-fanart.jpg" filters="1" refreshing="0" thumb="/:/resources/movie.png" key="3" type="movie" title="Movies" agent="com.plexapp.agents.imdb" scanner="Plex Movie Scanner" language="en" uuid="e88d97f07c9e4d3c207faf1682cf94cdf60d2dfa" updatedAt="1368155155" createdAt="1355535639">
+    <Location path="/mnt/tc/video/movies"/>
+  </Directory>
+  <Directory art="/:/resources/show-fanart.jpg" filters="1" refreshing="0" thumb="/:/resources/show.png" key="2" type="show" title="TV Shows" agent="com.plexapp.agents.thetvdb" scanner="Plex Series Scanner" language="en" uuid="7a88d52863bc557ce1383a98ca5a5784c265ce59" updatedAt="1368509317" createdAt="1355450502">
+    <Location path="/mnt/tc/video/incoming"/>
+    <Location path="/mnt/tc/video/a mess"/>
+    <Location path="/mnt/tc/video/tv"/>
+  </Directory>
+</MediaContainer>
