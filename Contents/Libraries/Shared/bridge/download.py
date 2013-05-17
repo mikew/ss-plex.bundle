@@ -90,6 +90,9 @@ def includes(endpoint):
     if get(endpoint): return True
     return in_history(endpoint)
 
+def was_successful(endpoint):
+    return is_current(endpoint) or is_queued(endpoint) or in_history(endpoint)
+
 def update_library(section): pass
 
 def command(command):
@@ -101,6 +104,42 @@ def command(command):
     to_send  = signals[commands.index(command)]
 
     return signal_process(current_pid(), to_send)
+
+def force_success():
+    import os
+
+    _d = current()
+    _h = _d['media_hint']
+    dest_key = '%s_destination' % _h
+    destination = settings.get(dest_key)
+    localfile = os.path.join(destination, _d['title'])
+    partfile = localfile + '.part'
+
+    try:    os.rename(partfile, localfile)
+    except: pass
+
+    update_library(_h)
+    append_history(_d['endpoint'])
+    clear_current()
+    dispatch()
+
+def force_failure():
+    import os
+
+    _d = current()
+    _h = _d['media_hint']
+    dest_key = '%s_destination' % _h
+    destination = settings.get(dest_key)
+    localfile = os.path.join(destination, _d['title'])
+    partfile = localfile + '.part'
+
+    try:    os.remove(partfile)
+    except: pass
+
+    append_failed(title = _d['title'], endpoint = _d['endpoint'],
+            media_hint = _d['media_hint'])
+    clear_current()
+    dispatch()
 
 def dispatch(should_thread = True):
     log.info('Dispatching download')
@@ -137,8 +176,6 @@ def dispatch(should_thread = True):
     def clear_download_from_failed(dl):
         remove_failed(dl.endpoint)
 
-    set_current(download)
-
     def perform_download():
         dest_key = '%s_destination' % download['media_hint']
         downloader = ss.Downloader(download['endpoint'],
@@ -160,6 +197,8 @@ def dispatch(should_thread = True):
         downloader.on_error(clear_download_and_dispatch)
 
         downloader.download()
+
+    set_current(download)
 
     if should_thread:
         thread.start_new_thread(perform_download, ())
