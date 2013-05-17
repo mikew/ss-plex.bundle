@@ -109,10 +109,13 @@ class TestDownloads(plex_nose.TestCase):
 
         container = test()
         eq_(container.title1, download['title'])
-        eq_(len(container), 1)
+        eq_(len(container), 2)
 
-        eqL_(container.objects[0].title, 'download.heading.repair')
-        eqcb_(container.objects[0].key, downloads.DispatchForce)
+        eqL_(container.objects[0].title, 'download.heading.force-success')
+        eqcb_(container.objects[0].key, downloads.ForceSuccess)
+
+        eqL_(container.objects[1].title, 'download.heading.force-failure')
+        eqcb_(container.objects[1].key, downloads.ForceFailure)
 
     def test_options_for_queue():
         import mock
@@ -202,3 +205,23 @@ class TestDownloads(plex_nose.TestCase):
 
     def test_remove_failed():
         pass
+
+    def test_force_success():
+        import mock
+
+        bridge.download.force_success = mock.Mock()
+        container = downloads.ForceSuccess()
+
+        eqL_(container.header, 'heading.download')
+        eqL_(container.message, 'download.response.force-success')
+        bridge.download.force_success.assert_called_once_with()
+
+    def test_force_failure():
+        import mock
+
+        bridge.download.force_failure = mock.Mock()
+        container = downloads.ForceFailure()
+
+        eqL_(container.header, 'heading.download')
+        eqL_(container.message, 'download.response.force-failure')
+        bridge.download.force_failure.assert_called_once_with()

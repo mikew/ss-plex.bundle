@@ -49,7 +49,8 @@ def OptionsForCurrent():
         container.add(button('download.heading.next', NextSource))
         container.add(button('download.heading.cancel', RemoveCurrent))
     else:
-        container.add(button('download.heading.repair', DispatchForce))
+        container.add(button('download.heading.force-success', ForceSuccess))
+        container.add(button('download.heading.force-failure', ForceFailure))
 
     return container
 
@@ -109,6 +110,15 @@ def DispatchForce():
     bridge.download.clear_current()
     dispatch_download_threaded()
 
+@route('%s/force-success' % FEATURE_PREFIX)
+def ForceSuccess():
+    bridge.download.force_success()
+    return dialog('heading.download', 'download.response.force-success')
+
+@route('%s/force-failure' % FEATURE_PREFIX)
+def ForceFailure():
+    bridge.download.force_failure()
+    return dialog('heading.download', 'download.response.force-failure')
 
 @route('%s/next' % FEATURE_PREFIX)
 def NextSource():
