@@ -51,4 +51,6 @@ def ensure_localized(string):
     if not is_localized:
         string = L(string)
 
+    string = str(string).decode('utf-8')
+
     return string
