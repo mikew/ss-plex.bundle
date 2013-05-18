@@ -28,6 +28,8 @@ class SSPlexEnvironment(object):
 
 def init_ss():
     if not isinstance(ss.environment.factory, SSPlexEnvironment):
+        l = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../ss.log' )
+        ss.util.log_to_file(l)
         ss.environment.factory = SSPlexEnvironment()
 
     return ss
