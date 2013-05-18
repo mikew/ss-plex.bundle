@@ -27,25 +27,28 @@ def WatchOptions(endpoint, title, media_hint):
 
     return container
 
-def modify_title_for_persisted(title, endpoint):
-    if bridge.download.includes(endpoint):
-        return F('generic.mark-persisted', title)
+def flag_title(title, endpoint, flags = None):
+    flags = flags or ['persisted', 'favorite']
+
+    if 'persisted' in flags and bridge.download.includes(endpoint):
+        return F('generic.flag-persisted', title)
+
+    if 'favorite' in flags and bridge.favorite.includes(endpoint):
+        return F('generic.flag-favorite', title)
 
     return title
 
-def modify_title_for_favorite(title, endpoint):
-    if bridge.favorite.includes(endpoint):
-        return F('generic.mark-favorite', title)
+def render_listings(endpoint, default_title = None, return_response = False,
+        cache_time = None, flags = None):
 
-    return title
-
-def render_listings(endpoint, default_title = None, return_response = False, cache_time = None):
     slog.debug('Rendering listings for %s' % endpoint)
     listings_endpoint = ss.util.listings_endpoint(endpoint)
 
     try:
-        response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time, timeout = 45)
-        container = render_listings_response(response, endpoint = endpoint, default_title = default_title)
+        response  = JSON.ObjectFromURL(listings_endpoint, cacheTime = cache_time,
+                timeout = 45)
+        container = render_listings_response(response, endpoint = endpoint,
+                default_title = default_title, flags = flags)
     except Exception, e:
         slog.exception('Error requesting %s' % endpoint)
 
@@ -58,7 +61,8 @@ def render_listings(endpoint, default_title = None, return_response = False, cac
     else:
         return container
 
-def render_listings_response(response, endpoint, default_title = None):
+def render_listings_response(response, endpoint, default_title = None,
+        flags = None):
     container = ObjectContainer(
         title1 = response.get('title') or default_title,
         title2 = response.get('desc')
@@ -103,6 +107,10 @@ def render_listings_response(response, endpoint, default_title = None):
             media_hint = element_type
             if 'episode' == media_hint:
                 media_hint = 'show'
+
+            display_title = flag_title(display_title, permalink, flags = flags)
+            #display_title = str(display_title).encode('iso-8859-1').decode('utf-8')
+            display_title = str(display_title).decode('utf-8')
 
             native = PopupDirectoryObject(
                 title   = display_title,

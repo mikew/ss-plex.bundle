@@ -18,21 +18,15 @@ class TestRenderListings(plex_nose.TestCase):
 
         test()
 
-class TestModifyTitle(plex_nose.TestCase):
+class TestFlagTitle(plex_nose.TestCase):
     @classmethod
     def setup_class(cls):
         class stub(): pass
 
-        persisted = stub()
-        persisted.endpoint = '/foo'
-        persisted.title    = 'foo'
-
-        favorite = stub()
-        favorite.endpoint = '/shows/1'
-        favorite.title    = 'foo'
-
+        persisted = dict(endpoint = '/foo', title = 'foo')
+        favorite = dict(endpoint = '/shows/1', title = 'foo')
         favorite_collection = dict()
-        favorite_collection[favorite.endpoint] = favorite
+        favorite_collection[favorite['endpoint']] = favorite
 
         to_publish = stub()
         to_publish.persisted = persisted
@@ -45,36 +39,49 @@ class TestModifyTitle(plex_nose.TestCase):
     def teardown_class(cls):
         plex_nose.core.sandbox.execute('del mocks')
 
-    def test_modify_title_for_persisted():
-        import mock
+    #def test_default_flags():
+        #subject = generic.flag_title(favorite.title, favorite.endpoint)
+        #eq_(flagged, favorite.title)
 
-        @mock.patch.object(bridge.download, 'history', return_value = [mocks.persisted.endpoint])
-        def test(*a):
-            subject = generic.modify_title_for_persisted(mocks.persisted.title,
-                    mocks.persisted.endpoint)
-
-            print subject
-            eq_(subject._string1._key, 'generic.mark-persisted')
-
-        test()
-
-    def test_modify_title_for_favorite():
+    def test_default_flags_favorite():
         import mock
 
         @mock.patch.object(bridge.favorite, 'collection', return_value = mocks.favorite_collection)
+        @mock.patch.object(bridge.download, 'queue', return_value = [mocks.persisted])
         def test(*a):
-            subject = generic.modify_title_for_favorite(mocks.favorite.title,
-                    mocks.favorite.endpoint)
+            default_favorite = generic.flag_title(mocks.favorite['title'],
+                    mocks.favorite['endpoint'])
+            default_persisted = generic.flag_title(mocks.persisted['title'],
+                    mocks.persisted['endpoint'])
+            default_nomatch = generic.flag_title('unknown', '/')
 
-            print subject
-            eq_(subject._string1._key, 'generic.mark-favorite')
+            eqF_(default_favorite, 'generic.flag-favorite')
+            eqF_(default_persisted, 'generic.flag-persisted')
+            eq_(default_nomatch, 'unknown')
+
+            fpersisted_favorite = generic.flag_title(mocks.favorite['title'],
+                    mocks.favorite['endpoint'], flags = ['persisted'])
+            fpersisted_persisted = generic.flag_title(mocks.persisted['title'],
+                    mocks.persisted['endpoint'], flags = ['persisted'])
+            fpersisted_nomatch = generic.flag_title('unknown', '/',
+                    flags = ['persisted'])
+
+            eq_(fpersisted_favorite, mocks.favorite['title'])
+            eqF_(fpersisted_persisted, 'generic.flag-persisted')
+            eq_(fpersisted_nomatch, 'unknown')
+
+            ffavorite_favorite = generic.flag_title(mocks.favorite['title'],
+                    mocks.favorite['endpoint'], flags = ['favorite'])
+            ffavorite_persisted = generic.flag_title(mocks.persisted['title'],
+                    mocks.persisted['endpoint'], flags = ['favorite'])
+            ffavorite_nomatch = generic.flag_title('unknown', '/',
+                    flags = ['favorite'])
+
+            eqF_(ffavorite_favorite, 'generic.flag-favorite')
+            eq_(ffavorite_persisted, mocks.persisted['title'])
+            eq_(ffavorite_nomatch, 'unknown')
 
         test()
-
-    def test_modify_title_for_favorite_or_persisted():
-        import mock
-
-        @mock.patch.object(bridge.)
 
 class TestRenderListingsResponse(plex_nose.TestCase):
     @classmethod

@@ -50,8 +50,8 @@ def ListSources(endpoint, title):
 def ListTVShow(endpoint, show_title, refresh = 0):
     import re
 
-    container, response = generic.render_listings(endpoint + '/episodes', show_title, True)
-    title_regex         = r'^' + re.escape(show_title) + r':?\s+'
+    container, response = generic.render_listings(endpoint + '/episodes', show_title, return_response = True, flags = ['persisted'])
+    title_regex         = r'^(. )?' + re.escape(show_title) + r':?\s+'
 
     for item in container.objects:
         item.title = re.sub(title_regex, '', str(item.title))
