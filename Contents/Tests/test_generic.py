@@ -234,7 +234,7 @@ class TestWatchOptions(plex_nose.TestCase):
         import mock
 
         @mock.patch.object(JSON, 'ObjectFromURL')
-        @mock.patch.object(bridge.download, 'history', return_value = ['/'])
+        @mock.patch.object(bridge.download, 'includes', return_value = True)
         def test(*a):
             container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
             eqL_(container.objects[1].title, 'media.persisted')
