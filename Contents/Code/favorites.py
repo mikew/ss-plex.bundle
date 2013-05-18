@@ -16,6 +16,7 @@ def MainMenu():
             native = TVShowObject(
                 rating_key = endpoint,
                 title      = title,
+                summary    = fav.get('overview'),
                 thumb      = fav['artwork'],
                 key        = Callback(ListTVShow, refresh = 0, endpoint = endpoint, show_title = title)
             )
@@ -25,7 +26,7 @@ def MainMenu():
     return container
 
 @route('%s/toggle' % FEATURE_PREFIX)
-def Toggle(endpoint, show_title, artwork):
+def Toggle(endpoint, show_title, overview, artwork):
     message = None
 
     if bridge.favorite.includes(endpoint):
@@ -35,7 +36,10 @@ def Toggle(endpoint, show_title, artwork):
     else:
         slog.info('Adding %s from favorites' % show_title)
         message = 'favorites.response.added'
-        bridge.favorite.append(endpoint = endpoint, title = show_title, artwork = artwork)
+        bridge.favorite.append(endpoint = endpoint,
+                title = show_title,
+                overview = overview,
+                artwork = artwork)
 
     return dialog('heading.favorites', F(message, show_title))
 

@@ -63,6 +63,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
         endpoint   = endpoint,
         icon       = 'icon-favorites.png',
         show_title = show_title,
+        overview   = (response or {}).get('resource', {}).get('display_overview'),
         artwork    = (response or {}).get('resource', {}).get('artwork')
     ))
 
