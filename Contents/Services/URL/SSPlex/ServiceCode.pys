@@ -1,33 +1,29 @@
 import common
 ss = common.init_ss()
 
-from urlparse import urlparse
-import cgi
-
-def NormalizeURL(url): return url
+def NormalizeURL(url):
+    return url
 
 def MetadataObjectForURL(url):
-    nil, nil, path, nil, query, nil = urlparse(url)
-    params   = cgi.parse_qs(query)
-    endpoint = params['endpoint'][0]
+    params   = common.params(url)
+    endpoint = params.get('endpoint')
     wizard   = ss.Wizard(endpoint)
 
-    co = VideoClipObject(
-        title   = wizard.file_hint,
-        summary = wizard.payload['resource']['display_overview'],
-        thumb   = wizard.payload['resource']['artwork']
-    )
+    return common.metadata_from(wizard.payload['resource'])
 
-    return co
-
-#@deferred
 def MediaObjectsForURL(url):
-    nil, nil, path, nil, query, nil = urlparse(url)
-    params = cgi.parse_qs(query)
+    params = common.params(url)
 
-    if   '/procedure' == path: obj = mo(PlayConsumer, url      = params['url'][0])
-    elif '/wizard'    == path: obj = mo(PlayWizard,   endpoint = params['endpoint'][0], avoid_flv = params['avoid_flv'][0])
-    elif '/translate' == path: obj = mo(PlayForeign,  original = params['original'][0], foreign   = params['foreign'][0])
+    if '/procedure' == params.path:
+        obj = mo(PlayConsumer, url = params.get('url'))
+
+    elif '/wizard' == params.path:
+        obj = mo(PlayWizard, endpoint = params.get('endpoint'),
+                avoid_flv = params.get('avoid_flv'))
+
+    elif '/translate' == params.path:
+        obj = mo(PlayForeign, original = params.get('original'),
+                foreign = params.get('foreign'))
 
     return [ obj ]
 
@@ -61,33 +57,6 @@ def video(consumer):
 
     except Exception, e:
         raise Ex.MediaNotAvailable
-
-    #return IndirectResponse(VideoClipObject,
-        #key          = consumer.asset_url(),
-        #user_agent   = consumer.ua,
-        #http_cookies = consumer.agent_cookie_string(),
-        #http_headers = { 'Referer': consumer.url }
-    #)
-
-    # Some clients only work with Redirect
-    # others (Desktop / aTV2) can use this
-    # more advanced way, which properly
-    # sets cookies and whatnot
-    #referer = consumer.url
-    #cookies = consumer.agent_cookie_string()
-    #agent   = consumer.ua
-    #url     = consumer.asset_url()
-
-    #container = ObjectContainer(user_agent = agent, http_cookies = cookies)
-    #container.http_headers = { 'Referer': referer }
-    #naitive = VideoClipObject(
-        #items = [ MediaObject(
-            #parts = [ PartObject(key = url) ],
-        #) ]
-    #)
-    #container.add(naitive)
-
-    #return container
 
 def mo(cb, **kwargs):
     return MediaObject(
