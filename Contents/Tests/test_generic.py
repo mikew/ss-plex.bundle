@@ -39,10 +39,6 @@ class TestFlagTitle(plex_nose.TestCase):
     def teardown_class(cls):
         plex_nose.core.sandbox.execute('del mocks')
 
-    #def test_default_flags():
-        #subject = generic.flag_title(favorite.title, favorite.endpoint)
-        #eq_(flagged, favorite.title)
-
     def test_default_flags_favorite():
         import mock
 
