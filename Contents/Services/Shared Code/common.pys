@@ -31,7 +31,8 @@ def restart_channel():
     try:
         # touch Contents/Code/__init__.py
         os.utime(local_path('Contents', 'Code', '__init__.py'))
-    except: pass
+    except Exception, e:
+        Log(e)
 
 def init_ss():
     try:
