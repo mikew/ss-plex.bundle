@@ -29,14 +29,22 @@ class SSPlexEnvironment(object):
 
 def init_ss():
     if not isinstance(ss.environment.factory, SSPlexEnvironment):
-        #f = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../out' )
-        #ss.util.redirect_output(f)
-        l = os.path.abspath( inspect.getfile(inspect.currentframe()) + '/../../../../ss.log' )
-        ss.util.log_to_file(l)
+        #ss.util.redirect_output(local_path('out'))
+        ss.util.log_to_file(ss_logfile)
         ss.environment.factory = SSPlexEnvironment()
 
     return ss
 
+def local_path(*segments):
+    # Service Code has no Core object (why not?), yet we need bundle_path
+    bundle_path = inspect.getfile(inspect.currentframe())
+    parents     = ['..'] * 4
+    combined    = parents + list(segments)
+    joined_path = os.path.join(bundle_path, *combined)
+
+    return os.path.abspath(joined_path)
+
+ss_logfile = local_path('ss.log')
 def metadata_from(media):
     try:
         if 'episode' == media['_type']:
