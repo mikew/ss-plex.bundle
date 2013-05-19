@@ -8,3 +8,5 @@ plugin-log
 Contents/Libraries/Shared/ss/tmp/*
 ss.log
 test.log*
+ss-plex.bundle.zip
+plex-data
