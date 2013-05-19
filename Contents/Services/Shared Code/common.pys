@@ -27,7 +27,20 @@ class SSPlexEnvironment(object):
     def json_from_string(self, string):
         return JSON.ObjectFromString(string)
 
+def restart_channel():
+    try:
+        # touch Contents/Code/__init__.py
+        os.utime(local_path('Contents', 'Code', '__init__.py'))
+    except: pass
+
 def init_ss():
+    try:
+        ss.environment.factory
+    except Exception, e:
+        cleanup_old_libraries()
+        restart_channel()
+        return
+
     if not isinstance(ss.environment.factory, SSPlexEnvironment):
         #ss.util.redirect_output(local_path('out'))
         ss.util.log_to_file(ss_logfile)
@@ -45,6 +58,31 @@ def local_path(*segments):
     return os.path.abspath(joined_path)
 
 ss_logfile = local_path('ss.log')
+
+def cleanup_old_libraries():
+    import shutil
+    def try_remove(path):
+        try:
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            elif os.path.exists(path):
+                os.remove(path)
+        except Exception, e:
+            ss.util.print_exception(e)
+            pass
+
+    libraries_path = local_path('Contents', 'Libraries', 'Shared')
+    ss_cache       = os.path.join(libraries_path, 'ss', 'cache_store')
+    ss_env         = os.path.join(libraries_path, 'ss', 'environment')
+    bridge_cache   = os.path.join(libraries_path, 'bridge', 'cache_store')
+    bridge_env     = os.path.join(libraries_path, 'bridge', 'environment')
+    bridge_plex    = os.path.join(libraries_path, 'bridge', 'plex.py')
+    bridge_user    = os.path.join(libraries_path, 'bridge', 'user.py')
+
+    for path in (ss_env, ss_cache, bridge_cache, bridge_env, bridge_plex,
+            bridge_user):
+        try_remove(path)
+
 def metadata_from(media):
     try:
         if 'episode' == media['_type']:
