@@ -76,13 +76,14 @@ def cleanup_old_libraries():
     libraries_path = local_path('Contents', 'Libraries', 'Shared')
     ss_cache       = os.path.join(libraries_path, 'ss', 'cache_store')
     ss_env         = os.path.join(libraries_path, 'ss', 'environment')
+    bridge_bridge  = os.path.join(libraries_path, 'bridge', 'bridge.py')
     bridge_cache   = os.path.join(libraries_path, 'bridge', 'cache_store')
     bridge_env     = os.path.join(libraries_path, 'bridge', 'environment')
     bridge_plex    = os.path.join(libraries_path, 'bridge', 'plex.py')
     bridge_user    = os.path.join(libraries_path, 'bridge', 'user.py')
 
-    for path in (ss_env, ss_cache, bridge_cache, bridge_env, bridge_plex,
-            bridge_user):
+    for path in (ss_env, ss_cache, bridge_bridge, bridge_cache, bridge_env,
+            bridge_plex, bridge_user):
         try_remove(path)
 
 def metadata_from(media):
