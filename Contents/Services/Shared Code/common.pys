@@ -39,6 +39,8 @@ def init_ss():
     except Exception, e:
         cleanup_old_libraries()
         restart_channel()
+        import time
+        time.sleep(2)
         return
 
     if not isinstance(ss.environment.factory, SSPlexEnvironment):
