@@ -6,7 +6,7 @@ def MainMenu():
     container = ObjectContainer(title1 = L('heading.search'))
 
     for query in ss.util.sorted_by_title(bridge.search.collection()):
-        container.add(button(query, ResultsMenu, query = query, foo = 1))
+        container.add(button(query, SearchResultsMenu, query = query, foo = 1))
 
     return container
 
