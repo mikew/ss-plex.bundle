@@ -39,7 +39,7 @@ def flag_title(title, endpoint, flags = None):
     return title
 
 def render_listings(endpoint, default_title = None, return_response = False,
-        cache_time = None, flags = None):
+        cache_time = 120, flags = None):
 
     slog.debug('Rendering listings for %s' % endpoint)
     listings_endpoint = ss.util.listings_endpoint(endpoint)
