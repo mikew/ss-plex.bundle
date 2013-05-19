@@ -78,6 +78,7 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 # Plugin Helpers #
 ##################
 
+@route('%s/_noop' % consts.prefix)
 def noop(): return dialog('hello', 'good day')
 
 def dispatch_download_threaded():
