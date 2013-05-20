@@ -44,7 +44,8 @@ def init_ss():
         time.sleep(2)
         return
 
-    if not isinstance(ss.environment.factory, SSPlexEnvironment):
+    if ss.environment.factory is ss.environment.default_environment:
+        Log('init ss')
         #ss.util.redirect_output(local_path('out'))
         ss.util.log_to_file(ss_logfile)
         ss.environment.factory = SSPlexEnvironment()
