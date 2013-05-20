@@ -56,7 +56,7 @@
   "favorites.response.added":    "%s was added to your favorites.",
   "favorites.response.removed":  "%s was removed from your favorites.",
 
-  "generic.flag-persisted": "↧ %s",
+  "generic.flag-persisted": "⇣ %s",
   "generic.flag-favorite":  "★ %s",
 
   "download.heading.next":            "Try next source",
