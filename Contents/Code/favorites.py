@@ -41,6 +41,14 @@ def Toggle(endpoint, show_title, overview, artwork):
 
     return dialog('heading.favorites', F(message, show_title))
 
+@route('%s/sync' % FEATURE_PREFIX)
+def Sync():
+    @thread
+    def perform_sync(): bridge.favorite.sync()
+
+    perform_sync()
+    return dialog('heading.favorites', 'favorites.response.sync')
+
 @route('%s/migrate-1-2' % FEATURE_PREFIX)
 def Migrate1to2():
     @thread

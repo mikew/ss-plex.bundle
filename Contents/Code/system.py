@@ -9,6 +9,7 @@ def MainMenu():
     container.add(button('system.heading.reset',          ResetMenu,  icon = 'icon-reset.png'))
     container.add(button('system.heading.status',         StatusMenu, icon = 'icon-system-status.png'))
     container.add(button('system.heading.dispatch-force', downloads.DispatchForce))
+    container.add(button('system.heading.sync-favorites', favorites.Sync))
 
     return container
 
