@@ -81,8 +81,8 @@ def ListTVShow(endpoint, show_title, refresh = 0):
 @route('%s/_noop' % consts.prefix)
 def noop(): return dialog('hello', 'good day')
 
-def dispatch_download_threaded():
-    bridge.download.dispatch()
+#def dispatch_download_threaded():
+    #bridge.download.dispatch()
 
 def add_refresh_to(container, refresh, ocb, **kwargs):
     refresh           = int(refresh)

@@ -154,7 +154,7 @@ class TestDownloads(plex_nose.TestCase):
         import mock
 
         download = dict(title = 'foo', endpoint = '/', media_hint = 'show')
-        @mock.patch.object(downloads, 'dispatch_download_threaded')
+        @mock.patch.object(bridge.download, 'dispatch')
         def test(*a):
             return downloads.Queue(**download)
 
@@ -167,7 +167,7 @@ class TestDownloads(plex_nose.TestCase):
 
         download = dict(title = 'foo', endpoint = '/', media_hint = 'show')
         @mock.patch.object(bridge.download, 'queue', return_value = [ download ])
-        @mock.patch.object(downloads, 'dispatch_download_threaded')
+        @mock.patch.object(bridge.download, 'dispatch')
         def test(*a):
             return downloads.Queue(**download)
 

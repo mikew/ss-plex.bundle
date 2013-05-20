@@ -97,18 +97,18 @@ def Queue(endpoint, media_hint, title):
         message = 'added'
         bridge.download.append(title = title, endpoint = endpoint, media_hint = media_hint)
 
-    dispatch_download_threaded()
+    bridge.download.dispatch()
     return dialog('heading.download', F('download.response.%s' % message, title))
 
 @route('%s/dispatch' % FEATURE_PREFIX)
 def Dispatch():
-    dispatch_download_threaded()
+    bridge.download.dispatch()
 
 @route('%s/dispatch/force' % FEATURE_PREFIX)
 def DispatchForce():
     slog.warning('Repairing downloads')
     bridge.download.clear_current()
-    dispatch_download_threaded()
+    bridge.download.dispatch()
 
 @route('%s/force-success' % FEATURE_PREFIX)
 def ForceSuccess():
