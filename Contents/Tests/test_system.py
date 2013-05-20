@@ -53,10 +53,10 @@ class SystemMenuTests(plex_nose.TestCase):
         container = test()
         eq_(len(container), 4)
 
-        eqF_(container.objects[0].title,  'system.status.movie-destination')
-        eqF_(container.objects[1].title,  'system.status.show-destination')
-        eqF_(container.objects[2].title,  'system.status.download-strategy')
-        eqF_(container.objects[3].title,  'system.status.version')
+        eqF_(container.objects[0].title,  'system.status.version')
+        eqF_(container.objects[1].title,  'system.status.movie-destination')
+        eqF_(container.objects[2].title,  'system.status.show-destination')
+        eqF_(container.objects[3].title,  'system.status.download-strategy')
 
     def test_confirmations():
         container = system.ConfirmResetFavorites()
