@@ -89,8 +89,17 @@ def refresh_section(section):
 
     HTTP.Request(plex_endpoint('/library/sections/%s/refresh' % found[0]), immediate = True)
 
-def init_bridge():
-    if not isinstance(bridge.settings.store, BridgeSettingsStore):
+dispatch_without_lock = bridge.download.dispatch
+
+@thread
+def dispatch_with_lock(should_thread = True):
+    dispatch_without_lock(False)
+
+bridge.download.dispatch = dispatch_with_lock
+
+def init():
+    if bridge.settings.store is None:
+        Log('bridge init')
         bridge.settings.store = BridgeSettingsStore()
         bridge.download.update_library = lambda section: refresh_section(section)
 

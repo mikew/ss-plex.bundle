@@ -43,7 +43,7 @@ class SystemMenuTests(plex_nose.TestCase):
     def test_status_menu():
         import mock
 
-        @mock.patch.object(bridge_init, 'section_destination')
+        @mock.patch.object(plex_bridge, 'section_destination')
         def test(dest):
             container = system.StatusMenu()
             call = mock.call

@@ -2,10 +2,10 @@ consts = SharedCodeService.consts
 common = SharedCodeService.common
 
 from ui import button, popup_button, input_button, dialog, confirm, warning, container_for
-import bridge_init
+import plex_bridge
 
 ss = common.init_ss()
-bridge = bridge_init.init_bridge()
+bridge = plex_bridge.init()
 slog = ss.util.getLogger('ss.plex')
 
 def Start():
