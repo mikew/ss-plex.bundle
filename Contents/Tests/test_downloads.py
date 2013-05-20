@@ -89,7 +89,7 @@ class TestDownloads(plex_nose.TestCase):
             return downloads.OptionsForCurrent()
 
         container = test()
-        eq_(container.title1, download['title'])
+        eqL_(container.title1, download['title'])
         eq_(len(container), 2)
 
         eqL_(container.objects[0].title, 'download.heading.next')
@@ -108,7 +108,7 @@ class TestDownloads(plex_nose.TestCase):
             return downloads.OptionsForCurrent()
 
         container = test()
-        eq_(container.title1, download['title'])
+        eqL_(container.title1, download['title'])
         eq_(len(container), 2)
 
         eqL_(container.objects[0].title, 'download.heading.force-success')
@@ -126,7 +126,7 @@ class TestDownloads(plex_nose.TestCase):
             return downloads.OptionsForQueue(download['endpoint'])
 
         container = test()
-        eq_(container.title1, download['title'])
+        eqL_(container.title1, download['title'])
         eq_(len(container), 1)
 
         eqL_(container.objects[0].title, 'download.heading.cancel')
@@ -141,7 +141,7 @@ class TestDownloads(plex_nose.TestCase):
             return downloads.OptionsForFailed(download['endpoint'])
 
         container = test()
-        eq_(container.title1, download['title'])
+        eqL_(container.title1, download['title'])
         eq_(len(container), 2)
 
         eqL_(container.objects[0].title, 'download.heading.retry')

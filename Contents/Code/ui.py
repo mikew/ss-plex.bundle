@@ -14,6 +14,9 @@ def warning(otitle, ohandle, ocb, **kwargs):
 
     return container
 
+def container_for(title):
+    return ObjectContainer(title1 = ensure_localized(title))
+
 def plobj(obj, otitle, cb, **kwargs):
     icon   = None
     otitle = ensure_localized(otitle)
@@ -51,6 +54,7 @@ def ensure_localized(string):
     if not is_localized:
         string = L(string)
 
-    string = str(string).decode('utf-8')
-
-    return string
+    if 'test' == consts.env:
+        return string
+    else:
+        return unicode(string)

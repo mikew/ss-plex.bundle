@@ -53,7 +53,7 @@ def render_listings(endpoint, default_title = None, return_response = False,
         slog.exception('Error requesting %s' % endpoint)
 
         response  = None
-        container = ObjectContainer(title1 = default_title)
+        container = container_for(default_title)
         container.add(button('heading.error', noop))
 
     if return_response:
@@ -63,10 +63,8 @@ def render_listings(endpoint, default_title = None, return_response = False,
 
 def render_listings_response(response, endpoint, default_title = None,
         flags = None):
-    container = ObjectContainer(
-        title1 = response.get('title') or default_title,
-        title2 = response.get('desc')
-    )
+    display_title = response.get('title') or default_title
+    container = container_for(display_title)
 
     for element in response.get( 'items', [] ):
         native           = None

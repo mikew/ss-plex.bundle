@@ -179,7 +179,7 @@ class TestRenderListingsResponse(plex_nose.TestCase):
         container = generic.render_listings_response(response, '/',
                 default_title = suggested)
 
-        eq_(container.title1, 'foo')
+        eqL_(container.title1, 'foo')
 
     def test_cannot_suggest_title_when_exists():
         response  = dict(title = 'bar')
@@ -187,7 +187,7 @@ class TestRenderListingsResponse(plex_nose.TestCase):
         container = generic.render_listings_response(response, '/',
                 default_title = suggested)
 
-        eq_(container.title1, 'bar')
+        eqL_(container.title1, 'bar')
 
 class TestIcons(plex_nose.TestCase):
     def test_icon_for_tv():

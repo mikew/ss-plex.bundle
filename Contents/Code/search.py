@@ -3,7 +3,7 @@ from generic import render_listings
 
 @route(FEATURE_PREFIX)
 def MainMenu():
-    container = ObjectContainer(title1 = L('heading.search'))
+    container = container_for('heading.search')
 
     for query in ss.util.sorted_by_title(bridge.search.collection()):
         container.add(button(query, SearchResultsMenu, query = query, foo = 1))

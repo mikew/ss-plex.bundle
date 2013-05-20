@@ -4,7 +4,7 @@ FEATURE_PREFIX = '%s/system' % consts.prefix
 
 @route(FEATURE_PREFIX)
 def MainMenu():
-    container = ObjectContainer(title1 = L('heading.system'))
+    container = container_for('heading.system')
 
     container.add(button('system.heading.reset',          ResetMenu,  icon = 'icon-reset.png'))
     container.add(button('system.heading.status',         StatusMenu, icon = 'icon-system-status.png'))
@@ -14,7 +14,7 @@ def MainMenu():
 
 @route('%s/reset' % FEATURE_PREFIX)
 def ResetMenu():
-    container = ObjectContainer(title1 = L('system.heading.reset'))
+    container = container_for('system.heading.reset')
 
     container.add(confirm('system.heading.reset-favorites',        ConfirmResetFavorites))
     container.add(confirm('system.heading.reset-search',           ConfirmResetSearches))
@@ -27,7 +27,7 @@ def ResetMenu():
 
 @route('%s/status' % FEATURE_PREFIX)
 def StatusMenu():
-    container         = ObjectContainer(title1 = L('system.heading.status'))
+    container         = container_for('system.heading.status')
     movie_destination = bridge.settings.get('movie_destination')
     show_destination  = bridge.settings.get('show_destination')
     download_strategy = bridge.download.strategy()

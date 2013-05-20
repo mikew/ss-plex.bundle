@@ -4,9 +4,7 @@ from generic import render_listings
 
 @route(FEATURE_PREFIX)
 def MainMenu():
-    container = ObjectContainer(
-        title1 = L('heading.favorites')
-    )
+    container = container_for('heading.favorites')
 
     if 'favorites' in Dict:
         container.add(button('favorites.heading.migrate', Migrate1to2))

@@ -2,7 +2,7 @@ FEATURE_PREFIX = '%s/downloads' % consts.prefix
 
 @route(FEATURE_PREFIX)
 def MainMenu(refresh = 0):
-    container = ObjectContainer(title1 = L('heading.download'))
+    container = container_for('heading.download')
 
     if bridge.download.assumed_running():
         download = bridge.download.current()
@@ -43,7 +43,7 @@ def OptionsForEndpoint(endpoint):
 @route('%s/options-for-current' % FEATURE_PREFIX)
 def OptionsForCurrent():
     download  = bridge.download.current()
-    container = ObjectContainer(title1 = download['title'])
+    container = container_for(download['title'])
 
     if bridge.download.curl_running():
         container.add(button('download.heading.next', NextSource))
@@ -59,7 +59,7 @@ def OptionsForQueue(endpoint):
     download = bridge.download.from_queue(endpoint)
 
     if download:
-        container = ObjectContainer(title1 = download['title'])
+        container = container_for(download['title'])
         cancel_button = button('download.heading.cancel', Remove, endpoint = endpoint)
         container.add(cancel_button)
 
@@ -72,7 +72,7 @@ def OptionsForFailed(endpoint):
     download = bridge.download.from_failed(endpoint)
 
     if download:
-        container     = ObjectContainer(title1 = download['title'])
+        container     = container_for(download['title'])
         cancel_button = button('download.heading.cancel', RemoveFailed, endpoint = endpoint)
         retry_button  = button('download.heading.retry', Queue,
             endpoint   = download['endpoint'],
