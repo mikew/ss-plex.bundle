@@ -13,7 +13,7 @@ class SearchTests(plex_nose.TestCase):
         container = test()
         eqL_(container.title1, 'heading.search')
         eqL_(container.objects[0].title, 'a')
-        eqcb_(container.objects[0].key,  search.ResultsMenu,  query = 'a',  foo = 1)
+        eqcb_(container.objects[0].key,  SearchResultsMenu,  query = 'a',  foo = 1)
 
         eqL_(container.objects[1].title, 'the middle')
         eqL_(container.objects[2].title, 'z')
