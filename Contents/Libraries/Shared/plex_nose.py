@@ -10,6 +10,7 @@ run_once_ = False
 def run_once():
     global run_once_
     if run_once_ is False:
+        core.sandbox.execute('consts.env = "test"')
         core.sandbox.publish_api(nose)
         core.sandbox.publish_api(nose.tools.eq_)
         core.sandbox.publish_api(nose.tools.ok_)
