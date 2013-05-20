@@ -33,7 +33,7 @@ def MainMenu():
 
     return container
 
-@route('%s/search/{query}' % consts.prefix)
+@route('%s/search/results/{query}' % consts.prefix)
 def SearchResultsMenu(query, foo = 1):
     return search.ResultsMenu(query)
 
