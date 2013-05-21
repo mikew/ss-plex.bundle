@@ -41,8 +41,10 @@ def sync():
 
     _collection   = collection()
     sync_endpoint = ss.util.listings_endpoint('/sync')
-    params        = dict(ids = show_ids())
-    payload       = ss.environment.json_from_url(sync_endpoint, params = params)
+    ids           = ','.join(show_ids())
+    params        = dict(ids = ids)
+    payload       = ss.environment.json_from_url(sync_endpoint, params = params,
+            expires = ss.cache.TIME_HOUR)
 
     for fav in payload:
         if fav['endpoint'] in _collection:
