@@ -2,6 +2,7 @@ import settings
 import re
 
 SHOW_ID_FINDER = re.compile(r'^/shows/(\d+)')
+LAST_VIEWED_KEY = 'last_viewed'
 
 def clear():            settings.clear('favorites2')
 def includes(endpoint): return normalize_show_endpoint(endpoint) in collection()
@@ -35,6 +36,36 @@ def normalize_show_endpoint(endpoint):
     _id = show_id_from_endpoint(endpoint)
     if _id:
         return '/shows/%s' % _id
+
+def recents():
+    import ss
+
+    endpoint = ss.util.listings_endpoint('/recents')
+    ids      = ','.join(show_ids())
+    params   = dict(ids = ids)
+
+    return ss.environment.json_from_url(endpoint, params = params,
+            expires = ss.cache.TIME_MINUTE * 10)
+
+def touch_last_viewed(endpoint):
+    if includes(endpoint):
+        import time
+
+        now = time.gmtime()
+        unix = time.mktime(now)
+        key = normalize_show_endpoint(endpoint)
+
+        collection()[key][LAST_VIEWED_KEY] = int(unix)
+        settings.persist()
+
+def show_has_new_episodes(endpoint, recents):
+    show_id = show_id_from_endpoint(endpoint)
+    show_id = str(show_id)
+
+    if show_id in recents:
+        last_viewed = collection()[endpoint].get(LAST_VIEWED_KEY)
+        if last_viewed:
+            return int(recents[show_id]) > int(last_viewed)
 
 def sync():
     import ss
