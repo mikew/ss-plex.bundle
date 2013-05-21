@@ -1,4 +1,5 @@
 import downloads
+import favorites
 
 FEATURE_PREFIX = '%s/system' % consts.prefix
 
