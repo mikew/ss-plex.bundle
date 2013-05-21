@@ -56,8 +56,9 @@
   "favorites.response.added":    "%s was added to your favorites.",
   "favorites.response.removed":  "%s was removed from your favorites.",
 
-  "generic.flag-persisted": "\u21E3 %s",
-  "generic.flag-favorite":  "\u2605 %s",
+  "generic.flag-persisted":   "\u21E3 %s",
+  "generic.flag-favorite":    "\u2605 %s",
+  "generic.flag-new-content": "\u25C9 %s",
 
   "download.heading.next":            "Try next source",
   "download.heading.cancel":          "Remove download",

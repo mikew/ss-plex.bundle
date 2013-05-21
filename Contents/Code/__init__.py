@@ -72,6 +72,8 @@ def ListTVShow(endpoint, show_title, refresh = 0):
         show_title = show_title,
     )
 
+    bridge.favorite.touch_last_viewed(endpoint)
+
     return container
 
 ##################

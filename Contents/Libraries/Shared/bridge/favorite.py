@@ -13,6 +13,7 @@ def append(**k):
     del k['endpoint']
     collection()[endpoint] = k
     settings.persist()
+    touch_last_viewed(endpoint)
 
 def remove(endpoint):
     del collection()[normalize_show_endpoint(endpoint)]

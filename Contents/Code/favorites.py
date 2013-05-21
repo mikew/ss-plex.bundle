@@ -9,8 +9,14 @@ def MainMenu():
     if 'favorites' in Dict:
         container.add(button('favorites.heading.migrate', Migrate1to2))
     else:
+        recents = bridge.favorite.recents()
+
         for endpoint, fav in ss.util.sorted_by_title(bridge.favorite.collection().iteritems(), lambda x: x[1]['title']):
-            title  = fav['title']
+            title = fav['title']
+
+            if bridge.favorite.show_has_new_episodes(endpoint, recents):
+                title = F('generic.flag-new-content', title)
+
             native = TVShowObject(
                 rating_key = endpoint,
                 title      = title,
