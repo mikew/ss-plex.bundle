@@ -1,50 +1,62 @@
-About
-=====
+# Introduction
 
-This channel fetches listings and procedures for stream providers and allows you to either  stream or download your media.
+Imagine if all the media scattered around the internet could be found in one collection. Movies and TV Shows, of late and of yore, at your fingertips.
 
-Clients Supported
-=================
+![dashboard-thumbnail]
 
-Windows / Mac, Android, AppleTV.
+Well, here it is.
 
-Installation
-============
+**TL;DR** [Screenshot Tour][screenshots]
 
-Installation is provided through [The Unsupported App
-Store](http://forums.plexapp.com/index.php/topic/25523-unsupported-appstore/).
-If you are more daring, [the code is also on github](https://github.com/mikew/ss-plex.bundle/tree/stable).
+## Installation
 
-[Screenshots](http://imgur.com/a/pTVOr)
-[Issues](https://github.com/mikew/ss-plex.bundle/issues)
+Requirements:
 
-Notes
-=====
+- [Plex Media Server][media-server]
+- [ss-plex.bundle][bundle-zip]
+- *Optional:* curl or wget, for downloading media
 
-- As of current writing (Nov 23, 2012), the reccommended use, for TV Shows, at least, is to set up your favorites list. Without proper metadata, to save the TV Shows > Latest menu from becoming a wild list of episodes, it doesn’t really show /everything/ that comes in. However, browsing to a show always will.
-- There may be instances where a download fails and the channel still thinks you are downloading. This will break your queue. You will be presented with the option to Repair Downloads, which will try its best to fix things.
+After installing Plex Media Server, open the Plug-ins folder and extract ss-plex.bundle. Restart the server simply by closing and opening it again and you are ready to go.
 
-Stream Providers?
-=================
+## Usage
 
-Simply put, the many file/video hosting sites scattered across the internet.
+Once inside the channel you will find a wide scope of media. Everything is updated automatically and available to watch just about any device you can imagine: Android/iOS, PC, OS X, AppleTV, Raspberry Pi, Web Browsers support HLS or Flash, Smart TVs, DLNA (PS3/Xbox 360).
 
-Streaming
-=========
+## Background
 
-There are two options for streaming. You can choose to either Watch Now, or select your preferred stream provider from a list.
+The channel is powered by a library that is based on the idea that each piece of media will have multiple sources to stream from, and to try each of those in sequence until one works. This list of sources and how to navigate the individual items is managed elsewhere. To summarize, it doesn't need to be updated.
 
-Downloading
-===========
+See [ss-raspberry][ss-raspberry] for some insight into how portable this idea is.
 
-If you choose to Watch Later, your media will be downloaded. You can choose to watch many things later and they will all be downloaded in sequence.
+## Frequently Asked Questions
 
-With myPlex set up on your Plex Server, you can now download tv shows and movies while away from home.
+### Q). Where will my media be downloaded?
 
-When downloading TV Shows, you are expected to have at least one folder added to the TV Shows section of your Plex Library. Same goes for Movies. Filenames have .part added to them, so they won’t be picked up on regular scans. If a download is going too slow, you always have the option to try the next provider. Once a download is completed, it will update your Plex Library for you, so your media appears as soon as can be. If any attempt at downloading should fail or be cancelled, the .part file will be removed.
+**A).** Since the plex media server already manages your libraries for you, the channel uses the information from there. for most library configurations, this should work wonders.
 
-TODO
-====
+If, however, you have a less typical set of libraries and you find the channel has chosen the wrong location, you may add a folder named 'ssp', 'ss-plex', 'ss potato', etc. to the proper section and that will be used instead.
 
-- Translations
-- iPhone / iPad support (how it works everywhere but here remains a mystery to me)
+Navigate to `System > Information` if you would like to know more.
+
+### Q). There is a download reporting 100% complete, why is the queue broken?
+
+**A).** This is an odd error that can occur. You will be presented with the option to "Repair Downloads", which will get the queue working, but there will be a video file with a '.part' extension left on your hard drive. You are free to remove that '.part' extension.
+
+### Q). Nothing will download, what do I do?
+
+**A).** First, make sure the channel knows where to download media, as discussed earlier.
+
+Second, make sure you've got curl or wget installed on your system:
+
+- **Windows**: [download a curl binary][curl-wizard] and place it in C:\Windows. wget binaries exist but installation is not as simple.
+  
+- **OS X**: curl works out of the box. wget can be installed through other means.
+  
+- **Linux**: wget is installed more often than not. curl can be installed but may not work due to issues with libcurl.so provided by Plex Media Server.
+
+[screenshots]: http://imgur.com/a/ULaY9
+[curl-wizard]: http://curl.haxx.se/dlwiz/?type=bin
+[ss-raspberry]: http://github.com/mikew/ss-raspberry
+[media-server]: http://plexapp.com/getplex/
+[dashboard-thumbnail]: http://i.imgur.com/QfNCYCP.png
+[bundle-zip]: http://mikew.github.io/ss-plex.bundle/ss-plex.bundle.zip

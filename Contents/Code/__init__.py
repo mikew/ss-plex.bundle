@@ -3,10 +3,13 @@ common = SharedCodeService.common
 
 from ui import button, popup_button, input_button, dialog, confirm, warning, container_for
 import plex_bridge
+import updater
 
 ss = common.init_ss()
 bridge = plex_bridge.init()
 slog = ss.util.getLogger('ss.plex')
+
+updater.init(repo = 'mikew/ss-plex.bundle', branch = 'stable')
 
 def Start():
     # Initialize the plug-in
@@ -30,12 +33,16 @@ def MainMenu():
     container.add(button('heading.download',     downloads.MainMenu, refresh = 0, icon = 'icon-downloads.png'))
     container.add(button('heading.system',       system.MainMenu, icon = 'icon-system.png'))
     container.add(PrefsObject(title = L('system.heading.preferences')))
-
+    updater.add_button_to(container)
     return container
 
 @route('%s/search/results/{query}' % consts.prefix)
 def SearchResultsMenu(query, foo = 1):
     return search.ResultsMenu(query)
+
+@route('%s/_update' % consts.prefix)
+def PerformUpdate():
+    return updater.PerformUpdate()
 
 ###################
 # Listing Methods #

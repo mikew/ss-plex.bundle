@@ -74,5 +74,9 @@
   "confirm.yes":     "Confirm",
   "confirm.no":      "No",
   "confirm.ok":      "Okay",
-  "confirm.cancel":  "Cancel"
+  "confirm.cancel":  "Cancel",
+
+  "updater.label.updating":     "Updating ...",
+  "updater.label.update-now":   "Update Now",
+  "updater.response.updating":  "Please wait while the channel is updating."
 }

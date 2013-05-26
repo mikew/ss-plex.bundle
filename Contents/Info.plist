@@ -6,7 +6,8 @@
   <string>com.plexapp.plugins.wso</string>
 
   <key>PlexClientPlatforms</key>
-  <string>Android,MacOSX,Windows,iOS</string>
+  <string>*</string>
+  <!--<string>Android,MacOSX,Windows,iOS</string>-->
 
   <!--<key>PlexMediaContainer</key>-->
   <!--<array>-->

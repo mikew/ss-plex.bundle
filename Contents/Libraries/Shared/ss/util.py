@@ -154,5 +154,5 @@ def from_now(**kwargs):
 class version:
     major  = 0
     minor  = 5
-    patch  = 1
+    patch  = 3
     string = '%s.%s.%s' % (major, minor, patch)
