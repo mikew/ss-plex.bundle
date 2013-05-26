@@ -94,6 +94,9 @@ def was_successful(endpoint):
     return is_current(endpoint) or is_queued(endpoint) or in_history(endpoint)
 
 def update_library(section): pass
+def on_start(dl): pass
+def on_error(dl): pass
+def on_success(dl): pass
 
 def command(command):
     if not curl_running():
@@ -188,13 +191,16 @@ def dispatch(should_thread = True):
 
         downloader.on_start(store_curl_pid)
         downloader.on_start(clear_download_from_failed)
+        downloader.on_start(on_start)
 
         downloader.on_success(_update_library)
         downloader.on_success(store_download_endpoint)
         downloader.on_success(clear_download_and_dispatch)
+        downloader.on_success(on_success)
 
         downloader.on_error(append_failed_download)
         downloader.on_error(clear_download_and_dispatch)
+        downloader.on_error(on_error)
 
         downloader.download()
 
