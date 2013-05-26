@@ -106,11 +106,16 @@ def keepalive(*a):
     del Dict['kept_alive']
     Dict.Save()
 
+dispatch_without_keepalive = bridge.download.dispatch
+def dispatch_with_keepalive(*args, **kwargs):
+    keepalive()
+    dispatch_without_keepalive(*args, **kwargs)
+
 def init():
     if bridge.settings.store is None:
         Log('bridge init')
         bridge.settings.store = BridgeSettingsStore()
         bridge.download.update_library = refresh_section
-        bridge.download.on_start = keepalive
+        bridge.download.dispatch = dispatch_with_keepalive
 
     return bridge
