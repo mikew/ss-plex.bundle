@@ -89,11 +89,22 @@ def refresh_section(section):
 
     HTTP.Request(plex_endpoint('/library/sections/%s/refresh' % found[0]), immediate = True)
 
+@thread
 def keepalive(*a):
-    if bridge.download.assumed_running():
-        noop_endpoint = plex_endpoint(consts.prefix + '/_noop')
+    if 'kept_alive' in Dict:
+        return
+
+    noop_endpoint = plex_endpoint(consts.prefix + '/_noop')
+
+    Dict['kept_alive'] = True
+    Dict.Save()
+
+    while bridge.download.assumed_running():
         HTTP.Request(noop_endpoint, immediate = True)
-        Thread.CreateTimer(10, keepalive)
+        Thread.Sleep(10)
+
+    del Dict['kept_alive']
+    Dict.Save()
 
 def init():
     if bridge.settings.store is None:
