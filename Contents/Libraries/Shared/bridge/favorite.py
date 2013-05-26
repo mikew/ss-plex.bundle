@@ -2,7 +2,7 @@ import settings
 import re
 
 SHOW_ID_FINDER = re.compile(r'^/shows/(\d+)')
-LAST_VIEWED_KEY = 'last_viewed'
+LAST_VIEWED_KEY = 'last_viewed2'
 
 def clear():            settings.clear('favorites2')
 def includes(endpoint): return normalize_show_endpoint(endpoint) in collection()
@@ -52,8 +52,7 @@ def touch_last_viewed(endpoint):
     if includes(endpoint):
         import time
 
-        now = time.gmtime()
-        unix = time.mktime(now)
+        unix = time.time()
         key = normalize_show_endpoint(endpoint)
 
         collection()[key][LAST_VIEWED_KEY] = int(unix)
@@ -67,6 +66,9 @@ def show_has_new_episodes(endpoint, recents):
         last_viewed = collection()[endpoint].get(LAST_VIEWED_KEY)
         if last_viewed:
             return int(recents[show_id]) > int(last_viewed)
+        else:
+            touch_last_viewed(endpoint)
+            return False
 
 def sync():
     import ss
