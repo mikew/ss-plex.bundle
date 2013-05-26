@@ -92,7 +92,11 @@ def refresh_section(section):
 @thread
 def keepalive(*a):
     if 'kept_alive' in Dict:
-        return
+        if bridge.download.assumed_running():
+            return
+        else:
+            del Dict['kept_alive']
+            Dict.Save()
 
     noop_endpoint = plex_endpoint(consts.prefix + '/_noop')
 
