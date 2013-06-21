@@ -25,6 +25,7 @@
   "system.heading.reset-ss-cache":          "Cache",
   "system.heading.reset-factory":           "Everything",
   "system.heading.preferences":             "Preferences",
+  "system.heading.sync-favorites":          "Sync Favorites",
 
   "system.status.version":            "version %s",
   "system.status.movie-destination":  "Movies will be downloaded to %s",
@@ -55,6 +56,7 @@
   "favorites.heading.migrate":   "Update Favorites",
   "favorites.response.added":    "%s was added to your favorites.",
   "favorites.response.removed":  "%s was removed from your favorites.",
+  "favorites.response.sync":     "Please wait a few seconds before entering your favorites.",
 
   "generic.flag-persisted":   "\u21E3 %s",
   "generic.flag-favorite":    "\u2605 %s",
@@ -64,12 +66,16 @@
   "download.heading.cancel":          "Remove download",
   "download.heading.repair":          "Repair Downloads",
   "download.heading.retry":           "Retry download",
+  "download.heading.force-success":   "Force Success",
+  "download.heading.force-failure":   "Force Failure",
   "download.response.added":          "%s will be downloaded shortly.",
   "download.response.exists":         "%s is already in your library.",
   "download.response.cancel":         "%s will not be downloaded.",
   "download.response.next":           "The next source will be attempted.",
   "download.response.remove-failed":  "The failed download has been removed.",
   "download.response.not-found":      "Download for %s could not be found.",
+  "download.response.force-success":  "Glad to see.",
+  "download.response.force-failure":  "Please try again later.",
 
   "confirm.yes":     "Confirm",
   "confirm.no":      "No",
