@@ -6,11 +6,15 @@ def RenderListings(endpoint, default_title = None):
 
 @route('%s/WatchOptions' % consts.prefix)
 def WatchOptions(endpoint, title, media_hint):
-    container    = render_listings(endpoint, default_title = title, cache_time = ss.cache.TIME_DAY)
-    wizard_url   = '//ss/wizard?endpoint=%s&avoid_flv=%s&start_at=%s' % (
-            endpoint, int(bridge.settings.get('avoid_flv_streaming', False)), 0)
-    wizard_item  = VideoClipObject(title = L('media.watch-now'), url = wizard_url, thumb = R('icon-watch-now.png'))
-    sources_item = button('media.all-sources', ListSources, endpoint = endpoint, title = title, icon = 'icon-view-all-sources.png')
+    container = render_listings(endpoint, default_title = title,
+            cache_time = ss.cache.TIME_DAY)
+    container.no_cache = True
+
+    wizard_item = VideoClipObject(title = L('media.watch-now'),
+            url = wizard_url(endpoint), thumb = R('icon-watch-now.png'))
+
+    sources_item = button('media.all-sources', ListSources,
+            endpoint = endpoint, title = title, icon = 'icon-view-all-sources.png')
 
     if bridge.download.includes(endpoint):
         download_item = button('media.persisted', downloads.OptionsForEndpoint, endpoint = endpoint, icon = 'icon-downloads-queue.png')
@@ -38,6 +42,10 @@ def flag_title(title, endpoint, flags = None):
         return F('generic.flag-favorite', title)
 
     return title
+
+def wizard_url(endpoint, index = 0):
+    return '//ss/wizard?endpoint=%s&avoid_flv=%s&start_at=%s' % (endpoint,
+            int(bridge.settings.get('avoid_flv_streaming', False)), index)
 
 def render_listings(endpoint, default_title = None, return_response = False,
         cache_time = 120, flags = None):
@@ -121,12 +129,9 @@ def render_listings_response(response, endpoint, default_title = None,
             )
 
         elif 'foreign' == element_type:
-            wizard_url = '//ss/wizard?endpoint=%s&avoid_flv=%s&start_at=%s' % (
-                    endpoint, int(bridge.settings.get('avoid_flv_streaming', False)), i)
-
             native = VideoClipObject(
                 title = element['domain'],
-                url   = wizard_url
+                url   = wizard_url(endpoint, i)
             )
 
         if None != native:
