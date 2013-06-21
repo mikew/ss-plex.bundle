@@ -14,8 +14,8 @@ def warning(otitle, ohandle, ocb, **kwargs):
 
     return container
 
-def container_for(title):
-    return ObjectContainer(title1 = ensure_localized(title))
+def container_for(title, **kwargs):
+    return ObjectContainer(title1 = ensure_localized(title), **kwargs)
 
 def plobj(obj, otitle, cb, **kwargs):
     icon   = None
