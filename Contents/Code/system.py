@@ -34,7 +34,7 @@ def StatusMenu():
     show_destination  = bridge.settings.get('show_destination')
     download_strategy = bridge.download.strategy()
 
-    container.add(button(F('system.status.version',           ss.util.version.string), noop))
+    container.add(button(F('system.status.version',           consts.version), noop))
     container.add(button(F('system.status.movie-destination', movie_destination),   noop))
     container.add(button(F('system.status.show-destination',  show_destination),    noop))
     container.add(button(F('system.status.download-strategy', download_strategy),   noop))

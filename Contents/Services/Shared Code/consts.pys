@@ -1,5 +1,7 @@
-prefix = '/video/ssp'
-title  = L('title')
-art    = R('art-default.jpg')
-icon   = R('icon-default.png')
-env    = 'production'
+version_info = (1, 0, 0)
+version      = '.'.join(map(str, version_info))
+prefix       = '/video/ssp'
+title        = L('title')
+art          = R('art-default.jpg')
+icon         = R('icon-default.png')
+env          = 'production'
