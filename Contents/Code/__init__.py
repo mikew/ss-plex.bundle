@@ -110,3 +110,9 @@ import system
 import search
 import favorites
 import downloads
+
+@route(plex_bridge.keepalive_endpoint)
+def Keepalive():
+    plex_bridge.keepalive()
+    return dialog('shhhh', 'shhhhhhh')
+
