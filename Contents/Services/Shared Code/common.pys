@@ -103,30 +103,17 @@ def cleanup_old_libraries():
         try_remove(path)
 
 def metadata_from(media):
-    try:
-        if 'episode' == media['_type']:
-            obj = metadata_from_episode(media)
+    builder = VideoClipObject
 
-        elif 'movie' == media['_type']:
-            obj = metadata_from_default(media, builder = MovieObject)
+    if 'episode' == media['_type']:
+        builder = EpisodeObject
+    elif 'movie' == media['_type']:
+        builder = MovieObject
 
-        merge_common_metadata(obj, media)
-    except Exception, e:
-        ss.util.log.exception(obj)
-        obj = metadata_from_default(media)
-
-    return obj
-
-def metadata_from_default(media, builder = VideoClipObject):
     obj = builder(
         title = media.get('display_title'),
     )
 
-    merge_common_metadata(obj, media)
-
-    return obj
-
-def merge_common_metadata(obj, media):
     overview        = media.get('display_overview', '')
     overview_parser = ur'^([\d\-]+) \u2014 ?(.*?)$'
     match_overview  = re.search(overview_parser, overview)
@@ -141,43 +128,6 @@ def merge_common_metadata(obj, media):
             obj.summary = overview
         else:
             obj.summary = overview
-
-def metadata_from_episode(media):
-    finder_numbered = r'^(.+) (\d+)x(\d+) (.+)$'
-    finder_dated    = r'^(.+): (.+) ([\d\.]+)'
-    title           = media.get('display_title')
-
-    match_numbered = re.search(finder_numbered, title)
-    if match_numbered:
-        return metadata_from_episode_numbered(media, match_numbered)
-
-    match_dated = re.search(finder_dated, title)
-    if match_dated:
-        return metadata_from_episode_dated(media, match_dated)
-
-def metadata_from_episode_numbered(media, match):
-    obj            = EpisodeObject()
-    show_title     = match.group(1)
-    season_number  = int(match.group(2))
-    episode_number = int(match.group(3))
-    episode_title  = match.group(4)
-
-    obj.show   = show_title
-    obj.season = season_number
-    obj.absolute_index = episode_number
-    obj.title  = '%s. %s' % (episode_number, episode_title)
-
-    return obj
-
-def metadata_from_episode_dated(media, match):
-    obj           = EpisodeObject()
-    show_title    = match.group(1)
-    air_date      = Datetime.ParseDate(match.group(3))
-    episode_title = match.group(2)
-
-    obj.show  = show_title
-    obj.title = episode_title
-    obj.originally_available_at = air_date
 
     return obj
 
