@@ -65,8 +65,9 @@ def render_listings_response(response, endpoint, default_title = None,
         flags = None):
     display_title = response.get('title') or default_title
     container = container_for(display_title)
+    items = response.get('items', [])
 
-    for element in response.get( 'items', [] ):
+    for i, element in enumerate(items):
         native           = None
         permalink        = element.get('endpoint')
         display_title    = element.get('display_title')    or element.get('title')
@@ -119,16 +120,11 @@ def render_listings_response(response, endpoint, default_title = None,
             )
 
         elif 'foreign' == element_type:
-            final_url = element.get('final_url')
-
-            if final_url:
-                service_url = '//ss/procedure?url=%s' % ss.util.q(final_url)
-            else:
-                service_url = '//ss%s' % ss.util.translate_endpoint(element['original_url'], element['foreign_url'], True)
+            wizard_url = '//ss/wizard?endpoint=%s&start_at=%s' % (endpoint, i)
 
             native = VideoClipObject(
                 title = element['domain'],
-                url   = '%s&endpoint=%s' % (service_url, ss.util.q(endpoint))
+                url   = wizard_url
             )
 
         if None != native:

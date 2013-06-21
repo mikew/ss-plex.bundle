@@ -23,11 +23,12 @@ def translate(foreign):
         return util.translated_from(response)
 
 class Wizard(object):
-    def __init__(self, endpoint, avoid_flv = False):
+    def __init__(self, endpoint, avoid_flv = False, start_at = 0):
         self.endpoint    = endpoint
         self.file_hint   = None
         self.avoid_flv   = avoid_flv
         self.consumer    = None
+        self.start_at    = start_at
         self.source_list = []
 
         try:
@@ -41,7 +42,10 @@ class Wizard(object):
             pass
 
     def sources(self, cb):
-        for foreign in self.source_list:
+        all_sources = self.source_list
+        all_sources = self.source_list[self.start_at:]
+
+        for foreign in all_sources:
             translated = None
             try:
                 translated = translate(foreign)

@@ -14,49 +14,26 @@ def MetadataObjectForURL(url):
 def MediaObjectsForURL(url):
     params = common.params(url)
 
-    if '/procedure' == params.path:
-        obj = mo(PlayConsumer, url = params.get('url'))
-
-    elif '/wizard' == params.path:
+    if '/wizard' == params.path:
         obj = mo(PlayWizard, endpoint = params.get('endpoint'),
-                avoid_flv = params.get('avoid_flv'))
-
-    elif '/translate' == params.path:
-        obj = mo(PlayForeign, original = params.get('original'),
-                foreign = params.get('foreign'))
+                avoid_flv = params.get('avoid_flv'),
+                start_at = params.get('start_at'))
 
     return [ obj ]
 
 @indirect
-def PlayWizard(endpoint, avoid_flv = 0):
-    wizard = ss.Wizard(endpoint, avoid_flv = bool(int(avoid_flv)))
+def PlayWizard(endpoint, avoid_flv = 0, start_at = 0):
+    wizard = ss.Wizard(endpoint,
+            avoid_flv = bool(int(avoid_flv)),
+            start_at = int(start_at))
 
     def first_working(consumer): consumer.asset_url
     wizard.sources(first_working)
 
-    if wizard.consumer: return video(wizard.consumer)
-    else:               raise  Ex.MediaNotAvailable
-
-@indirect
-def PlayConsumer(url):
-    consumer = ss.Consumer(url)
-    return video(consumer)
-
-@indirect
-def PlayForeign(original, foreign):
-    response = JSON.ObjectFromURL( ss.util.translate_endpoint(original, foreign) )
-    url      = ss.util.translated_from(response)
-    consumer = ss.Consumer(url)
-
-    return video(consumer)
-
-def video(consumer):
-    try:
-        consumer.consume()
-        return IndirectResponse(VideoClipObject, key = consumer.asset_url)
-
-    except Exception, e:
-        raise Ex.MediaNotAvailable
+    if wizard.consumer:
+        return IndirectResponse(VideoClipObject, key = wizard.consumer.asset_url)
+    else:
+        raise  Ex.MediaNotAvailable
 
 def mo(cb, **kwargs):
     return MediaObject(
