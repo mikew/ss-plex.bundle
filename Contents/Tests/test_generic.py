@@ -149,29 +149,18 @@ class TestRenderListingsResponse(plex_nose.TestCase):
         from ss.util import q
 
         mocked    = mocks['foreign']
-        response  = dict(items = [ mocked ])
+        response  = dict(items = [ mocked, mocked ])
         container = generic.render_listings_response(response, '/')
-        rendered  = container.objects[0]
-        expected  = ('//ss/translate?original=%s&foreign=%s&endpoint=%s' % (
-            mocked['original_url'], mocked['foreign_url'], q('/')
-        ))
+        first     = container.objects[0]
+        second    = container.objects[1]
 
-        eq_('VideoClipObject', rendered.__class__.__name__)
-        eq_(rendered.title, mocked['domain'])
-        eq_(rendered.url, expected)
+        eq_('VideoClipObject', first.__class__.__name__)
+        eq_(first.title, mocked['domain'])
+        eq_(first.url, generic.wizard_url('/', 0))
 
-    def test_can_render_foreign_with_final():
-        from ss.util import q
-
-        mocked    = mocks['foreign_with_final']
-        response  = dict(items = [ mocked ])
-        container = generic.render_listings_response(response, '/')
-        rendered  = container.objects[0]
-        expected  = ('//ss/procedure?url=%s&endpoint=%s' % (
-            q(mocked['final_url']), q('/')
-        ))
-
-        eq_(rendered.url, expected)
+        eq_('VideoClipObject', second.__class__.__name__)
+        eq_(second.title, mocked['domain'])
+        eq_(second.url, generic.wizard_url('/', 1))
 
     def test_can_suggest_title():
         response  = dict()
@@ -211,10 +200,12 @@ class TestWatchOptions(plex_nose.TestCase):
         generic.JSON.ObjectFromURL = lambda *a, **k: dict()
 
         container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
-        watch_now_key = ('//ss/wizard?endpoint=%s&avoid_flv=%s' % (
-            '/', int(Prefs['avoid_flv_streaming'])
-        ))
+        watch_now_key = generic.wizard_url('/')
+        #watch_now_key = ('//ss/wizard?endpoint=%s&avoid_flv=%s' % (
+            #'/', int(Prefs['avoid_flv_streaming'])
+        #))
 
+        ok_(container.no_cache)
         eq_(len(container), 3)
 
         eq_('VideoClipObject', container.objects[0].__class__.__name__)
