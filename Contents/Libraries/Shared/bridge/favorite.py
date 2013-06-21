@@ -45,6 +45,9 @@ def recents():
     ids      = ','.join(show_ids())
     params   = dict(ids = ids)
 
+    if not ids:
+        return dict()
+
     return ss.environment.json_from_url(endpoint, params = params,
             expires = ss.cache.TIME_MINUTE * 10)
 
