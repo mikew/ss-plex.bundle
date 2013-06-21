@@ -27,6 +27,7 @@ def wget_strategy_command(dl):
     command = [
         'wget',
         '--no-cookies',
+        '--continue',
         '--referer',         dl.consumer.url,
         '--header',          'Cookie: ' + dl.consumer.cookie_string,
         '--user-agent',      dl.consumer.ua,

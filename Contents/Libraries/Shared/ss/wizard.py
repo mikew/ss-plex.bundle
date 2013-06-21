@@ -42,7 +42,6 @@ class Wizard(object):
             pass
 
     def sources(self, cb):
-        all_sources = self.source_list
         all_sources = self.source_list[self.start_at:]
 
         for foreign in all_sources:
