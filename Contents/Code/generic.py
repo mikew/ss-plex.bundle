@@ -32,20 +32,40 @@ def WatchOptions(endpoint, title, media_hint):
 
     return container
 
-def flag_title(title, endpoint, flags = None):
-    flags = flags or ['persisted', 'favorite']
+@route('%s/ListSources' % consts.prefix)
+def ListSources(endpoint, title):
+    wizard = ss.Wizard(endpoint)
+    return render_listings_response(wizard.payload, endpoint, wizard.file_hint)
 
-    if 'persisted' in flags and bridge.download.includes(endpoint):
-        return F('generic.flag-persisted', title)
+@route('%s/series/i{refresh}' % consts.prefix)
+def ListTVShow(endpoint, show_title, refresh = 0):
+    import re
 
-    if 'favorite' in flags and bridge.favorite.includes(endpoint):
-        return F('generic.flag-favorite', title)
+    container, response = generic.render_listings(endpoint + '/episodes', show_title, return_response = True, flags = ['persisted'])
+    title_regex         = re.compile(r'^(. )?' + re.escape(show_title) + r':?\s+')
 
-    return title
+    for item in container.objects:
+        item.title = title_regex.sub('', str(item.title))
 
-def wizard_url(endpoint, index = 0):
-    return '//ss/wizard?endpoint=%s&avoid_flv=%s&start_at=%s' % (endpoint,
-            int(bridge.settings.get('avoid_flv_streaming', False)), index)
+    labels   = [ 'add', 'remove' ]
+    label    = labels[int(bridge.favorite.includes(endpoint))]
+
+    container.objects.insert(0, button('favorites.heading.%s' % label, favorites.Toggle,
+        endpoint   = endpoint,
+        icon       = 'icon-favorites.png',
+        show_title = show_title,
+        overview   = (response or {}).get('resource', {}).get('display_overview'),
+        artwork    = (response or {}).get('resource', {}).get('artwork')
+    ))
+
+    add_refresh_to(container, refresh, ListTVShow,
+        endpoint   = endpoint,
+        show_title = show_title,
+    )
+
+    bridge.favorite.touch_last_viewed(endpoint)
+
+    return container
 
 def render_listings(endpoint, default_title = None, return_response = False,
         cache_time = 120, flags = None):
@@ -117,7 +137,6 @@ def render_listings_response(response, endpoint, default_title = None,
                 media_hint = 'show'
 
             display_title = flag_title(display_title, permalink, flags = flags)
-            #display_title = str(display_title).encode('iso-8859-1').decode('utf-8')
             display_title = str(display_title).decode('utf-8')
 
             native = PopupDirectoryObject(
@@ -138,3 +157,20 @@ def render_listings_response(response, endpoint, default_title = None,
             container.add( native )
 
     return container
+
+def flag_title(title, endpoint, flags = None):
+    flags = flags or ['persisted', 'favorite']
+
+    if 'persisted' in flags and bridge.download.includes(endpoint):
+        return F('generic.flag-persisted', title)
+
+    if 'favorite' in flags and bridge.favorite.includes(endpoint):
+        return F('generic.flag-favorite', title)
+
+    return title
+
+def wizard_url(endpoint, index = 0):
+    return '//ss/wizard?endpoint=%s&avoid_flv=%s&start_at=%s' % (endpoint,
+            int(bridge.settings.get('avoid_flv_streaming', False)), index)
+
+def noop(): return dialog('hello', 'good day')

@@ -44,45 +44,6 @@ def SearchResultsMenu(query, foo = 1):
 def PerformUpdate():
     return updater.PerformUpdate()
 
-###################
-# Listing Methods #
-###################
-
-@route('%s/ListSources' % consts.prefix)
-def ListSources(endpoint, title):
-    wizard = ss.Wizard(endpoint)
-    return generic.render_listings_response(wizard.payload, endpoint, wizard.file_hint)
-
-@route('%s/series/i{refresh}' % consts.prefix)
-def ListTVShow(endpoint, show_title, refresh = 0):
-    import re
-
-    container, response = generic.render_listings(endpoint + '/episodes', show_title, return_response = True, flags = ['persisted'])
-    title_regex         = r'^(. )?' + re.escape(show_title) + r':?\s+'
-
-    for item in container.objects:
-        item.title = re.sub(title_regex, '', str(item.title))
-
-    labels   = [ 'add', 'remove' ]
-    label    = labels[int(bridge.favorite.includes(endpoint))]
-
-    container.objects.insert(0, button('favorites.heading.%s' % label, favorites.Toggle,
-        endpoint   = endpoint,
-        icon       = 'icon-favorites.png',
-        show_title = show_title,
-        overview   = (response or {}).get('resource', {}).get('display_overview'),
-        artwork    = (response or {}).get('resource', {}).get('artwork')
-    ))
-
-    add_refresh_to(container, refresh, ListTVShow,
-        endpoint   = endpoint,
-        show_title = show_title,
-    )
-
-    bridge.favorite.touch_last_viewed(endpoint)
-
-    return container
-
 ##################
 # Plugin Helpers #
 ##################

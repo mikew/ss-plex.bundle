@@ -1,6 +1,6 @@
 FEATURE_PREFIX = '%s/favorites' % consts.prefix
 
-from generic import render_listings
+from generic import ListTVShow, render_listings
 
 @route(FEATURE_PREFIX)
 def MainMenu():
