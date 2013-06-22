@@ -45,13 +45,6 @@ def SearchResultsMenu(query, foo = 1):
 def PerformUpdate():
     return updater.PerformUpdate()
 
-##################
-# Plugin Helpers #
-##################
-
-@route('%s/_noop' % consts.prefix)
-def noop(): return dialog('hello', 'good day')
-
 #def dispatch_download_threaded():
     #bridge.download.dispatch()
 
