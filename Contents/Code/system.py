@@ -88,12 +88,12 @@ def ResetDownloadsFailed():
 
 @route('%s/reset/ss-cache' % FEATURE_PREFIX)
 def ResetSSCache():
-    ss.util.clear_cache()
+    ss.cache.reset()
     return dialog('heading.system', 'system.response.reset-ss-cache')
 
 @route('%s/reset/factory' % FEATURE_PREFIX)
 def ResetFactory():
-    ss.util.clear_cache()
+    ss.cache.reset()
     Dict.Reset()
     Dict.Save()
     return dialog('heading.system', 'system.response.reset-factory')

@@ -122,7 +122,7 @@ class SystemMenuTests(plex_nose.TestCase):
 
         test_reset()
 
-        @mock.patch.object(system.ss.util, 'clear_cache')
+        @mock.patch.object(system.ss.cache, 'reset')
         def test_reset(reset_call):
             container = system.ResetSSCache()
             reset_call.assert_called_once_with()
@@ -133,7 +133,7 @@ class SystemMenuTests(plex_nose.TestCase):
 
         @mock.patch.object(system.Dict, 'Save')
         @mock.patch.object(system.Dict, 'Reset')
-        @mock.patch.object(system.ss.util, 'clear_cache')
+        @mock.patch.object(system.ss.cache, 'reset')
         def test_reset(*a):
             container = system.ResetFactory()
 
