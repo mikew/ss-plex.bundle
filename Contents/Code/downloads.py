@@ -43,6 +43,9 @@ def OptionsForEndpoint(endpoint):
 @route('%s/options-for-current' % FEATURE_PREFIX)
 def OptionsForCurrent():
     download  = bridge.download.current()
+    if not download:
+        return dialog('heading.error', F('download.response.not-found', "'current'"))
+
     container = container_for(download['title'], no_cache = True)
 
     if bridge.download.curl_running():
@@ -57,36 +60,34 @@ def OptionsForCurrent():
 @route('%s/options-for-queue' % FEATURE_PREFIX)
 def OptionsForQueue(endpoint):
     download = bridge.download.from_queue(endpoint)
-
-    if download:
-        container = container_for(download['title'], no_cache = True)
-        cancel_button = button('download.heading.cancel', Remove, endpoint = endpoint)
-        container.add(cancel_button)
-
-        return container
-    else:
+    if not download:
         return dialog('heading.error', F('download.response.not-found', endpoint))
+
+    container = container_for(download['title'], no_cache = True)
+    cancel_button = button('download.heading.cancel', Remove, endpoint = endpoint)
+    container.add(cancel_button)
+
+    return container
 
 @route('%s/options-for-failed' % FEATURE_PREFIX)
 def OptionsForFailed(endpoint):
     download = bridge.download.from_failed(endpoint)
-
-    if download:
-        container     = container_for(download['title'], no_cache = True)
-        cancel_button = button('download.heading.cancel', RemoveFailed, endpoint = endpoint)
-        retry_button  = button('download.heading.retry', Queue,
-            endpoint   = download['endpoint'],
-            media_hint = download['media_hint'],
-            title      = download['title'],
-            icon       = 'icon-downloads-queue.png'
-        )
-
-        container.add(retry_button)
-        container.add(cancel_button)
-
-        return container
-    else:
+    if not download:
         return dialog('heading.error', F('download.response.not-found', endpoint))
+
+    container     = container_for(download['title'], no_cache = True)
+    cancel_button = button('download.heading.cancel', RemoveFailed, endpoint = endpoint)
+    retry_button  = button('download.heading.retry', Queue,
+        endpoint   = download['endpoint'],
+        media_hint = download['media_hint'],
+        title      = download['title'],
+        icon       = 'icon-downloads-queue.png'
+    )
+
+    container.add(retry_button)
+    container.add(cancel_button)
+
+    return container
 
 @route('%s/queue' % FEATURE_PREFIX)
 def Queue(endpoint, media_hint, title):
@@ -128,10 +129,8 @@ def NextSource():
 @route('%s/remove' % FEATURE_PREFIX)
 def Remove(endpoint):
     download = bridge.download.from_queue(endpoint)
-
     if not download:
-        return dialog('heading.error',
-                F('download.response.not-found', endpoint))
+        return dialog('heading.error', F('download.response.not-found', endpoint))
 
     bridge.download.remove(endpoint)
     return dialog('heading.download',

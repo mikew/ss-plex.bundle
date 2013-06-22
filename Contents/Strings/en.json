@@ -27,7 +27,7 @@
   "system.heading.preferences":             "Preferences",
   "system.heading.sync-favorites":          "Sync Favorites",
 
-  "system.status.version":            "version %s",
+  "system.status.version":            "Version %s",
   "system.status.movie-destination":  "Movies will be downloaded to %s",
   "system.status.show-destination":   "TV Shows will be downloaded to %s",
   "system.status.download-strategy":  "Media will be downloaded with %s",

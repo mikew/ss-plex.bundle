@@ -89,32 +89,6 @@ def refresh_section(section):
 
     HTTP.Request(plex_endpoint('/library/sections/%s/refresh' % found[0]), immediate = True)
 
-#KEEP_ALIVE_KEY = 'kept_alive'
-
-#@thread
-#def keepalive(*a):
-    #if KEEP_ALIVE_KEY in Dict:
-        #if bridge.download.assumed_running():
-            #return
-        #else:
-            #clear_kept_alive()
-
-    #noop_endpoint = plex_endpoint(consts.prefix + '/_noop')
-
-    #Dict[KEEP_ALIVE_KEY] = True
-    #Dict.Save()
-
-    #while bridge.download.assumed_running():
-        #HTTP.Request(noop_endpoint, immediate = True)
-        #Thread.Sleep(10)
-
-    #clear_kept_alive()
-
-#def clear_kept_alive():
-    #if KEEP_ALIVE_KEY in Dict:
-        #del Dict[KEEP_ALIVE_KEY]
-        #Dict.Save()
-
 keepalive_endpoint = '%s/_keepalive' % consts.prefix
 keepalive_url = plex_endpoint(keepalive_endpoint)
 

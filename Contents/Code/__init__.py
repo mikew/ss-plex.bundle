@@ -6,9 +6,9 @@ import updater
 from ui import (button, popup_button, input_button, dialog,
         confirm, warning, container_for, add_refresh_to)
 
-ss = common.init_ss()
+ss     = common.init_ss()
 bridge = plex_bridge.init()
-slog = ss.util.getLogger('ss.plex')
+slog   = ss.util.getLogger('ss.plex')
 
 updater.init(repo = 'mikew/ss-plex.bundle', branch = 'stable')
 
@@ -45,8 +45,6 @@ def SearchResultsMenu(query, foo = 1):
 def PerformUpdate():
     return updater.PerformUpdate()
 
-#def dispatch_download_threaded():
-    #bridge.download.dispatch()
 
 import generic
 import system
