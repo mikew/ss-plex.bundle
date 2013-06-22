@@ -1,9 +1,10 @@
 consts = SharedCodeService.consts
 common = SharedCodeService.common
 
-from ui import button, popup_button, input_button, dialog, confirm, warning, container_for
 import plex_bridge
 import updater
+from ui import (button, popup_button, input_button, dialog,
+        confirm, warning, container_for, add_refresh_to)
 
 ss = common.init_ss()
 bridge = plex_bridge.init()
@@ -53,18 +54,6 @@ def noop(): return dialog('hello', 'good day')
 
 #def dispatch_download_threaded():
     #bridge.download.dispatch()
-
-def add_refresh_to(container, refresh, ocb, **kwargs):
-    refresh           = int(refresh)
-    kwargs['refresh'] = refresh + 1
-    kwargs['icon']    = 'icon-refresh.png'
-
-    if 0 < refresh:
-        container.replace_parent = True
-
-    container.add(button('heading.refresh', ocb, **kwargs))
-
-    return container
 
 import generic
 import system

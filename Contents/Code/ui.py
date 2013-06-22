@@ -37,6 +37,18 @@ def button(otitle, ocb, **kwargs):
 def popup_button(otitle, ocb, **kwargs):
     return plobj(PopupDirectoryObject, otitle, ocb, **kwargs)
 
+def add_refresh_to(container, refresh, ocb, **kwargs):
+    refresh           = int(refresh)
+    kwargs['refresh'] = refresh + 1
+    kwargs['icon']    = 'icon-refresh.png'
+
+    if 0 < refresh:
+        container.replace_parent = True
+
+    container.add(button('heading.refresh', ocb, **kwargs))
+
+    return container
+
 def input_button(otitle, prompt, ocb, **kwargs):
     prompt = ensure_localized(prompt)
     item   = plobj(InputDirectoryObject, otitle, ocb, **kwargs)
