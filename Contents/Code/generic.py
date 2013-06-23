@@ -43,10 +43,14 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     import re
 
     container, response = render_listings(endpoint + '/episodes', show_title, return_response = True, flags = ['persisted'])
-    title_regex         = re.compile(r'^(. )?' + re.escape(show_title) + r':?\s+')
+    title_regex         = re.compile(ur'^(.*)' + re.escape(show_title) + ur':?\s+', re.UNICODE)
 
     for item in container.objects:
-        item.title = title_regex.sub('', str(item.title))
+        md = title_regex.match(item.title)
+        if md:
+            flags = md.group(1)
+            new_title = flags + title_regex.sub('', str(item.title))
+            item.title = unicode(new_title)
 
     labels   = [ 'add', 'remove' ]
     label    = labels[int(bridge.favorite.includes(endpoint))]
@@ -138,7 +142,7 @@ def render_listings_response(response, endpoint, default_title = None,
                 media_hint = 'show'
 
             display_title = flag_title(display_title, permalink, flags = flags)
-            display_title = str(display_title).decode('utf-8')
+            display_title = unicode(display_title)
 
             native = PopupDirectoryObject(
                 title   = display_title,

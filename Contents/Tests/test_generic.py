@@ -1,8 +1,9 @@
 import plex_nose
 from nose.tools import *
+from helpers import listings_elements
+import bridge
 
 def setup_mocks():
-    from helpers import listings_elements
     plex_nose.core.sandbox.publish_api(listings_elements.mocks, name = 'mocks')
 
 class TestRenderListings(plex_nose.TestCase):
@@ -39,7 +40,7 @@ class TestFlagTitle(plex_nose.TestCase):
     def teardown_class(cls):
         plex_nose.core.sandbox.execute('del mocks')
 
-    def test_default_flags_favorite():
+    def test_default_flags():
         import mock
 
         @mock.patch.object(bridge.favorite, 'collection', return_value = mocks.favorite_collection)
@@ -196,14 +197,15 @@ class TestIcons(plex_nose.TestCase):
         ok_('icon-movies.png' in rendered.thumb)
 
 class TestWatchOptions(plex_nose.TestCase):
+    @classmethod
+    def setup_class(cls):
+        setup_mocks()
+
     def test_when_fresh():
         generic.JSON.ObjectFromURL = lambda *a, **k: dict()
 
         container = generic.WatchOptions(endpoint = '/', title = 'foo', media_hint = 'show')
         watch_now_key = generic.wizard_url('/')
-        #watch_now_key = ('//ss/wizard?endpoint=%s&avoid_flv=%s' % (
-            #'/', int(Prefs['avoid_flv_streaming'])
-        #))
 
         ok_(container.no_cache)
         eq_(len(container), 3)
@@ -251,7 +253,6 @@ class TestWatchOptions(plex_nose.TestCase):
 
         test()
 
-    @with_setup(setup_mocks)
     def test_with_suggestions():
         import mock
 
@@ -261,5 +262,39 @@ class TestWatchOptions(plex_nose.TestCase):
 
             eq_(4, len(container))
             eq_(container.objects[3].title, mocks['show']['display_title'])
+
+        test()
+
+class TestListTvShow(plex_nose.TestCase):
+    @classmethod
+    def setup_class(cls):
+        setup_mocks()
+
+    def setUp(self):
+        bridge.favorite.append(endpoint = '/shows/1', title = 'foo')
+
+    def tearDown(self):
+        bridge.favorite.clear()
+
+    def test_removes_show_title():
+        import mock
+        import plex_nose
+
+        def download_includes(e):
+            if mocks['episode2']['endpoint'] == e:
+                return True
+
+            return False
+
+        @mock.patch.object(bridge.favorite, 'includes', return_value = True)
+        @mock.patch.object(bridge.download, 'includes', side_effect = download_includes)
+        @mock.patch.object(JSON, 'ObjectFromURL', return_value = dict(items = [ mocks['episode'], mocks['episode2'] ]))
+        def test(*a):
+            container = generic.ListTVShow(endpoint = '/shows/1', show_title = 'foo')
+            first = container.objects[1]
+            second = container.objects[2]
+
+            eq_(first.title, '1x1 episode title')
+            eq_(second.title, u'\u21E3 episode title 01.01.2013')
 
         test()

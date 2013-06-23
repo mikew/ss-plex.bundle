@@ -2,7 +2,7 @@ consts = SharedCodeService.consts
 common = SharedCodeService.common
 
 from ui import (button, popup_button, input_button, dialog, confirm,
-        warning, container_for, add_refresh_to)
+        warning, container_for, add_refresh_to, ensure_localized)
 import plex_bridge
 import updater
 
