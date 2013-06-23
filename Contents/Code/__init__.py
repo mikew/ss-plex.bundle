@@ -45,6 +45,8 @@ def SearchResultsMenu(query, foo = 1):
 def PerformUpdate():
     return updater.PerformUpdate()
 
+@route('%s/_noop' % consts.prefix)
+def noop(): return dialog('hello', 'good day')
 
 import generic
 import system

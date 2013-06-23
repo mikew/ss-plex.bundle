@@ -172,5 +172,3 @@ def flag_title(title, endpoint, flags = None):
 def wizard_url(endpoint, index = 0):
     return '//ss/wizard?endpoint=%s&avoid_flv=%s&start_at=%s' % (endpoint,
             int(bridge.settings.get('avoid_flv_streaming', False)), index)
-
-def noop(): return dialog('hello', 'good day')
