@@ -43,7 +43,9 @@ def ListTVShow(endpoint, show_title, refresh = 0):
     import re
 
     container, response = render_listings(endpoint + '/episodes', show_title, return_response = True, flags = ['persisted'])
-    title_regex         = re.compile(ur'^(.*)' + re.escape(show_title) + ur':?\s+', re.UNICODE)
+    title_regex         = re.compile(ur'^(.*)'
+            + re.escape(response['resource']['display_title'])
+            + ur':?\s+', re.UNICODE)
 
     for item in container.objects:
         md = title_regex.match(item.title)

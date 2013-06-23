@@ -286,9 +286,13 @@ class TestListTvShow(plex_nose.TestCase):
 
             return False
 
+        response = dict(
+            items = [ mocks['episode'], mocks['episode2'] ],
+            resource = mocks['show']
+        )
         @mock.patch.object(bridge.favorite, 'includes', return_value = True)
         @mock.patch.object(bridge.download, 'includes', side_effect = download_includes)
-        @mock.patch.object(JSON, 'ObjectFromURL', return_value = dict(items = [ mocks['episode'], mocks['episode2'] ]))
+        @mock.patch.object(JSON, 'ObjectFromURL', return_value = response)
         def test(*a):
             container = generic.ListTVShow(endpoint = '/shows/1', show_title = 'foo')
             first = container.objects[1]

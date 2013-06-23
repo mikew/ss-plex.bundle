@@ -15,7 +15,7 @@ movie = dict(
 show = dict(
     _type            = 'show',
     display_title    = 'foo',
-    endpoint         = 'bar',
+    endpoint         = '/shows/1',
     display_overview = '42',
     artwork          = 'http://example.com/artwork.jpg'
 )
