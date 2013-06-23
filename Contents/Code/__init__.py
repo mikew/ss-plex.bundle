@@ -34,7 +34,7 @@ def MainMenu():
     container.add(button('heading.download',     downloads.MainMenu, refresh = 0, icon = 'icon-downloads.png'))
     container.add(button('heading.system',       system.MainMenu, icon = 'icon-system.png'))
     container.add(PrefsObject(title = L('system.heading.preferences')))
-    updater.add_button_to(container)
+    updater.add_button_to(container, PerformUpdate)
     return container
 
 @route('%s/search/results/{query}' % consts.prefix)

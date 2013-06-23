@@ -53,8 +53,7 @@ def update_available():
         return last_updated < instance.updated_at
 
 def PerformUpdate():
-    @spawn
-    def inner(): update_if_available()
+    threaded_update_if_available()
     return ObjectContainer(
         header  = L('updater.label.updating'),
         message = L('updater.response.updating')
@@ -66,9 +65,13 @@ def update_if_available():
         Dict.Save()
         instance.perform_update()
 
-def add_button_to(container, **kwargs):
+@thread
+def threaded_update_if_available():
+    update_if_available()
+
+def add_button_to(container, cb):
     if update_available():
         container.add(DirectoryObject(
             title = L('updater.label.update-now'),
-            key   = Callback(PerformUpdate)
+            key   = Callback(cb)
         ))
