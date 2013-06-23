@@ -13,9 +13,8 @@ slog   = ss.util.getLogger('ss.plex')
 updater.init(repo = 'mikew/ss-plex.bundle', branch = 'stable')
 
 def Start():
-    # Initialize the plug-in
-    Plugin.AddViewGroup('Details',  viewMode = 'InfoList',  mediaType = 'items')
-    Plugin.AddViewGroup('List',     viewMode = 'List',      mediaType = 'items')
+    Plugin.AddViewGroup('Details', viewMode = 'InfoList', mediaType = 'items')
+    Plugin.AddViewGroup('List',    viewMode = 'List',     mediaType = 'items')
 
     ObjectContainer.view_group = 'List'
     ObjectContainer.art        = consts.art
@@ -53,9 +52,3 @@ import system
 import search
 import favorites
 import downloads
-
-@route(plex_bridge.keepalive_endpoint)
-def Keepalive():
-    plex_bridge.keepalive()
-    return dialog('shhhh', 'shhhhhhh')
-

@@ -1,6 +1,6 @@
 FEATURE_PREFIX = '%s/favorites' % consts.prefix
 
-from generic import ListTVShow, render_listings
+import generic
 
 @route(FEATURE_PREFIX)
 def MainMenu():
@@ -22,7 +22,7 @@ def MainMenu():
                 title      = title,
                 summary    = fav.get('overview'),
                 thumb      = fav['artwork'],
-                key        = Callback(ListTVShow, refresh = 0, endpoint = endpoint, show_title = title)
+                key        = Callback(generic.ListTVShow, refresh = 0, endpoint = endpoint, show_title = title)
             )
 
             container.add(native)

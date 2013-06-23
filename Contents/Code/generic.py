@@ -1,4 +1,5 @@
 import downloads
+import favorites
 
 @route('%s/RenderListings' % consts.prefix)
 def RenderListings(endpoint, default_title = None):
@@ -41,7 +42,7 @@ def ListSources(endpoint, title):
 def ListTVShow(endpoint, show_title, refresh = 0):
     import re
 
-    container, response = generic.render_listings(endpoint + '/episodes', show_title, return_response = True, flags = ['persisted'])
+    container, response = render_listings(endpoint + '/episodes', show_title, return_response = True, flags = ['persisted'])
     title_regex         = re.compile(r'^(. )?' + re.escape(show_title) + r':?\s+')
 
     for item in container.objects:

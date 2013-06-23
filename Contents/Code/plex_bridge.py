@@ -92,8 +92,10 @@ def refresh_section(section):
 keepalive_endpoint = '%s/_keepalive' % consts.prefix
 keepalive_url = plex_endpoint(keepalive_endpoint)
 
+@route(keepalive_endpoint)
 def keepalive():
     Thread.CreateTimer(8, keepalive_request)
+    return dialog('shhhh', 'shhhhhhh')
 
 def keepalive_request():
     if bridge.download.assumed_running():

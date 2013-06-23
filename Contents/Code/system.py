@@ -1,6 +1,5 @@
 import downloads
 import favorites
-from generic import noop
 
 FEATURE_PREFIX = '%s/system' % consts.prefix
 
