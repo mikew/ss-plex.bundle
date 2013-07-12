@@ -50,7 +50,7 @@ class Wizard(object):
                 translated = translate(foreign)
                 consumer   = Consumer(translated)
 
-                if self.avoid_flv and '.flv' in consumer.asset_url():
+                if self.avoid_flv and '.flv' in consumer.asset_url:
                     log.info('Avoiding .flv')
                     raise Exception('Avoiding .flv')
 
