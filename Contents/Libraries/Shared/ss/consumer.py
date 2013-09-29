@@ -127,9 +127,17 @@ class Consumer(object):
 
     def post_request(self, params):
         url = params['__url']
+        should_replace = False
         del params['__url']
 
-        self.agent.open(url, urllib.urlencode(params))
+        if '__replace_page' in params:
+            should_replace = True
+            del params['__replace_page']
+
+        if should_replace:
+            self.replace_page(self.agent.open(url, urllib.urlencode(params)))
+        else:
+            self.agent.open(url, urllib.urlencode(params))
 
     def replace_page(self, response):
         response = self.ungzipResponse(response).read()
