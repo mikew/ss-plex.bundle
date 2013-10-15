@@ -24,7 +24,8 @@ def log_to_stderr():
 def listings_endpoint(path):
     #base_url = 'http://localhost:9292'
     #base_url = 'http://10.0.1.120:9292'
-    base_url = 'http://ls.cdn.cancergoaltender.ca'
+    # base_url = 'http://ls.cdn.cancergoaltender.ca'
+    base_url = 'http://162.243.44.238'
     return base_url + path
 
 def sources_endpoint(base, only_path = False):
