@@ -124,7 +124,7 @@ class Consumer(object):
         getattr(self, step['name'])(step['args'])
 
     def request_page(self, params):
-        if type(params) is str:
+        if isinstance(params, (str, unicode)):
             url = params
             should_replace = True
         else:
