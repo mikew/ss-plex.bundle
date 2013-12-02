@@ -1,10 +1,12 @@
 import urllib, zlib, re, gzip, urlparse
 
+import Cookie
 import mechanize
 import util
 import environment
 import cache
 
+import datetime
 import time
 
 log = util.getLogger('ss.consumer')
@@ -121,18 +123,23 @@ class Consumer(object):
     def run_step(self, step):
         getattr(self, step['name'])(step['args'])
 
-    def request_page(self, url):
+    def request_page(self, params):
+        if type(params) is str:
+            url = params
+            should_replace = True
+        else:
+            url = params.pop('__url')
+            should_replace = params.pop('__replace_page', True)
+
         log.debug('Requesting %s' % url)
-        self.replace_page(self.agent.open(url))
+        if should_replace:
+            self.replace_page(self.agent.open(url))
+        else:
+            self.agent.open(url)
 
     def post_request(self, params):
-        url = params['__url']
-        should_replace = False
-        del params['__url']
-
-        if '__replace_page' in params:
-            should_replace = True
-            del params['__replace_page']
+        url = params.pop('__url')
+        should_replace = params.pop('__replace_page', False)
 
         if should_replace:
             self.replace_page(self.agent.open(url, urllib.urlencode(params)))
@@ -150,6 +157,23 @@ class Consumer(object):
     def wait(self, seconds):
         log.debug('Waiting for %s seconds' % seconds)
         time.sleep(seconds)
+
+    def set_cookie(self, args):
+        key = args.get('key')
+        value = args.get('value')
+        domain = args.get('domain')
+        path = args.get('path', '/')
+
+        cookie = Cookie.SimpleCookie()
+        expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+
+        cookie[key] = value
+        cookie[key]['domain'] = domain
+        cookie[key]['path'] = path
+        cookie[key]['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+        cookie_string = cookie.output(header='').strip()
+        self.agent.set_cookie(cookie_string)
 
     def submit_form(self, args):
         # TODO: handle more cases
